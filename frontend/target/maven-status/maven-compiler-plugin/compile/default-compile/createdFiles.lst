@@ -1,0 +1,6 @@
+com\ctrlaltquest\ui\controllers\ForgotPasswordController.class
+com\ctrlaltquest\ui\controllers\RegisterController.class
+com\ctrlaltquest\ui\controllers\SplashController.class
+com\ctrlaltquest\ui\app\AppLauncher.class
+com\ctrlaltquest\ui\controllers\LoginController.class
+com\ctrlaltquest\ui\navigation\SceneRouter.class
