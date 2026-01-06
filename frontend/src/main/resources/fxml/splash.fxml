@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.media.MediaView?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:id="root" fx:controller="com.ctrlaltquest.ui.controllers.SplashController"
+           stylesheets="/styles/splash.css" prefWidth="960" prefHeight="540">
+    <MediaView fx:id="introVideo" fitWidth="960" fitHeight="540" preserveRatio="false" />
+
+    <VBox alignment="BOTTOM_CENTER" spacing="12" StackPane.alignment="BOTTOM_CENTER" styleClass="splash-overlay">
+        <Label text="Ctrl + Alt + Quest" styleClass="splash-title" />
+        <ProgressBar fx:id="loadingBar" prefWidth="420" progress="0" styleClass="splash-progress" />
+        <Label fx:id="loadingText" text="Cargando mundo RPG..." styleClass="splash-text" />
+    </VBox>
+</StackPane>

@@ -1,0 +1,41 @@
+.root {
+    -fx-background-color: #1a102a;
+    -fx-font-family: "Press Start 2P", "Pixel Emulator", sans-serif;
+}
+
+.auth-card {
+    -fx-background-color: rgba(20, 12, 32, 0.9);
+    -fx-padding: 32;
+    -fx-border-color: #f7d27a;
+    -fx-border-width: 3;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.auth-title {
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 16px;
+}
+
+.text-field, .password-field {
+    -fx-pref-width: 320;
+    -fx-background-color: #2b1a3a;
+    -fx-text-fill: #f2f2f2;
+    -fx-prompt-text-fill: #b5a7c6;
+    -fx-border-color: #6b4c7e;
+    -fx-border-radius: 4;
+}
+
+.primary-button {
+    -fx-background-color: #f7d27a;
+    -fx-text-fill: #1a102a;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+}
+
+.ghost-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7d27a;
+    -fx-border-color: #f7d27a;
+    -fx-border-width: 2;
+}

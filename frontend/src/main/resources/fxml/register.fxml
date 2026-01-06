@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ctrlaltquest.ui.controllers.RegisterController"
+            stylesheets="/styles/auth.css" prefWidth="960" prefHeight="540">
+    <center>
+        <VBox alignment="CENTER" spacing="16" styleClass="auth-card">
+            <Label text="Forja tu leyenda" styleClass="auth-title" />
+            <TextField fx:id="usernameField" promptText="Usuario" />
+            <TextField fx:id="emailField" promptText="Correo" />
+            <PasswordField fx:id="passwordField" promptText="Contraseña" />
+            <Button text="Registrarme" onAction="#handleRegister" styleClass="primary-button" />
+            <Button text="Volver" onAction="#handleBackToLogin" styleClass="ghost-button" />
+        </VBox>
+    </center>
+</BorderPane>
