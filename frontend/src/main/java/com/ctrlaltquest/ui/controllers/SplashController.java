@@ -10,6 +10,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.util.Duration;
 
 public class SplashController {
@@ -28,6 +33,7 @@ public class SplashController {
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(150), event -> updateProgress()));
         timeline.setCycleCount(60);
         timeline.setOnFinished(event -> playFadeOut());
+        timeline.setOnFinished(event -> loadingText.setText("Preparando la aventura..."));
         timeline.play();
     }
 
