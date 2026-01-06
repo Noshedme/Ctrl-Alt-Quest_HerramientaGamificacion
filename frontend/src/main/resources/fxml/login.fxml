@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ctrlaltquest.ui.controllers.LoginController"
+            stylesheets="/styles/auth.css" prefWidth="960" prefHeight="540">
+    <center>
+        <VBox alignment="CENTER" spacing="16" styleClass="auth-card">
+            <Label text="Bienvenido aventurero" styleClass="auth-title" />
+            <TextField fx:id="usernameField" promptText="Usuario" />
+            <PasswordField fx:id="passwordField" promptText="Contraseña" />
+            <Button text="Iniciar sesión" onAction="#handleLogin" styleClass="primary-button" />
+            <HBox alignment="CENTER" spacing="12">
+                <Button text="Crear cuenta" onAction="#handleGoToRegister" styleClass="ghost-button" />
+                <Button text="Olvidé mi contraseña" onAction="#handleForgotPassword" styleClass="ghost-button" />
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

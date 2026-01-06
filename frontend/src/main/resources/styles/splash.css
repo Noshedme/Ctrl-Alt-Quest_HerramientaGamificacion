@@ -1,0 +1,23 @@
+.root {
+    -fx-background-color: #120b1f;
+    -fx-font-family: "Press Start 2P", "Pixel Emulator", sans-serif;
+}
+
+.splash-overlay {
+    -fx-padding: 24;
+    -fx-background-color: rgba(12, 9, 18, 0.65);
+}
+
+.splash-title {
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 20px;
+}
+
+.splash-progress {
+    -fx-accent: #f7d27a;
+}
+
+.splash-text {
+    -fx-text-fill: #f2f2f2;
+    -fx-font-size: 12px;
+}
