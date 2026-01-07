@@ -25,6 +25,9 @@
                     <ImageView fx:id="sidebarLogo"
                                fitHeight="36"
                                preserveRatio="true" />
+                    <ImageView fitHeight="36"
+                               preserveRatio="true"
+                               image="@/assets/images/logo.png" />
                     <Label text="Contacta al creador" styleClass="sidebar-title" />
                 </HBox>
 

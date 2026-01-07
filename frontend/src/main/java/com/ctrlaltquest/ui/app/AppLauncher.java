@@ -13,6 +13,7 @@ public class AppLauncher extends Application {
         if (fontUrl != null) {
             Font.loadFont(fontUrl.toExternalForm(), 12);
         }
+        Font.loadFont(getClass().getResource("/assets/fonts/pixelcastle/pixelcastle.ttf").toExternalForm(), 12);
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/splash.fxml"));
         Scene scene = new Scene(loader.load());
         stage.setTitle("Ctrl + Alt + Quest");

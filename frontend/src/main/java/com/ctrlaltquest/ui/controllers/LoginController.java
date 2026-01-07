@@ -43,6 +43,11 @@ public class LoginController {
             backgroundVideo.setMediaPlayer(mediaPlayer);
             mediaPlayer.setAutoPlay(true);
         }
+        Media media = new Media(getClass().getResource("/assets/videos/introVideo.mp4").toExternalForm());
+        mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+        backgroundVideo.setMediaPlayer(mediaPlayer);
+        mediaPlayer.setAutoPlay(true);
         updateMuteState(false);
     }
 

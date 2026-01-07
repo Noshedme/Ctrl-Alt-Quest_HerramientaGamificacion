@@ -49,11 +49,15 @@ public class SplashController {
             introVideo.setMediaPlayer(mediaPlayer);
             mediaPlayer.setAutoPlay(true);
         }
+        Media media = new Media(getClass().getResource("/assets/videos/introVideo.mp4").toExternalForm());
+        mediaPlayer = new MediaPlayer(media);
+        introVideo.setMediaPlayer(mediaPlayer);
+        mediaPlayer.setAutoPlay(true);
 
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(150), event -> updateProgress()));
         timeline.setCycleCount(60);
         timeline.setOnFinished(event -> {
-            loadingText.setText("Preparando la aventura...");
+            loadingText.setText("Preparando archivos...");
             playFadeOut();
         });
         timeline.play();
@@ -63,11 +67,11 @@ public class SplashController {
         progress = Math.min(1.0, progress + 0.02);
         loadingBar.setProgress(progress);
         int percent = (int) (progress * 100);
-        loadingText.setText("Cargando mundo RPG... " + percent + "%");
+        loadingText.setText("Cargando herramientas de ofimática... " + percent + "%");
     }
 
     private void playFadeOut() {
-        loadingText.setText("Preparando la aventura...");
+        loadingText.setText("Preparando la aventura diigital...");
         FadeTransition fadeOut = new FadeTransition(Duration.millis(900), root);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);

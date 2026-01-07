@@ -25,6 +25,9 @@
         <ImageView fx:id="splashLogo"
                    fitHeight="48"
                    preserveRatio="true"
+        <ImageView fitHeight="48"
+                   preserveRatio="true"
+                   image="@/assets/images/logo.png"
                    styleClass="splash-logo" />
         <Label text="Ctrl + Alt + Quest" styleClass="splash-title" />
         <ProgressBar fx:id="loadingBar"
