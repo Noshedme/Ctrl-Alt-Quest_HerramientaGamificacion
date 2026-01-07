@@ -7,9 +7,11 @@ import java.net.URL;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
@@ -109,23 +111,64 @@ public class SplashController {
         FadeTransition fadeOut = new FadeTransition(Duration.millis(900), root);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
-        fadeOut.setOnFinished(event -> loadLoginScene());
+        fadeOut.setOnFinished(event -> Platform.runLater(() -> loadLoginScene()));
         fadeOut.play();
     }
 
     private void loadLoginScene() {
         try {
             Parent nextRoot = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
-            Stage stage = (Stage) root.getScene().getWindow();
-            stage.getScene().setRoot(nextRoot);
+            // Ensure the new root starts invisible so fade-in works reliably
+            nextRoot.setOpacity(0.0);
 
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(600), nextRoot);
-            fadeIn.setFromValue(0.0);
-            fadeIn.setToValue(1.0);
-            fadeIn.play();
+            // Stop and dispose media player before replacing the scene root
             if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.dispose();
+                try {
+                    mediaPlayer.stop();
+                } catch (Exception e) {
+                    System.err.println("WARNING: error stopping mediaPlayer: " + e.getMessage());
+                }
+                try {
+                    mediaPlayer.dispose();
+                } catch (Exception e) {
+                    System.err.println("WARNING: error disposing mediaPlayer: " + e.getMessage());
+                }
+                mediaPlayer = null;
+            }
+
+            // Try to find the Stage in a few ways to avoid NPE when scene is unavailable
+            Stage stage = null;
+            if (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage) {
+                stage = (Stage) root.getScene().getWindow();
+            } else if (loadingBar != null && loadingBar.getScene() != null && loadingBar.getScene().getWindow() instanceof Stage) {
+                stage = (Stage) loadingBar.getScene().getWindow();
+            } else if (splashLogo != null && splashLogo.getScene() != null && splashLogo.getScene().getWindow() instanceof Stage) {
+                stage = (Stage) splashLogo.getScene().getWindow();
+            }
+
+            if (stage != null) {
+                Scene scene = stage.getScene();
+                if (scene != null) {
+                    scene.setRoot(nextRoot);
+                } else {
+                    stage.setScene(new Scene(nextRoot));
+                }
+
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(600), nextRoot);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                fadeIn.play();
+            } else {
+                // Fallback: create a new stage if we couldn't find the original
+                System.err.println("WARNING: no Stage found, opening new Stage for login");
+                Stage newStage = new Stage();
+                newStage.setScene(new Scene(nextRoot));
+                newStage.show();
+
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(600), nextRoot);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                fadeIn.play();
             }
         } catch (Exception exception) {
             loadingText.setText("Error cargando la interfaz.");
