@@ -37,19 +37,19 @@ public class SplashController {
     private double progress = 0.0;
 
     public void initialize() {
-        var logoUrl = getClass().getResource("/assets/images/logo.png");
+        var logoUrl = getClass().getResource("resources/assets/images/logo.png");
         if (logoUrl != null) {
             splashLogo.setImage(new Image(logoUrl.toExternalForm()));
         }
 
-        var videoUrl = getClass().getResource("/assets/videos/introVideo.mp4");
+        var videoUrl = getClass().getResource("resources/assets/videos/introVideo.mp4");
         if (videoUrl != null) {
             Media media = new Media(videoUrl.toExternalForm());
             mediaPlayer = new MediaPlayer(media);
             introVideo.setMediaPlayer(mediaPlayer);
             mediaPlayer.setAutoPlay(true);
         }
-        Media media = new Media(getClass().getResource("/assets/videos/introVideo.mp4").toExternalForm());
+        Media media = new Media(getClass().getResource("resources/assets/videos/introVideo.mp4").toExternalForm());
         mediaPlayer = new MediaPlayer(media);
         introVideo.setMediaPlayer(mediaPlayer);
         mediaPlayer.setAutoPlay(true);

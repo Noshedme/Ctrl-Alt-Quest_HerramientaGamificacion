@@ -4,6 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.media.MediaView?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 
 <StackPane xmlns:fx="http://javafx.com/fxml"
            fx:id="root"
@@ -22,10 +23,15 @@
           StackPane.alignment="BOTTOM_CENTER"
           styleClass="splash-overlay">
 
-        <ImageView fitHeight="48"
+        <ImageView fx:id="splashLogo"
+                   fitHeight="48"
                    preserveRatio="true"
-                   image="@/assets/images/logo.png"
-                   styleClass="splash-logo" />
+                   styleClass="splash-logo">
+            <image>
+                <Image url="@/assets/images/logo.png" />
+            </image>
+        </ImageView>
+
         <Label text="Ctrl + Alt + Quest" styleClass="splash-title" />
         <ProgressBar fx:id="loadingBar"
                      prefWidth="420"
