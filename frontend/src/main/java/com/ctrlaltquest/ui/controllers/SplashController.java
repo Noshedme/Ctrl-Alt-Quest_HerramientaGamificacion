@@ -9,6 +9,9 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -22,9 +25,18 @@ public class SplashController {
     @FXML
     private StackPane root;
 
+    @FXML
+    private MediaView introVideo;
+
+    private MediaPlayer mediaPlayer;
     private double progress = 0.0;
 
     public void initialize() {
+        Media media = new Media(getClass().getResource("/assets/videos/introVideo.mp4").toExternalForm());
+        mediaPlayer = new MediaPlayer(media);
+        introVideo.setMediaPlayer(mediaPlayer);
+        mediaPlayer.setAutoPlay(true);
+
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(150), event -> updateProgress()));
         timeline.setCycleCount(60);
         timeline.setOnFinished(event -> {
@@ -60,6 +72,10 @@ public class SplashController {
             fadeIn.setFromValue(0.0);
             fadeIn.setToValue(1.0);
             fadeIn.play();
+            if (mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
+            }
         } catch (Exception exception) {
             loadingText.setText("Error cargando la interfaz.");
         }
