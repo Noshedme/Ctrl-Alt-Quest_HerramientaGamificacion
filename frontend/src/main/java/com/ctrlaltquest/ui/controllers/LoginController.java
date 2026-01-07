@@ -2,11 +2,12 @@ package com.ctrlaltquest.ui.controllers;
 
 import java.io.IOException;
 import java.net.URL;
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -15,12 +16,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 public class LoginController {
@@ -31,10 +33,7 @@ public class LoginController {
     @FXML private Button btnTogglePassword;
     @FXML private ImageView sidebarLogo;
     @FXML private MediaView backgroundVideo;
-
-    // Elementos del carrusel
-    @FXML private StackPane carouselContainer;
-    @FXML private VBox newsSlider;
+    @FXML private StackPane newsSlider; 
     
     private MediaPlayer mediaPlayer;
     private boolean isPasswordVisible = false;
@@ -42,16 +41,11 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        // 1. Aplicar desenfoque al video de fondo para resaltar el panel
-        backgroundVideo.setEffect(new javafx.scene.effect.GaussianBlur(15));
-        
-        // 2. Cargar el Logo de la Orden
-        URL logoUrl = getClass().getResource("/assets/images/logo.png");
-        if (logoUrl != null && sidebarLogo != null) {
-            sidebarLogo.setImage(new Image(logoUrl.toExternalForm()));
+        if (backgroundVideo != null) {
+            backgroundVideo.setEffect(new javafx.scene.effect.GaussianBlur(15));
+            configurarVideo();
         }
-
-        configurarVideo();
+        cargarLogo();
         setupCarousel(); 
     }
 
@@ -64,31 +58,56 @@ public class LoginController {
                 backgroundVideo.setMediaPlayer(mediaPlayer);
                 mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                 mediaPlayer.setMute(true);
-                mediaPlayer.setRate(1.1); 
-                mediaPlayer.setOnReady(() -> mediaPlayer.play());
+                mediaPlayer.setRate(0.5); 
+                
+                // Aplicar estado actual de pausa de ajustes
+                if (SettingsController.isVideoPaused) {
+                    mediaPlayer.pause();
+                } else {
+                    mediaPlayer.setOnReady(() -> mediaPlayer.play());
+                }
             } catch (Exception e) {
                 System.err.println("Error carga video: " + e.getMessage());
             }
         }
     }
 
+    // Método para que SettingsController controle este video
+    public void setVideoPlaying(boolean play) {
+        if (mediaPlayer != null) {
+            if (play) mediaPlayer.play();
+            else mediaPlayer.pause();
+        }
+    }
+
     private void setupCarousel() {
-        Rectangle clip = new Rectangle(440, 450); 
-        carouselContainer.setClip(clip);
-
+        if (newsSlider == null) return;
         int totalNews = newsSlider.getChildren().size();
-        double newsHeight = 450; 
+        if (totalNews <= 1) return;
 
-        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
-            if (totalNews > 0) {
-                currentNewsIndex = (currentNewsIndex + 1) % totalNews;
-                TranslateTransition slide = new TranslateTransition(Duration.millis(1200), newsSlider);
-                slide.setToY(-currentNewsIndex * newsHeight);
-                slide.setInterpolator(javafx.animation.Interpolator.EASE_BOTH);
-                slide.play();
-            }
+        for (int i = 0; i < totalNews; i++) {
+            newsSlider.getChildren().get(i).setOpacity(i == 0 ? 1.0 : 0.0);
+            newsSlider.getChildren().get(i).setManaged(i == 0);
+        }
+
+        Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(6), event -> {
+            Node outNode = newsSlider.getChildren().get(currentNewsIndex);
+            currentNewsIndex = (currentNewsIndex + 1) % totalNews;
+            Node inNode = newsSlider.getChildren().get(currentNewsIndex);
+
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(800), outNode);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(e -> {
+                outNode.setManaged(false);
+                inNode.setManaged(true);
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(800), inNode);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                fadeIn.play();
+            });
+            fadeOut.play();
         }));
-        
         timeline.setCycleCount(Timeline.INDEFINITE);
         timeline.play();
     }
@@ -109,58 +128,60 @@ public class LoginController {
         isPasswordVisible = !isPasswordVisible;
     }
 
-    @FXML
-    public void handleLogin() {
-        String pass = isPasswordVisible ? passwordShown.getText() : passwordHidden.getText();
-        System.out.println("Intento de acceso - Aventurero: " + usernameField.getText());
+    @FXML 
+    public void handleOpenSettings() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
+            Parent root = loader.load();
+            
+            // Pasar referencia de este controlador a la ventana de ajustes
+            SettingsController settingsCtrl = loader.getController();
+            settingsCtrl.setLoginController(this);
+
+            Stage settingsStage = new Stage();
+            settingsStage.initModality(Modality.APPLICATION_MODAL);
+            settingsStage.initOwner(usernameField.getScene().getWindow());
+            settingsStage.initStyle(StageStyle.TRANSPARENT); 
+            Scene scene = new Scene(root);
+            scene.setFill(Color.TRANSPARENT); 
+            settingsStage.setScene(scene);
+            settingsStage.show();
+        } catch (IOException e) {
+            System.err.println("Error al abrir ajustes: " + e.getMessage());
+        }
     }
 
-@FXML 
-public void handleGoToRegister() {
-    // 1. Obtenemos la raíz actual y el stage
-    Parent currentRoot = usernameField.getScene().getRoot();
-    Stage stage = (Stage) usernameField.getScene().getWindow();
-
-    // 2. Transición de desvanecimiento de salida
-    javafx.animation.FadeTransition fadeOut = new javafx.animation.FadeTransition(Duration.millis(500), currentRoot);
-    fadeOut.setFromValue(1.0);
-    fadeOut.setToValue(0.0);
-    
-    fadeOut.setOnFinished(event -> {
+    @FXML 
+    public void handleGoToRegister() { 
         try {
-            // 3. Cargar la nueva vista
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/register.fxml"));
             Parent registerRoot = loader.load();
+            Stage stage = (Stage) usernameField.getScene().getWindow();
             
-            // IMPORTANTE: Asegurarnos de que el root de registro sea invisible al inicio
-            registerRoot.setOpacity(0.0);
-            
-            // 4. Cambiar la raíz de la escena existente
-            stage.getScene().setRoot(registerRoot);
-            
-            // 5. Transición de entrada
-            javafx.animation.FadeTransition fadeIn = new javafx.animation.FadeTransition(Duration.millis(500), registerRoot);
-            fadeIn.setFromValue(0.0);
-            fadeIn.setToValue(1.0);
-            
-            // Si el video te da problemas, detén el MediaPlayer de login aquí antes de entrar
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-            }
-            
-            fadeIn.play();
-            
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(400), usernameField.getScene().getRoot());
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(event -> {
+                stage.getScene().setRoot(registerRoot);
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(400), registerRoot);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                if (mediaPlayer != null) { mediaPlayer.stop(); mediaPlayer.dispose(); }
+                fadeIn.play();
+            });
+            fadeOut.play();
         } catch (IOException e) {
-            System.err.println("Error al cargar register.fxml: " + e.getMessage());
             e.printStackTrace();
-            // Si falla, restauramos la opacidad del login para no quedar atrapados en blanco
-            currentRoot.setOpacity(1.0);
         }
-    });
-    fadeOut.play();
-}
-
-    @FXML public void handleForgotPassword() { 
-        System.out.println("Iniciando búsqueda de llave perdida..."); 
     }
+
+    private void cargarLogo() {
+        URL logoUrl = getClass().getResource("/assets/images/logo.png");
+        if (logoUrl != null && sidebarLogo != null) {
+            sidebarLogo.setImage(new Image(logoUrl.toExternalForm()));
+        }
+    }
+
+    @FXML public void handleLogin() { System.out.println("Login iniciado."); }
+    @FXML public void handleForgotPassword() { System.out.println("Recuperando llave..."); }
 }

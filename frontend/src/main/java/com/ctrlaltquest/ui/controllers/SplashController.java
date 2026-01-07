@@ -37,16 +37,16 @@ public class SplashController {
     private double progress = 0.0;
 
     // Ajustado a 9 segundos: 9000ms / 100ms = 90 ciclos
-    private final int TOTAL_CYCLES = 90;
+    private final int TOTAL_CYCLES = 70;
 
     private final String[] rpgTips = {
         "Invocando el reino de los datos...",
         "Encantando la interfaz de usuario...",
         "Afilando las hojas de cálculo...",
-        "Preparando pociones de optimización...",
+        "Preparando herramientas de Office...",
         "Reclutando aventureros en la base de datos...",
-        "Forjando el código en el yunque...",
-        "Leyendo antiguos pergaminos de Java..."
+        "Forjando videos de Youtube...",
+        "Leyendo antiguos pergaminos del historial de navegación..."
     };
     private final Random random = new Random();
 

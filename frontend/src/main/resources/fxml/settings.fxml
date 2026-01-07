@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.Line?>
+
+<VBox fx:id="mainContainer" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="com.ctrlaltquest.ui.controllers.SettingsController"
+      spacing="25" alignment="CENTER" styleClass="settings-pane" 
+      prefWidth="450" prefHeight="400"
+      stylesheets="@../styles/auth.css"> <Label text="ORÁCULO DE CONFIGURACIÓN" styleClass="settings-title" />
+    
+    <Line endX="250" styleClass="settings-divider" />
+
+    <VBox spacing="20" alignment="CENTER_LEFT" style="-fx-padding: 10 30 10 30;">
+        
+        <HBox spacing="18" alignment="CENTER_LEFT">
+            <CheckBox fx:id="checkTypingSound" styleClass="pixel-checkbox"/>
+            <VBox spacing="2">
+                <Label text="ECO DE LAS LLAVES" styleClass="settings-label" />
+                <Label text="Activar sonidos de tecleo 8-bit" styleClass="settings-sublabel" />
+            </VBox>
+        </HBox>
+
+        <HBox spacing="18" alignment="CENTER_LEFT">
+            <CheckBox fx:id="checkPauseVideo" styleClass="pixel-checkbox" onAction="#handlePauseVideo"/>
+            <VBox spacing="2">
+                <Label text="CONGELAR TIEMPO" styleClass="settings-label" />
+                <Label text="Detener el video de fondo" styleClass="settings-sublabel" />
+            </VBox>
+        </HBox>
+
+    </VBox>
+
+    <Region VBox.vgrow="ALWAYS" />
+    
+    <Button text="CERRAR PERGAMINO" onAction="#handleClose" styleClass="primary-button-hero" 
+            style="-fx-font-size: 16px; -fx-padding: 10 30;" />
+
+</VBox>

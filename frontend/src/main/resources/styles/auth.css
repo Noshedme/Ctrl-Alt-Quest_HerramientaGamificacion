@@ -1,4 +1,6 @@
-/* 1. CONFIGURACIÓN GLOBAL */
+/* ==========================================================
+   1. CONFIGURACIÓN DE FUENTES Y ROOT
+   ========================================================== */
 @font-face { font-family: "Runewood"; src: url("/assets/fonts/runewood/Runewood.ttf"); }
 @font-face { font-family: "Pixelcastle"; src: url("/assets/fonts/pixelcastle/Pixelcastle-Regular.otf"); }
 
@@ -7,156 +9,421 @@
     -fx-font-family: "Runewood"; 
 }
 
-/* 2. FONDO Y SIDEBAR (OCUPAR BIEN EL ESPACIO) */
-#backgroundVideo { -fx-opacity: 0.45; }
-
+/* ==========================================================
+   2. SIDEBAR Y CONTENEDORES DE IZQUIERDA
+   ========================================================= */
 .sidebar {
-    -fx-background-color: linear-gradient(to right, rgba(20, 15, 35, 0.98), rgba(15, 10, 25, 0.85));
-    -fx-padding: 40 30;
-    -fx-pref-width: 480; 
-    -fx-border-color: #f7d27a;
-    -fx-border-width: 0 1 0 0;
-    -fx-effect: dropshadow(three-pass-box, black, 30, 0, 10, 0);
+    -fx-background-color: linear-gradient(to right, rgba(20, 15, 35, 0.98), transparent);
+    -fx-padding: 30;
+    -fx-pref-width: 460; 
 }
 
-.sidebar-title {
-    -fx-text-fill: linear-gradient(to bottom, #f7d27a, #b8860b);
-    -fx-font-size: 24px;
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.4), 10, 0, 0, 0);
+.sidebar-title-runic {
+    -fx-text-fill: #f7d27a;
+    -fx-font-family: "Runewood";
+    -fx-font-size: 26px; /* Ajuste fino para evitar desbordes */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 5, 0, 0, 2);
 }
 
-/* 3. CARRUSEL (CORRECCIÓN DE ESPACIO Y EFECTO) */
-.news-carousel-viewport {
-    -fx-background-color: rgba(255, 255, 255, 0.02);
-    -fx-background-radius: 15;
-    -fx-border-color: rgba(247, 210, 122, 0.15);
-    -fx-border-width: 1;
-    -fx-min-height: 450; /* Aumentado para el efecto vertical */
-    -fx-max-height: 450;
+.carousel-viewport-clean {
+    -fx-max-height: 350;
+    -fx-min-height: 350;
+    -fx-pref-width: 380;
 }
 
-.news-card-carousel {
-    -fx-padding: 35;
-    -fx-spacing: 20;
-}
-
-.card-category { 
-    -fx-text-fill: #ffd700; 
-    -fx-font-size: 16px; 
-    -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #000, 2, 0, 1, 1);
-}
-
-.card-text { 
-    -fx-text-fill: #e0e0e0; 
-    -fx-font-size: 20px; 
-    -fx-line-spacing: 6; 
-    -fx-font-family: "Pixelcastle"; 
-}
-
-/* 4. PANEL DE LOGIN (GLASSMORFISMO) */
-.auth-panel {
-    -fx-background-color: linear-gradient(to bottom right, rgba(40, 25, 60, 0.92), rgba(20, 12, 30, 0.96));
-    -fx-background-radius: 25;
-    -fx-border-color: linear-gradient(to bottom, #f7d27a, rgba(247, 210, 122, 0.1), #5d4037);
+/* Tarjeta de noticia con bordes suaves y degradado profundo */
+.news-card-compact {
+    -fx-background-color: linear-gradient(to bottom right, #1a122b, #0d0915);
+    -fx-background-radius: 40; 
+    -fx-border-color: rgba(247, 210, 122, 0.25);
     -fx-border-width: 1.5;
+    -fx-border-radius: 40;
+    -fx-padding: 30;
+    -fx-max-width: 380;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 20, 0, 0, 10);
+}
+
+.card-category-runic {
+    -fx-font-family: "Runewood";
+    -fx-font-size: 20px;
+    -fx-text-fill: #f7d27a;
+}
+
+.card-text-pixel {
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 18px; 
+    -fx-text-fill: #cccccc;
+    -fx-line-spacing: 4;
+}
+
+/* ==========================================================
+   3. PANEL DE LOGIN CENTRAL (HERO)
+   ========================================================== */
+.auth-panel {
+    /* Degradado profundo y bordes muy redondeados según tu referencia */
+    -fx-background-color: linear-gradient(to bottom, #1e162d 0%, #0d0915 100%);
+    -fx-background-radius: 50; 
+    -fx-border-color: linear-gradient(to bottom, rgba(247, 210, 122, 0.6), rgba(247, 210, 122, 0.05));
+    -fx-border-width: 2;
+    -fx-border-radius: 50;
     -fx-padding: 50;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 50, 0, 0, 25);
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 50, 0, 0, 15);
 }
 
-.auth-title { 
-    -fx-text-fill: #f7d27a; 
-    -fx-font-size: 30px;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 2, 0, 2, 2);
+.auth-title-hero {
+    -fx-font-family: "Runewood";
+    -fx-font-size: 30px; /* Tamaño optimizado para que el texto respire */
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 6, 0, 0, 2);
 }
 
-/* 5. INPUTS Y ETIQUETAS RUNEWOOD */
-.input-label-runic { 
-    -fx-text-fill: #f7d27a; 
-    -fx-font-size: 14px; 
-    -fx-font-family: "Runewood"; 
-    -fx-opacity: 0.95;
-    -fx-padding: 0 0 5 2;
-    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.2), 5, 0, 0, 0);
+/* ==========================================================
+   4. BOTONES Y CAMPOS
+   ========================================================== */
+.primary-button-hero {
+    -fx-background-color: linear-gradient(to bottom, #f7d27a, #d4a017);
+    -fx-background-radius: 15;
+    -fx-font-family: "Runewood";
+    -fx-font-size: 20px;
+    -fx-text-fill: #1a0f26;
+    -fx-padding: 14 55;
+    -fx-cursor: hand;
+}
+
+.primary-button-hero:hover {
+    -fx-background-color: linear-gradient(to bottom, #fff4cc, #f7d27a);
+    -fx-scale-x: 1.04;
+    -fx-scale-y: 1.04;
 }
 
 .custom-field {
-    -fx-background-color: rgba(0, 0, 0, 0.4);
-    -fx-background-radius: 8;
+    -fx-background-color: rgba(5, 5, 10, 0.7);
+    -fx-background-radius: 15;
     -fx-text-fill: #ffffff;
     -fx-font-family: "Pixelcastle";
     -fx-font-size: 18px;
-    -fx-padding: 15;
+    -fx-padding: 12;
     -fx-border-color: rgba(247, 210, 122, 0.15);
-    -fx-border-radius: 8;
+    -fx-border-radius: 15;
 }
 
 .custom-field:focused {
-    -fx-border-color: #f7d27a;
-    -fx-background-color: rgba(0, 0, 0, 0.6);
+    -fx-border-color: rgba(247, 210, 122, 0.6);
+    -fx-background-color: rgba(0, 0, 0, 0.9);
 }
 
-/* 6. BOTÓN PRIMARIO (INICIAR AVENTURA) */
-.primary-button {
-    -fx-background-color: linear-gradient(to bottom, #f7d27a, #d4a017, #8a6d3b);
-    -fx-background-radius: 5;
-    -fx-text-fill: #1a0f26;
+.icon-button:hover {
+    -fx-text-fill: #ffffff;
+    -fx-rotate: 45; /* Animación sutil para el engranaje */
+}
+
+/* ==========================================================
+   1. CONFIGURACIÓN DE FUENTES Y ROOT
+   ========================================================== */
+@font-face { font-family: "Runewood"; src: url("/assets/fonts/runewood/Runewood.ttf"); }
+@font-face { font-family: "Pixelcastle"; src: url("/assets/fonts/pixelcastle/Pixelcastle-Regular.otf"); }
+
+.root { 
+    -fx-background-color: #0d0915; 
+    -fx-font-family: "Runewood"; 
+}
+
+/* ==========================================================
+   2. SIDEBAR Y CONTENEDORES
+   ========================================================== */
+.sidebar {
+    -fx-background-color: linear-gradient(to right, rgba(20, 15, 35, 0.98), transparent);
+    -fx-padding: 30;
+    -fx-pref-width: 460; 
+}
+
+.sidebar-title-runic {
+    -fx-text-fill: #f7d27a;
+    -fx-font-family: "Runewood";
+    -fx-font-size: 26px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 5, 0, 0, 2);
+}
+
+.carousel-viewport-clean {
+    -fx-max-height: 350;
+    -fx-min-height: 350;
+    -fx-pref-width: 380;
+}
+
+.news-card-compact {
+    -fx-background-color: linear-gradient(to bottom right, #1a122b, #0d0915);
+    -fx-background-radius: 40; 
+    -fx-border-color: rgba(247, 210, 122, 0.25);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 40;
+    -fx-padding: 30;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 20, 0, 0, 10);
+}
+
+.card-text-pixel {
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 18px; 
+    -fx-text-fill: #cccccc;
+    -fx-line-spacing: 4;
+}
+
+/* ==========================================================
+   3. PANEL DE LOGIN CENTRAL (HERO)
+   ========================================================== */
+.auth-panel {
+    -fx-background-color: linear-gradient(to bottom, #1e162d 0%, #0d0915 100%);
+    -fx-background-radius: 50; 
+    -fx-border-color: linear-gradient(to bottom, rgba(247, 210, 122, 0.6), rgba(247, 210, 122, 0.05));
+    -fx-border-width: 2;
+    -fx-border-radius: 50;
+    -fx-padding: 50;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 50, 0, 0, 15);
+}
+
+.auth-title-hero {
+    -fx-font-family: "Runewood";
+    -fx-font-size: 30px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 6, 0, 0, 2);
+}
+
+/* ==========================================================
+   4. BOTONES RPG Y CAMPOS PIXEL
+   ========================================================== */
+.primary-button-hero {
+    -fx-background-color: linear-gradient(to bottom, #f7d27a, #d4a017);
+    -fx-background-radius: 15;
     -fx-font-family: "Runewood";
     -fx-font-size: 20px;
-    -fx-padding: 12 60;
+    -fx-text-fill: #1a0f26;
+    -fx-padding: 14 55;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.3), 10, 0, 0, 0);
 }
 
-.primary-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #fff0c7, #f7d27a, #b8860b);
-    -fx-translate-y: -2;
-    -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.4, 0, 0);
+.primary-button-hero:hover {
+    -fx-background-color: linear-gradient(to bottom, #fff4cc, #f7d27a);
+    -fx-scale-x: 1.04;
+    -fx-scale-y: 1.04;
 }
 
-/* 7. LINKS SECUNDARIOS (SOLO TEXTO - SIN CUADROS) */
-.link-button {
+/* Enlaces estilo RPG: Solo texto que brilla al pasar el mouse */
+.link-button-clean {
     -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-background-insets: 0; /* Esto quita el borde azul al hacer click */
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
     -fx-text-fill: #b5a7c6;
     -fx-font-family: "Pixelcastle";
-    -fx-font-size: 15px;
+    -fx-font-size: 17px;
     -fx-cursor: hand;
+    -fx-border-width: 0;
 }
 
-.link-button:hover {
+.link-button-clean:hover { 
     -fx-text-fill: #f7d27a;
-    -fx-underline: true;
-    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.5), 5, 0, 0, 0);
+    -fx-effect: dropshadow(gaussian, #f7d27a, 10, 0.5, 0, 0);
 }
 
-/* OCULTAR EL BOTÓN X DEFINITIVAMENTE */
-.close-button {
-    -fx-opacity: 0;
-    -fx-max-width: 0;
-    -fx-max-height: 0;
+/* Campos de texto */
+.custom-field {
+    -fx-background-color: rgba(5, 5, 10, 0.7);
+    -fx-background-radius: 12;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 18px;
+    -fx-padding: 12;
+    -fx-border-color: rgba(247, 210, 122, 0.15);
+    -fx-border-radius: 12;
 }
 
-/* Botón del ojo integrado */
+.custom-field:focused {
+    -fx-border-color: rgba(247, 210, 122, 0.6);
+}
+
+/* Botón del Ojo integrado */
 .btn-eye {
     -fx-background-color: transparent;
-    -fx-border-color: transparent;
-    -fx-text-fill: #f7d27a; /* Color dorado rúnico */
-    -fx-cursor: hand;
-    -fx-padding: 0 10 0 0; /* Margen a la derecha */
-    -fx-font-size: 14px;
     -fx-background-insets: 0;
+    -fx-text-fill: #f7d27a;
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 22px;
+    -fx-cursor: hand;
+    -fx-padding: 0 15 0 0;
+}
+
+.btn-eye:hover {
+    -fx-text-fill: white;
+}
+
+/* DOTS DEL CARRUSEL */
+.dot { -fx-fill: rgba(247, 210, 122, 0.15); }
+.active-dot { -fx-fill: #f7d27a; }
+
+/* ... (mantener lo anterior) ... */
+
+/* BOTÓN DE AJUSTES (Engranaje) */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 28px;
+    -fx-cursor: hand;
+    -fx-transition: all 0.3s ease-in-out;
+}
+
+.icon-button:hover {
+    -fx-text-fill: #ffffff;
+    -fx-rotate: 90; /* Gira al poner el mouse */
+    -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.5, 0, 0);
+}
+
+/* Estilo para los botones de enlace (Crear cuenta / Olvidaste) corregido */
+.link-button-clean {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 17px;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+}
+
+.link-button-clean:hover {
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.8), 10, 0, 0, 0);
+}
+
+/* Botón del ojo (visualizar contraseña) estilo RPG */
+.btn-eye {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 18px;
+    -fx-cursor: hand;
 }
 
 .btn-eye:hover {
     -fx-text-fill: #ffffff;
-    -fx-effect: dropshadow(gaussian, #f7d27a, 5, 0, 0, 0);
+    -fx-scale-x: 1.2;
+    -fx-scale-y: 1.2;
 }
 
-/* Para asegurar que el texto de la contraseña no choque con el ojo */
-.custom-field {
-    /* ... tus otras reglas ... */
-    -fx-padding: 15 40 15 15; /* Aumentamos el padding derecho a 40 */
+/* ==========================================================
+   5. PANEL DE AJUSTES (ESTILO CRISTAL RÚNICO)
+   ========================================================== */
+.settings-pane {
+    /* Color de fondo con transparencia para el efecto de cristal */
+    -fx-background-color: rgba(30, 22, 45, 0.85); 
+    -fx-background-radius: 40;
+    
+    /* Borde dorado brillante con gradiente */
+    -fx-border-color: linear-gradient(to bottom, #f7d27a, rgba(247, 210, 122, 0.2));
+    -fx-border-width: 2.5;
+    -fx-border-radius: 40;
+    
+    -fx-padding: 40;
+    
+    /* Sombra profunda para despegarlo del fondo */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.9), 60, 0, 0, 20);
+}
+
+/* Título estilo inscripción dorada */
+.settings-title {
+    -fx-font-family: "Runewood";
+    -fx-font-size: 26px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 4, 0, 0, 2);
+}
+
+.settings-label {
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 20px;
+    -fx-text-fill: #ffffff;
+}
+
+.settings-sublabel {
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 13px;
+    -fx-text-fill: #b5a7c6;
+}
+
+/* Línea divisoria mística */
+.settings-divider {
+    -fx-stroke: linear-gradient(to right, transparent, #f7d27a, transparent);
+    -fx-stroke-width: 1.5;
+    -fx-opacity: 0.4;
+}
+
+/* CHECKBOX ESTILO RPG PIXELADO */
+.pixel-checkbox {
+    -fx-cursor: hand;
+}
+
+.pixel-checkbox .box {
+    -fx-background-color: rgba(5, 5, 10, 0.8);
+    -fx-border-color: #f7d27a;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-padding: 4;
+}
+
+.pixel-checkbox:hover .box {
+    -fx-background-color: rgba(247, 210, 122, 0.2);
+    -fx-border-color: #ffffff;
+}
+
+.pixel-checkbox:selected .mark {
+    -fx-background-color: #f7d27a;
+    /* Forma de marca de verificación pixel art */
+    -fx-shape: "M 0 5 L 4 9 L 10 0 L 10 2 L 4 11 L 0 7 Z"; 
+    -fx-effect: dropshadow(gaussian, #f7d27a, 10, 0.5, 0, 0);
+}
+
+/* ==========================================================
+   5. PANEL DE AJUSTES (ESTILO CRISTAL RÚNICO)
+   ========================================================== */
+.settings-pane {
+    /* Forzamos el fondo oscuro semi-transparente */
+    -fx-background-color: rgba(20, 15, 30, 0.92) !important; 
+    -fx-background-radius: 40;
+    -fx-border-color: linear-gradient(to bottom, #f7d27a, rgba(247, 210, 122, 0.1));
+    -fx-border-width: 2.5;
+    -fx-border-radius: 40;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 50, 0, 0, 0);
+}
+
+.settings-title {
+    -fx-font-family: "Runewood";
+    -fx-font-size: 24px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 4, 0, 0, 1);
+}
+
+.settings-label {
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 19px;
+    -fx-text-fill: #ffffff !important;
+}
+
+.settings-sublabel {
+    -fx-font-family: "Pixelcastle";
+    -fx-font-size: 13px;
+    -fx-text-fill: #b5a7c6 !important;
+}
+
+.settings-divider {
+    -fx-stroke: linear-gradient(to right, transparent, #f7d27a, transparent);
+    -fx-stroke-width: 2;
+    -fx-opacity: 0.5;
+}
+
+/* CHECKBOX PERSONALIZADO */
+.pixel-checkbox .box {
+    -fx-background-color: #0d0915;
+    -fx-border-color: #f7d27a;
+    -fx-border-radius: 4;
+}
+
+.pixel-checkbox:selected .mark {
+    -fx-background-color: #f7d27a;
+    -fx-shape: "M 0 5 L 4 9 L 10 0 L 10 2 L 4 11 L 0 7 Z";
 }
