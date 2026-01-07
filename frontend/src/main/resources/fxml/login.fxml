@@ -22,6 +22,9 @@
         <left>
             <VBox spacing="18" styleClass="sidebar" prefWidth="300">
                 <HBox alignment="CENTER_LEFT" spacing="10">
+                    <ImageView fx:id="sidebarLogo"
+                               fitHeight="36"
+                               preserveRatio="true" />
                     <ImageView fitHeight="36"
                                preserveRatio="true"
                                image="@/assets/images/logo.png" />

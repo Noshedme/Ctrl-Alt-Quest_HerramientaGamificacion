@@ -22,6 +22,9 @@
           StackPane.alignment="BOTTOM_CENTER"
           styleClass="splash-overlay">
 
+        <ImageView fx:id="splashLogo"
+                   fitHeight="48"
+                   preserveRatio="true"
         <ImageView fitHeight="48"
                    preserveRatio="true"
                    image="@/assets/images/logo.png"
