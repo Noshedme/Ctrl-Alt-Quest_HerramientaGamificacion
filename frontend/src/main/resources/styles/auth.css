@@ -1,41 +1,96 @@
 .root {
     -fx-background-color: #1a102a;
-    -fx-font-family: "Press Start 2P", "Pixel Emulator", sans-serif;
+    -fx-font-family: "Pixelcastle", "Press Start 2P", "Pixel Emulator", sans-serif;
 }
 
-.auth-card {
-    -fx-background-color: rgba(20, 12, 32, 0.9);
-    -fx-padding: 32;
-    -fx-border-color: #f7d27a;
-    -fx-border-width: 3;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
+@font-face {
+    font-family: "Pixelcastle";
+    src: url("/assets/fonts/pixelcastle/pixelcastle.ttf");
+}
+
+.login-layout {
+    -fx-background-color: rgba(14, 9, 24, 0.8);
+}
+
+.top-actions {
+    -fx-padding: 18 24 0 24;
+}
+
+.icon-button {
+    -fx-background-color: rgba(60, 42, 88, 0.8);
+    -fx-text-fill: #f2f2f2;
+    -fx-font-size: 16px;
+    -fx-background-radius: 8;
+    -fx-padding: 6 10;
+}
+
+.icon-button:selected {
+    -fx-background-color: rgba(95, 74, 124, 0.9);
+}
+
+.sidebar {
+    -fx-background-color: rgba(30, 18, 46, 0.85);
+    -fx-padding: 24;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-width: 0 1 0 0;
+}
+
+.sidebar-title {
+    -fx-text-fill: #e7d2a3;
+    -fx-font-size: 12px;
+}
+
+.news-card {
+    -fx-background-color: rgba(68, 45, 91, 0.5);
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-padding: 16;
+}
+
+.news-title {
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 14px;
+}
+
+.news-body {
+    -fx-text-fill: #d8cbe5;
+    -fx-font-size: 10px;
+}
+
+.auth-panel {
+    -fx-background-color: rgba(20, 12, 32, 0.85);
+    -fx-padding: 32 40;
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(247, 210, 122, 0.4);
+    -fx-border-radius: 14;
 }
 
 .auth-title {
     -fx-text-fill: #f7d27a;
-    -fx-font-size: 16px;
+    -fx-font-size: 18px;
 }
 
 .text-field, .password-field {
-    -fx-pref-width: 320;
-    -fx-background-color: #2b1a3a;
+    -fx-pref-width: 420;
+    -fx-background-color: rgba(43, 26, 58, 0.85);
     -fx-text-fill: #f2f2f2;
     -fx-prompt-text-fill: #b5a7c6;
     -fx-border-color: #6b4c7e;
     -fx-border-radius: 4;
+    -fx-background-radius: 4;
 }
 
 .primary-button {
-    -fx-background-color: #f7d27a;
-    -fx-text-fill: #1a102a;
+    -fx-background-color: linear-gradient(#f7d27a, #d6b05a);
+    -fx-text-fill: #1b102a;
     -fx-font-weight: bold;
-    -fx-padding: 8 16;
+    -fx-padding: 10 22;
+    -fx-background-radius: 8;
 }
 
-.ghost-button {
+.link-button {
     -fx-background-color: transparent;
     -fx-text-fill: #f7d27a;
-    -fx-border-color: #f7d27a;
-    -fx-border-width: 2;
+    -fx-font-size: 10px;
 }
