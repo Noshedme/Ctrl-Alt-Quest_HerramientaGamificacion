@@ -1,13 +1,15 @@
 package com.ctrlaltquest.ui.controllers;
 
+import com.ctrlaltquest.ui.utils.SoundManager;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
+import java.util.Random;
 
+import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
+import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -16,6 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -24,155 +27,124 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 public class SplashController {
-    @FXML
-    private ProgressBar loadingBar;
-
-    @FXML
-    private Label loadingText;
-
-    @FXML
-    private StackPane root;
-
-    @FXML
-    private MediaView introVideo;
-
-    @FXML
-    private ImageView splashLogo;
+    @FXML private ProgressBar loadingBar;
+    @FXML private Label loadingText;
+    @FXML private StackPane root;
+    @FXML private MediaView introVideo;
+    @FXML private ImageView splashLogo;
 
     private MediaPlayer mediaPlayer;
     private double progress = 0.0;
 
+    // Ajustado a 9 segundos: 9000ms / 100ms = 90 ciclos
+    private final int TOTAL_CYCLES = 90;
+
+    private final String[] rpgTips = {
+        "Invocando el reino de los datos...",
+        "Encantando la interfaz de usuario...",
+        "Afilando las hojas de cálculo...",
+        "Preparando pociones de optimización...",
+        "Reclutando aventureros en la base de datos...",
+        "Forjando el código en el yunque...",
+        "Leyendo antiguos pergaminos de Java..."
+    };
+    private final Random random = new Random();
+
     @FXML
     public void initialize() {
-        // Depuración rápida: muestra si los recursos están en el classpath
-        System.out.println("logo resource: " + getClass().getResource("/assets/images/logo.png"));
-        System.out.println("font resource: " + getClass().getResource("/assets/fonts/pixelcastle/Pixelcastle-Regular.otf"));
-        System.out.println("video resource: " + getClass().getResource("/assets/videos/introVideo.mp4"));
-
-        // Cargar logo de forma segura
+        // 1. Cargar Logo con suavizado
         URL logoUrl = getClass().getResource("/assets/images/logo.png");
         if (logoUrl != null) {
-            try {
-                splashLogo.setImage(new Image(logoUrl.toExternalForm()));
-            } catch (Exception e) {
-                System.err.println("ERROR cargando logo: " + e.getMessage());
-                e.printStackTrace();
-            }
-        } else {
-            System.err.println("ERROR: /assets/images/logo.png no encontrado en classpath");
+            splashLogo.setImage(new Image(logoUrl.toExternalForm()));
+            splashLogo.setSmooth(true);
+            aplicarEfectoRespiracion();
         }
 
-        // Cargar fuente de forma segura (si la necesitas aquí)
-        try (InputStream fontIs = getClass().getResourceAsStream("/assets/fonts/pixelcastle/Pixelcastle-Regular.otf")) {
-            if (fontIs != null) {
-                javafx.scene.text.Font.loadFont(fontIs, 12);
-            } else {
-                System.err.println("WARNING: fuente Pixelcastle-Regular.otf no encontrada en classpath");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Cargar video solo si existe
+        // 2. Cargar Video con Vía Segura
         URL videoUrl = getClass().getResource("/assets/videos/introVideo.mp4");
         if (videoUrl != null) {
             try {
                 Media media = new Media(videoUrl.toExternalForm());
                 mediaPlayer = new MediaPlayer(media);
                 introVideo.setMediaPlayer(mediaPlayer);
-                mediaPlayer.setAutoPlay(true);
+                mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+
+                mediaPlayer.setOnReady(() -> {
+                    mediaPlayer.play();
+                });
+
+                mediaPlayer.setOnError(() -> System.err.println("Error de video detectado."));
+
             } catch (Exception e) {
-                System.err.println("ERROR cargando video: " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("No se pudo inicializar el video: " + e.getMessage());
             }
-        } else {
-            System.out.println("INFO: /assets/videos/introVideo.mp4 no encontrado, se omitirá reproducción");
         }
 
-        // Timeline / progreso
-        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(150), event -> updateProgress()));
-        timeline.setCycleCount(60);
-        timeline.setOnFinished(event -> {
-            loadingText.setText("Preparando archivos...");
-            playFadeOut();
-        });
+        // 3. Simulación de Carga (9 segundos)
+        Timeline timeline = new Timeline(new KeyFrame(Duration.millis(100), event -> updateProgress()));
+        timeline.setCycleCount(TOTAL_CYCLES); 
+        timeline.setOnFinished(event -> playFadeOut());
         timeline.play();
     }
 
+    private void aplicarEfectoRespiracion() {
+        ScaleTransition pulse = new ScaleTransition(Duration.seconds(3), splashLogo);
+        pulse.setFromX(1.0); pulse.setFromY(1.0);
+        pulse.setToX(1.08); pulse.setToY(1.08);
+        pulse.setCycleCount(Animation.INDEFINITE);
+        pulse.setAutoReverse(true);
+        pulse.play();
+    }
+
     private void updateProgress() {
-        progress = Math.min(1.0, progress + 0.02);
+        progress = Math.min(1.0, progress + (1.0 / TOTAL_CYCLES));
         loadingBar.setProgress(progress);
-        int percent = (int) (progress * 100);
-        loadingText.setText("Cargando herramientas de ofimática... " + percent + "%");
+        
+        if (Math.round(progress * TOTAL_CYCLES) % 15 == 0) {
+            loadingText.setText(rpgTips[random.nextInt(rpgTips.length)]);
+        }
     }
 
     private void playFadeOut() {
-        loadingText.setText("Preparando la aventura diigital...");
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(900), root);
+        loadingText.setText("¡Aventura lista!");
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(1200), root);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
-        fadeOut.setOnFinished(event -> Platform.runLater(() -> loadLoginScene()));
+        fadeOut.setOnFinished(event -> loadLoginScene());
         fadeOut.play();
     }
 
     private void loadLoginScene() {
         try {
             Parent nextRoot = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
-            // Ensure the new root starts invisible so fade-in works reliably
-            nextRoot.setOpacity(0.0);
-
-            // Stop and dispose media player before replacing the scene root
+            
             if (mediaPlayer != null) {
-                try {
-                    mediaPlayer.stop();
-                } catch (Exception e) {
-                    System.err.println("WARNING: error stopping mediaPlayer: " + e.getMessage());
-                }
-                try {
-                    mediaPlayer.dispose();
-                } catch (Exception e) {
-                    System.err.println("WARNING: error disposing mediaPlayer: " + e.getMessage());
-                }
-                mediaPlayer = null;
+                mediaPlayer.stop();
+                mediaPlayer.dispose();
             }
 
-            // Try to find the Stage in a few ways to avoid NPE when scene is unavailable
-            Stage stage = null;
-            if (root != null && root.getScene() != null && root.getScene().getWindow() instanceof Stage) {
-                stage = (Stage) root.getScene().getWindow();
-            } else if (loadingBar != null && loadingBar.getScene() != null && loadingBar.getScene().getWindow() instanceof Stage) {
-                stage = (Stage) loadingBar.getScene().getWindow();
-            } else if (splashLogo != null && splashLogo.getScene() != null && splashLogo.getScene().getWindow() instanceof Stage) {
-                stage = (Stage) splashLogo.getScene().getWindow();
-            }
-
+            Stage stage = (Stage) root.getScene().getWindow();
             if (stage != null) {
-                Scene scene = stage.getScene();
-                if (scene != null) {
-                    scene.setRoot(nextRoot);
-                } else {
-                    stage.setScene(new Scene(nextRoot));
-                }
+                // Creamos la nueva escena para el Login
+                Scene loginScene = new Scene(nextRoot, 1280, 720);
+                
+                // --- RE-APLICAR SONIDO DE TECLADO ---
+                // Al ser una escena nueva, debemos inyectar el filtro de nuevo
+                loginScene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                    SoundManager.playKeyClick();
+                });
 
-                FadeTransition fadeIn = new FadeTransition(Duration.millis(600), nextRoot);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                fadeIn.play();
-            } else {
-                // Fallback: create a new stage if we couldn't find the original
-                System.err.println("WARNING: no Stage found, opening new Stage for login");
-                Stage newStage = new Stage();
-                newStage.setScene(new Scene(nextRoot));
-                newStage.show();
-
-                FadeTransition fadeIn = new FadeTransition(Duration.millis(600), nextRoot);
+                nextRoot.setOpacity(0.0);
+                stage.setScene(loginScene);
+                stage.centerOnScreen();
+                
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(1000), nextRoot);
                 fadeIn.setFromValue(0.0);
                 fadeIn.setToValue(1.0);
                 fadeIn.play();
             }
-        } catch (Exception exception) {
-            loadingText.setText("Error cargando la interfaz.");
-            exception.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

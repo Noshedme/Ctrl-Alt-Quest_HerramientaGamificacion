@@ -2,17 +2,51 @@
 
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.media.MediaView?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ctrlaltquest.ui.controllers.RegisterController"
-            stylesheets="/styles/auth.css" prefWidth="960" prefHeight="540">
-    <center>
-        <VBox alignment="CENTER" spacing="16" styleClass="auth-card">
-            <Label text="Forja tu leyenda" styleClass="auth-title" />
-            <TextField fx:id="usernameField" promptText="Usuario" />
-            <TextField fx:id="emailField" promptText="Correo" />
-            <PasswordField fx:id="passwordField" promptText="Contraseña" />
-            <Button text="Registrarme" onAction="#handleRegister" styleClass="primary-button" />
-            <Button text="Volver" onAction="#handleBackToLogin" styleClass="ghost-button" />
-        </VBox>
-    </center>
-</BorderPane>
+<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ctrlaltquest.ui.controllers.RegisterController"
+            stylesheets="/styles/auth.css" prefWidth="1280" prefHeight="720">
+    
+    <MediaView fx:id="backgroundVideo" fitWidth="1280" fitHeight="720" preserveRatio="false" />
+
+    <BorderPane>
+        <top>
+            <HBox alignment="CENTER_RIGHT" spacing="15" styleClass="top-bar">
+                <Region prefHeight="50" /> 
+            </HBox>
+        </top>
+
+        <center>
+            <VBox alignment="CENTER" spacing="25" maxWidth="520" styleClass="auth-panel">
+                <Label text="NUEVO PERGAMINO" styleClass="auth-title" />
+                
+                <VBox spacing="12" styleClass="input-group">
+                    <VBox spacing="5">
+                        <Label text="CORREO ASTRAL" styleClass="input-label-runic"/>
+                        <TextField fx:id="emailField" promptText="tu@reino.com" styleClass="custom-field" />
+                    </VBox>
+                    
+                    <VBox spacing="5">
+                        <Label text="IDENTIDAD" styleClass="input-label-runic"/>
+                        <TextField fx:id="usernameField" promptText="Nombre de guerrero" styleClass="custom-field" />
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="LLAVE MÁGICA" styleClass="input-label-runic"/>
+                        <PasswordField fx:id="passwordField" promptText="Crea tu llave" styleClass="custom-field" />
+                    </VBox>
+
+                    <VBox spacing="5">
+                        <Label text="REPETIR LLAVE" styleClass="input-label-runic"/>
+                        <PasswordField fx:id="confirmPasswordField" promptText="Confirma tu llave" styleClass="custom-field" />
+                    </VBox>
+                </VBox>
+                
+                <Button text="FORJAR CUENTA" onAction="#handleRegister" styleClass="primary-button" />
+                
+                <Button text="Ya soy un aventurero (Volver)" onAction="#handleBackToLogin" 
+                        styleClass="link-button" focusTraversable="false" />
+            </VBox>
+        </center>
+    </BorderPane>
+</StackPane>
