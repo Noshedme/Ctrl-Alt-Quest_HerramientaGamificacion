@@ -42,12 +42,9 @@ public class LoginController {
             mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
             backgroundVideo.setMediaPlayer(mediaPlayer);
             mediaPlayer.setAutoPlay(true);
+        } else {
+            System.err.println("INFO: /assets/videos/introVideo.mp4 no encontrado, fondo sin video.");
         }
-        Media media = new Media(getClass().getResource("/assets/videos/introVideo.mp4").toExternalForm());
-        mediaPlayer = new MediaPlayer(media);
-        mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-        backgroundVideo.setMediaPlayer(mediaPlayer);
-        mediaPlayer.setAutoPlay(true);
         updateMuteState(false);
     }
 
