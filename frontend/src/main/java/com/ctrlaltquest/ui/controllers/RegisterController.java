@@ -1,11 +1,16 @@
 package com.ctrlaltquest.ui.controllers;
 
+import com.ctrlaltquest.dao.AuthDAO;
+import com.ctrlaltquest.services.EmailService;
+import com.ctrlaltquest.services.AuditService;
 import javafx.animation.FadeTransition;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -14,28 +19,33 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+
 import java.io.IOException;
 import java.net.URL;
+import java.util.regex.Pattern;
 
 public class RegisterController {
 
+    // --- Campos FXML ---
     @FXML private TextField usernameField;
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
     @FXML private PasswordField confirmPasswordField;
     @FXML private MediaView backgroundVideo;
-    
+    @FXML private Button btnRegister; 
+    @FXML private VBox loadingLayer;  
+
+    // --- Variables Lógicas ---
     private MediaPlayer mediaPlayer;
+    private final AuthDAO authDAO = new AuthDAO();
+    private final EmailService emailService = new EmailService();
 
     @FXML
     public void initialize() {
-        // Configuración visual: Desenfoque y Video
         if (backgroundVideo != null) {
             backgroundVideo.setEffect(new javafx.scene.effect.GaussianBlur(15));
             configurarVideo();
         }
-
-        // Sonido de teclado (si está activado en ajustes)
         setupTypingSounds();
     }
 
@@ -48,9 +58,8 @@ public class RegisterController {
                 backgroundVideo.setMediaPlayer(mediaPlayer);
                 mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                 mediaPlayer.setMute(true);
-                mediaPlayer.setRate(0.5); 
-                
-                // Respetar estado de pausa global
+                mediaPlayer.setRate(0.5);
+
                 if (SettingsController.isVideoPaused) {
                     mediaPlayer.pause();
                 } else {
@@ -62,7 +71,6 @@ public class RegisterController {
         }
     }
 
-    // Método para que SettingsController controle el video
     public void setVideoPlaying(boolean play) {
         if (mediaPlayer != null) {
             if (play) mediaPlayer.play();
@@ -71,12 +79,11 @@ public class RegisterController {
     }
 
     private void setupTypingSounds() {
-        // Aplica el efecto de sonido a todos los campos de texto
         TextField[] fields = {usernameField, emailField, passwordField, confirmPasswordField};
         for (TextField field : fields) {
             field.setOnKeyTyped(e -> {
                 if (SettingsController.isTypingSoundEnabled) {
-                    System.out.println("♪ Click!"); // Reemplazar con clip de audio real si lo deseas
+                    // AudioManager.playTypeSound(); 
                 }
             });
         }
@@ -87,22 +94,19 @@ public class RegisterController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
             Parent root = loader.load();
-            
-            // Conectar este controlador con el de ajustes
+
             SettingsController settingsCtrl = loader.getController();
             settingsCtrl.setRegisterController(this);
 
             Stage settingsStage = new Stage();
             settingsStage.initModality(Modality.APPLICATION_MODAL);
             settingsStage.initOwner(usernameField.getScene().getWindow());
-            settingsStage.initStyle(StageStyle.TRANSPARENT); 
-            
+            settingsStage.initStyle(StageStyle.TRANSPARENT);
+
             Scene scene = new Scene(root);
-            scene.setFill(Color.TRANSPARENT); 
+            scene.setFill(Color.TRANSPARENT);
             settingsStage.setScene(scene);
             settingsStage.show();
-            
-            System.out.println("Consultando el oráculo de ajustes...");
         } catch (IOException e) {
             System.err.println("Error al abrir ajustes: " + e.getMessage());
         }
@@ -116,24 +120,22 @@ public class RegisterController {
         FadeTransition fadeOut = new FadeTransition(Duration.millis(500), currentRoot);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
-        
+
         fadeOut.setOnFinished(e -> {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
                 Parent loginRoot = loader.load();
-                
                 loginRoot.setOpacity(0);
                 stage.getScene().setRoot(loginRoot);
-                
+
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(500), loginRoot);
                 fadeIn.setFromValue(0.0);
                 fadeIn.setToValue(1.0);
-                
+
                 if (mediaPlayer != null) {
                     mediaPlayer.stop();
                     mediaPlayer.dispose();
                 }
-                
                 fadeIn.play();
             } catch (IOException ex) {
                 System.err.println("Error al regresar al Login: " + ex.getMessage());
@@ -144,20 +146,105 @@ public class RegisterController {
 
     @FXML
     public void handleRegister() {
-        String user = usernameField.getText();
+        String user = usernameField.getText().trim();
+        String email = emailField.getText().trim();
         String pass = passwordField.getText();
         String confirm = confirmPasswordField.getText();
 
-        if (user.isEmpty() || pass.isEmpty() || emailField.getText().isEmpty()) {
-            System.out.println("⚠️ El pergamino tiene campos vacíos.");
+        if (user.isEmpty() || pass.isEmpty() || email.isEmpty()) {
+            showAlert("Campos Incompletos", "Debes llenar todos los datos del pergamino.");
+            return;
+        }
+
+        if (!isValidEmail(email)) {
+            showAlert("Correo Inválido", "El correo astral no tiene un formato válido.");
             return;
         }
 
         if (!pass.equals(confirm)) {
-            System.out.println("❌ Las llaves mágicas no coinciden.");
+            showAlert("Error de Llave", "Las llaves mágicas no coinciden.");
             return;
         }
 
-        System.out.println("✨ Forjando cuenta para: " + user);
+        AuditService.log(null, "INTENTO_REGISTRO", "Usuario: " + user + " | Email: " + email);
+
+        if(btnRegister != null) btnRegister.setDisable(true);
+        if(loadingLayer != null) loadingLayer.setVisible(true);
+
+        Task<String> registerTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                if (authDAO.userExists(user, email)) {
+                    throw new Exception("El nombre de guerrero o el correo ya están registrados.");
+                }
+                String token = authDAO.registerUser(user, email, pass);
+                emailService.sendVerificationCode(email, token);
+                return email; 
+            }
+        };
+
+        registerTask.setOnSucceeded(e -> {
+            if(btnRegister != null) btnRegister.setDisable(false);
+            if(loadingLayer != null) loadingLayer.setVisible(false);
+            
+            String registeredEmail = registerTask.getValue();
+            AuditService.log(null, "REGISTRO_PENDIENTE", "Código enviado a: " + registeredEmail);
+
+            // ABRIR OVERLAY DE VERIFICACIÓN
+            abrirVentanaVerificacion(registeredEmail);
+        });
+
+        registerTask.setOnFailed(e -> {
+            if(btnRegister != null) btnRegister.setDisable(false);
+            if(loadingLayer != null) loadingLayer.setVisible(false);
+            
+            Throwable error = registerTask.getException();
+            showAlert("Error en el Ritual", error.getMessage());
+            AuditService.log(null, "REGISTRO_FALLIDO", "Error: " + error.getMessage());
+        });
+
+        new Thread(registerTask).start();
+    }
+
+    private void abrirVentanaVerificacion(String email) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/verify_code.fxml"));
+            Parent root = loader.load();
+
+            VerifyController verifyCtrl = loader.getController();
+            verifyCtrl.setEmail(email);
+
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.initOwner(usernameField.getScene().getWindow());
+            
+            // --- ESTILO OVERLAY TRANSPARENTE ---
+            stage.initStyle(StageStyle.TRANSPARENT); 
+            Scene scene = new Scene(root);
+            scene.setFill(Color.TRANSPARENT); 
+            
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (IOException e) {
+            showAlert("Error de Interfaz", "No se pudo abrir la cámara de verificación.");
+            e.printStackTrace();
+        }
+    }
+
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+        return Pattern.compile(emailRegex).matcher(email).matches();
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Ctrl + Alt + Quest");
+        alert.setHeaderText(title);
+        alert.setContentText(content);
+        if (usernameField.getScene() != null) {
+            alert.initOwner(usernameField.getScene().getWindow());
+        }
+        alert.showAndWait();
     }
 }

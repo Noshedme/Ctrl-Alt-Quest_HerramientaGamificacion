@@ -5,8 +5,10 @@
 <?import javafx.scene.media.MediaView?>
 <?import javafx.scene.image.*?>
 
-<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ctrlaltquest.ui.controllers.RegisterController"
-            stylesheets="/styles/auth.css" prefWidth="1280" prefHeight="720">
+<StackPane xmlns:fx="http://javafx.com/fxml" 
+           fx:controller="com.ctrlaltquest.ui.controllers.RegisterController"
+           stylesheets="/styles/auth.css" 
+           prefWidth="1280" prefHeight="720">
     
     <MediaView fx:id="backgroundVideo" fitWidth="1280" fitHeight="720" preserveRatio="false" />
 
@@ -45,10 +47,17 @@
                         </VBox>
                     </VBox>
                     
-                    <Button text="FORJAR CUENTA" onAction="#handleRegister" styleClass="primary-button-hero" />
+                    <Button fx:id="btnRegister" text="FORJAR CUENTA" onAction="#handleRegister" styleClass="primary-button-hero" />
                     
                     <Button text="Ya soy un aventurero (Volver)" onAction="#handleBackToLogin" 
                             styleClass="link-button-clean" focusTraversable="false" />
+                </VBox>
+
+                <VBox fx:id="loadingLayer" visible="false" alignment="CENTER" spacing="20" 
+                      style="-fx-background-color: rgba(26, 15, 38, 0.85); -fx-background-radius: 20;">
+                    <ProgressIndicator prefWidth="60" prefHeight="60" />
+                    <Label text="Consultando con los Dioses..." 
+                           style="-fx-text-fill: #f7d27a; -fx-font-family: 'Cinzel'; -fx-font-size: 18px;" />
                 </VBox>
             </StackPane>
         </center>
