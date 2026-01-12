@@ -1,0 +1,41 @@
+.home-root {
+    -fx-background-color: #0b0b0d;
+}
+
+/* Estilo de los cuadros RPG */
+.rpg-box {
+    -fx-background-color: #1a1a1f;
+    -fx-border-color: #3f3f4a;
+    -fx-border-width: 2;
+    -fx-border-radius: 5;
+    -fx-padding: 15;
+}
+
+.rpg-box-main {
+    -fx-background-color: #1e1e24;
+    -fx-border-color: #ffcc00; /* Borde dorado para lo principal */
+    -fx-border-width: 3;
+    -fx-padding: 20;
+}
+
+.box-title {
+    -fx-text-fill: #ffcc00;
+    -fx-font-family: "Press Start 2P"; /* O una fuente pixelada */
+    -fx-font-size: 14px;
+    -fx-padding: 0 0 10 0;
+}
+
+/* Barras de progreso personalizadas */
+.bar-hp .track { -fx-background-color: #331010; }
+.bar-hp .bar { -fx-background-color: #ff4d4d; }
+
+.bar-xp .track { -fx-background-color: #101a10; }
+.bar-xp .bar { -fx-background-color: #44bd32; }
+
+/* Slots del inventario */
+.item-slot {
+    -fx-background-color: #25252b;
+    -fx-border-color: #444;
+    -fx-pref-width: 50;
+    -fx-pref-height: 50;
+}

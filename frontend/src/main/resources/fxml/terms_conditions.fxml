@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.Font?>
+
+<StackPane prefHeight="720.0" prefWidth="1280.0" style="-fx-background-color: #0b0b0d;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ctrlaltquest.ui.controllers.TermsController">
+    <children>
+        <VBox alignment="CENTER" maxHeight="680.0" maxWidth="1000.0" spacing="15.0" style="-fx-background-color: #16161a; -fx-background-radius: 10; -fx-border-color: #2d2d35; -fx-border-width: 1;">
+            <padding>
+                <Insets bottom="20.0" left="30.0" right="30.0" top="20.0" />
+            </padding>
+            <children>
+                <Label style="-fx-font-size: 22px; -fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-letter-spacing: 2;" text="AVISO DE DERECHOS RESERVADOS Y POLÍTICA DE PRIVACIDAD" />
+                
+                <ScrollPane fx:id="scrollPane" fitToWidth="true" prefHeight="480.0" style="-fx-background-color: transparent; -fx-background: #16161a; -fx-border-color: #333; -fx-border-radius: 5;">
+                    <content>
+                        <VBox spacing="15.0" style="-fx-background-color: #16161a;">
+                            <padding>
+                                <Insets bottom="20.0" left="25.0" right="25.0" top="15.0" />
+                            </padding>
+                            <children>
+                                
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="1. TITULARIDAD Y PROPIEDAD DE LA APLICACIÓN" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="La aplicación de escritorio denominada “Ctrl + Alt + Quest”, incluyendo de manera enunciativa mas no limitativa todo su software, código fuente, código objeto, arquitectura, estructura lógica, sistemas internos, mecánicas de gamificación, misiones, niveles, recompensas, logros, jefes, inventario, estadísticas, flujos de usuario, diseño visual, interfaz gráfica (UI), experiencia de usuario (UX), textos, descripciones, nombres, clases, elementos narrativos, conceptos, ideas, diagramas, documentación técnica y cualquier otro componente tangible o intangible asociado, es propiedad exclusiva de Andrés Chérrez Gómez, en adelante EL TITULAR. Todos los derechos de autor, propiedad intelectual e industrial relacionados con la aplicación están reservados de forma expresa y absoluta. El uso de la aplicación no implica en ningún caso la cesión, transferencia, licencia implícita o reconocimiento de derechos de propiedad intelectual a favor del usuario." />
+                                
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="2. PROTECCIÓN LEGAL" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Ctrl + Alt + Quest se encuentra protegida por las leyes nacionales e internacionales de derechos de autor, propiedad intelectual, software y programas de ordenador, así como por tratados y convenios internacionales aplicables. Cualquier uso no autorizado del software o de cualquiera de sus elementos podrá dar lugar a responsabilidades civiles, administrativas y/o penales conforme a la legislación vigente." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="3. ALCANCE DE LOS DERECHOS RESERVADOS" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Se reservan todos los derechos presentes y futuros sobre la aplicación, incluyendo, pero no limitándose a: * Reproducción total o parcial del software * Copia del código fuente o código compilado * Modificación, adaptación, transformación o traducción * Ingeniería inversa, descompilación o desensamblado * Distribución, redistribución o publicación * Venta, alquiler, sublicencia o explotación comercial * Creación de obras derivadas * Extracción de ideas, mecánicas, sistemas o lógica interna Cualquier acción de este tipo realizada sin autorización expresa, previa y por escrito de EL TITULAR está estrictamente prohibida." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="4. LICENCIA DE USO LIMITADA" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="EL TITULAR concede al usuario únicamente una licencia de uso limitada, personal, no exclusiva, no transferible y revocable para utilizar la aplicación Ctrl + Alt + Quest conforme a su finalidad original. Esta licencia se limita al uso personal y no comercial del software, sin derecho alguno a modificar, copiar, distribuir o explotar la aplicación o sus componentes. EL TITULAR se reserva el derecho de revocar esta licencia en cualquier momento ante el incumplimiento de los términos aquí descritos o de los términos de uso de la aplicación." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="5. PROHIBICIONES EXPRESAS" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Queda expresamente prohibido al usuario: * Analizar el software con fines de copia o replicación * Reutilizar o imitar las mecánicas de gamificación * Copiar el sistema de misiones, recompensas, niveles o jefes * Crear aplicaciones similares basadas directa o indirectamente en esta * Utilizar el nombre, marca, identidad visual o concepto sin autorización * Eliminar, ocultar o modificar avisos legales o créditos Estas prohibiciones aplican incluso si las acciones se realizan parcialmente, con modificaciones o bajo otra denominación." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="6. PROTECCIÓN DEL CONCEPTO Y MODELO DE FUNCIONAMIENTO" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="El concepto de gamificación integral de la vida real y del uso del ordenador personal, la combinación de monitoreo local, progreso tipo RPG, eventos dinámicos, recompensas, estadísticas y sistemas de motivación forman parte del modelo conceptual protegido de Ctrl + Alt + Quest. El uso de este concepto, estructura o modelo de funcionamiento como base para otros proyectos, productos o servicios está prohibido sin autorización expresa de EL TITULAR." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="7. AUSENCIA DE CESIÓN DE DERECHOS POR CONTENIDO DEL USUARIO" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="El hecho de que el usuario pueda crear misiones, registrar actividades, personalizar su experiencia o generar estadísticas no implica la adquisición de derechos sobre el software, su estructura, lógica interna o diseño. Todo el sistema que soporta dichas funcionalidades sigue siendo propiedad exclusiva de EL TITULAR." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="8. MARCAS Y ELEMENTOS IDENTIFICATIVOS" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="El nombre “Ctrl + Alt + Quest”, así como cualquier variación, logotipo, identidad visual, nombres de clases, sistemas, jefes, eventos o elementos distintivos, constituyen signos protegidos. Su uso sin autorización expresa está prohibido tanto en contextos comerciales como no comerciales." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="9. MODIFICACIONES Y ACTUALIZACIONES" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="EL TITULAR se reserva el derecho de modificar, actualizar, ampliar, restringir o eliminar funcionalidades de la aplicación en cualquier momento, sin que ello genere derecho alguno de compensación o reclamación por parte del usuario." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="10. ACEPTACIÓN EXPRESA" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Al instalar, abrir o utilizar la aplicación Ctrl + Alt + Quest, el usuario declara haber leído, comprendido y aceptado íntegramente este Aviso de Derechos Reservados y Propiedad Intelectual. En caso de no estar de acuerdo con lo aquí dispuesto, el usuario deberá abstenerse de utilizar la aplicación y desinstalarla de inmediato." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #e1b12c; -fx-font-size: 16px; -fx-font-weight: bold;" text="11. RESERVA FINAL DE DERECHOS" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Todos los derechos no concedidos de forma expresa en este documento quedan estrictamente reservados a favor de Andrés Chérrez Gómez." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="1. INTRODUCCIÓN Y ALCANCE" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="La presente Política de Privacidad tiene como finalidad informar de manera clara, detallada, transparente y completa cómo la aplicación de escritorio denominada “Ctrl + Alt + Quest” recopila, utiliza, almacena, procesa y protege la información relacionada con sus usuarios. Esta Política de Privacidad aplica a todos los usuarios que instalen, ejecuten o utilicen la aplicación, independientemente del sistema operativo compatible o del modo de uso (activo o en segundo plano). El uso de la aplicación implica la aceptación expresa de esta Política de Privacidad en su totalidad." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="2. PRINCIPIOS GENERALES DE PRIVACIDAD" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Ctrl + Alt + Quest ha sido diseñada bajo los principios de: * Minimización de datos * Uso local de la información * Transparencia * Control del usuario * Finalidad específica * No recolección innecesaria La aplicación prioriza el funcionamiento offline y el almacenamiento local, evitando la transmisión de información a servidores externos salvo que el usuario habilite funciones opcionales en el futuro." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="3. TIPO DE APLICACIÓN Y NATURALEZA DEL MONITOREO" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Ctrl + Alt + Quest es una aplicación de escritorio orientada a la gamificación de: * Actividades de la vida real (registradas manualmente por el usuario) * Uso del ordenador personal (monitoreo local del sistema) El monitoreo se realiza con el único objetivo de transformar la actividad del usuario en mecánicas de juego, estadísticas, progreso, misiones y recompensas. En ningún caso el monitoreo tiene fines de vigilancia externa, espionaje, comercialización de datos o publicidad." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="4. INFORMACIÓN QUE PUEDE SER RECOPILADA" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="La aplicación puede recopilar y procesar, de forma local, los siguientes tipos de información:" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 14px; -fx-font-weight: bold;" text="4.1 Información del perfil del usuario" />
+                                <Text fill="#b0bec5" wrappingWidth="880.0" text="* Nombre o alias elegido por el usuario * Avatar o representación gráfica * Clase de personaje * Nivel, experiencia (XP), monedas, inventario * Preferencias internas de la aplicación" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 14px; -fx-font-weight: bold;" text="4.2 Información de actividades registradas manualmente" />
+                                <Text fill="#b0bec5" wrappingWidth="880.0" text="* Misiones creadas por el usuario * Hábitos definidos * Actividades completadas * Fechas, frecuencia y rachas" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 14px; -fx-font-weight: bold;" text="4.3 Información de uso del ordenador (monitoreo local)" />
+                                <Text fill="#b0bec5" wrappingWidth="880.0" text="* Tiempo de uso de aplicaciones * Nombre de procesos o programas activos * Tiempo total de pantalla * Número de sesiones * Eventos relacionados con productividad (por ejemplo, escritura, compilaciones, uso de herramientas)" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 14px; -fx-font-weight: bold;" text="4.4 Información estadística y de progreso" />
+                                <Text fill="#b0bec5" wrappingWidth="880.0" text="* Historial de misiones * Logros desbloqueados * Estadísticas diarias, semanales y mensuales * Patrones de uso detectados por la aplicación" />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="5. INFORMACIÓN QUE NO SE RECOPILA" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Ctrl + Alt + Quest NO recopila, NO almacena y NO procesa: * Contraseñas del sistema operativo * Contenido de archivos personales * Texto específico escrito por el usuario * Credenciales bancarias o financieras * Información biométrica * Audio, video o capturas de pantalla * Historial de navegación web detallado * Datos de terceros ajenos al usuario La aplicación no funciona como un keylogger ni como un software espía." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="6. ALMACENAMIENTO DE LA INFORMACIÓN" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Toda la información recopilada por la aplicación se almacena de forma: * Local * Offline * En el dispositivo del usuario El almacenamiento se realiza mediante bases de datos locales o archivos internos asociados a la aplicación. Ctrl + Alt + Quest no envía información a servidores externos por defecto." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="7. TRANSMISIÓN DE DATOS A TERCEROS" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="La aplicación no vende, no alquila, no comparte ni cede información personal o estadística a terceros. No se realizan integraciones con plataformas publicitarias, redes sociales ni sistemas de seguimiento externo. Cualquier futura funcionalidad de sincronización en la nube será opcional y requerirá aceptación expresa del usuario." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="8. FINALIDAD DEL TRATAMIENTO DE LA INFORMACIÓN" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="La información recopilada se utiliza exclusivamente para: * Calcular progreso del usuario * Generar misiones y recompensas * Mostrar estadísticas y gráficas * Mantener rachas y logros * Personalizar la experiencia RPG * Activar eventos internos de la aplicación * Mejorar la experiencia de uso En ningún caso se utiliza la información con fines comerciales externos o publicitarios." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="9. CONTROL DEL USUARIO SOBRE SUS DATOS" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="El usuario tiene control total sobre su información, pudiendo: * Modificar o eliminar misiones * Reiniciar estadísticas * Eliminar perfiles locales * Desinstalar la aplicación La desinstalación de la aplicación elimina los datos locales asociados, salvo que el usuario conserve copias manuales." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="10. SEGURIDAD DE LA INFORMACIÓN" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Ctrl + Alt + Quest implementa medidas razonables para proteger la información almacenada localmente, incluyendo: * Acceso restringido a archivos internos * Uso exclusivo dentro del entorno de la aplicación * Prevención de accesos no autorizados desde la interfaz No obstante, el usuario reconoce que ningún sistema es completamente infalible y que la seguridad del dispositivo también depende de las medidas adoptadas por el propio usuario." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="11. USO DE PERMISOS DEL SISTEMA" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="La aplicación puede requerir permisos del sistema operativo para: * Detectar aplicaciones en ejecución * Mostrar notificaciones * Ejecutarse en segundo plano * Acceder a recursos necesarios para su funcionamiento Estos permisos se utilizan únicamente para las funciones descritas y no para fines ocultos." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="12. USO POR MENORES DE EDAD" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Ctrl + Alt + Quest no está dirigida específicamente a menores de edad. En caso de uso por parte de menores, la responsabilidad recae en el tutor legal, quien deberá supervisar el uso de la aplicación." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="13. MODIFICACIONES A LA POLÍTICA DE PRIVACIDAD" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="EL TITULAR se reserva el derecho de modificar esta Política de Privacidad en cualquier momento. Las modificaciones serán aplicables desde el momento de su publicación dentro de la aplicación. El uso continuado de la aplicación implica la aceptación de las modificaciones." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="14. ACEPTACIÓN EXPRESA" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Al instalar, abrir o utilizar Ctrl + Alt + Quest, el usuario declara haber leído, comprendido y aceptado íntegramente esta Política de Privacidad. Si el usuario no está de acuerdo, debe abstenerse de utilizar la aplicación y proceder a su desinstalación." />
+
+                                <Separator opacity="0.1" />
+
+                                <Label style="-fx-text-fill: #00a8ff; -fx-font-size: 16px; -fx-font-weight: bold;" text="15. RESPONSABLE DEL TRATAMIENTO" />
+                                <Text fill="#cfd8dc" wrappingWidth="880.0" text="Responsable: Andrés Chérrez Gómez" />
+                                
+                                <VBox alignment="CENTER_RIGHT">
+                                    <Label style="-fx-text-fill: #7f8c8d; -fx-font-style: italic;" text="Responsable: Andrés Chérrez Gómez" />
+                                </VBox>
+                            </children>
+                        </VBox>
+                    </content>
+                </ScrollPane>
+
+                <CheckBox fx:id="agreeCheckBox" onAction="#handleCheck" style="-fx-text-fill: #ecf0f1; -fx-font-size: 13px;" text="He leído detenidamente y acepto los términos de propiedad intelectual y políticas de privacidad" />
+                
+                <HBox alignment="CENTER" spacing="20.0">
+                    <children>
+                        <Button onAction="#handleExit" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: #353b48; -fx-text-fill: white; -fx-background-radius: 5; -fx-cursor: hand;" text="RECHAZAR Y SALIR" />
+                        <Button fx:id="btnContinue" disable="true" onAction="#handleContinue" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: #44bd32; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 5; -fx-cursor: hand;" text="ACEPTAR Y CONTINUAR" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</StackPane>

@@ -35,9 +35,7 @@ public class SplashController {
 
     private MediaPlayer mediaPlayer;
     private double progress = 0.0;
-
-    // Ajustado a 9 segundos: 9000ms / 100ms = 90 ciclos
-    private final int TOTAL_CYCLES = 70;
+    private final int TOTAL_CYCLES = 60; // Controla la duración de la barra
 
     private final String[] rpgTips = {
         "Invocando el reino de los datos...",
@@ -52,7 +50,7 @@ public class SplashController {
 
     @FXML
     public void initialize() {
-        // 1. Cargar Logo con suavizado
+        // 1. Cargar Logo
         URL logoUrl = getClass().getResource("/assets/images/logo.png");
         if (logoUrl != null) {
             splashLogo.setImage(new Image(logoUrl.toExternalForm()));
@@ -60,7 +58,7 @@ public class SplashController {
             aplicarEfectoRespiracion();
         }
 
-        // 2. Cargar Video con Vía Segura
+        // 2. Configurar Video de Fondo
         URL videoUrl = getClass().getResource("/assets/videos/introVideo.mp4");
         if (videoUrl != null) {
             try {
@@ -68,19 +66,14 @@ public class SplashController {
                 mediaPlayer = new MediaPlayer(media);
                 introVideo.setMediaPlayer(mediaPlayer);
                 mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-
-                mediaPlayer.setOnReady(() -> {
-                    mediaPlayer.play();
-                });
-
+                mediaPlayer.setOnReady(() -> mediaPlayer.play());
                 mediaPlayer.setOnError(() -> System.err.println("Error de video detectado."));
-
             } catch (Exception e) {
                 System.err.println("No se pudo inicializar el video: " + e.getMessage());
             }
         }
 
-        // 3. Simulación de Carga (9 segundos)
+        // 3. Iniciar barra de progreso
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(100), event -> updateProgress()));
         timeline.setCycleCount(TOTAL_CYCLES); 
         timeline.setOnFinished(event -> playFadeOut());
@@ -107,17 +100,29 @@ public class SplashController {
 
     private void playFadeOut() {
         loadingText.setText("¡Aventura lista!");
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(1200), root);
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(1000), root);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);
-        fadeOut.setOnFinished(event -> loadLoginScene());
+        // Al terminar el desvanecimiento, cargamos la siguiente escena (Términos)
+        fadeOut.setOnFinished(event -> loadTermsScene());
         fadeOut.play();
     }
 
-    private void loadLoginScene() {
+    private void loadTermsScene() {
         try {
-            Parent nextRoot = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
+            // Buscamos el archivo de acuerdos
+            URL fxmlUrl = getClass().getResource("/fxml/terms_conditions.fxml");
             
+            if (fxmlUrl == null) {
+                System.err.println("❌ ERROR: No se encontró /fxml/terms_conditions.fxml. Saltando al Login...");
+                loadLoginDirectly(); 
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(fxmlUrl);
+            Parent termsRoot = loader.load();
+            
+            // Limpiar media player para liberar recursos
             if (mediaPlayer != null) {
                 mediaPlayer.stop();
                 mediaPlayer.dispose();
@@ -125,26 +130,39 @@ public class SplashController {
 
             Stage stage = (Stage) root.getScene().getWindow();
             if (stage != null) {
-                // Creamos la nueva escena para el Login
-                Scene loginScene = new Scene(nextRoot, 1280, 720);
+                Scene scene = new Scene(termsRoot, 1280, 720);
                 
-                // --- RE-APLICAR SONIDO DE TECLADO ---
-                // Al ser una escena nueva, debemos inyectar el filtro de nuevo
-                loginScene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-                    SoundManager.playKeyClick();
-                });
+                // Inyectar sonido de teclado global
+                scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> SoundManager.playKeyClick());
 
-                nextRoot.setOpacity(0.0);
-                stage.setScene(loginScene);
+                termsRoot.setOpacity(0.0);
+                stage.setScene(scene);
                 stage.centerOnScreen();
                 
-                FadeTransition fadeIn = new FadeTransition(Duration.millis(1000), nextRoot);
+                // Transición de entrada suave para la nueva ventana
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(800), termsRoot);
                 fadeIn.setFromValue(0.0);
                 fadeIn.setToValue(1.0);
                 fadeIn.play();
             }
         } catch (IOException e) {
+            System.err.println("❌ Fallo crítico cargando términos: " + e.getMessage());
             e.printStackTrace();
+            loadLoginDirectly(); // Fallback por si acaso
+        }
+    }
+
+    private void loadLoginDirectly() {
+        try {
+            Parent loginRoot = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
+            Stage stage = (Stage) root.getScene().getWindow();
+            if (stage != null) {
+                Scene scene = new Scene(loginRoot, 1280, 720);
+                scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
+                stage.setScene(scene);
+            }
+        } catch (IOException ex) {
+            System.err.println("❌ Fallo total: No se pudo cargar ni Términos ni Login.");
         }
     }
 }

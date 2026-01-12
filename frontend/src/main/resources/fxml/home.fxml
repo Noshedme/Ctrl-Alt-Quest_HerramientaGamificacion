@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ctrlaltquest.ui.controllers.HomeController"
+            prefWidth="1280" prefHeight="720" styleClass="home-root" stylesheets="/styles/home.css">
+    
+    <top>
+        <HBox spacing="30" styleClass="status-bar" alignment="CENTER_LEFT">
+            <padding><Insets left="30" right="30" top="15" bottom="15"/></padding>
+            <children>
+                <VBox alignment="CENTER_LEFT">
+                    <Label fx:id="lblWelcome" text="AVENTURERO: ESPERANDO..." styleClass="text-pixel-gold" />
+                    <Label text="NIVEL 15 - PALADÍN DE CÓDIGO" styleClass="text-pixel-silver" />
+                </VBox>
+                
+                <Region HBox.hgrow="ALWAYS" />
+                
+                <VBox spacing="5" alignment="CENTER_RIGHT">
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Label text="HP" styleClass="label-stat" />
+                        <ProgressBar fx:id="hpBar" progress="0.8" prefWidth="200" styleClass="bar-hp" />
+                    </HBox>
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Label text="XP" styleClass="label-stat" />
+                        <ProgressBar fx:id="xpBar" progress="0.4" prefWidth="200" styleClass="bar-xp" />
+                    </HBox>
+                </VBox>
+                <Button text="❌" onAction="#handleLogout" styleClass="pixel-button-exit" />
+            </children>
+        </HBox>
+    </top>
+
+    <center>
+        <GridPane hgap="20" vgap="20" styleClass="dashboard-grid">
+            <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
+            
+            <columnConstraints>
+                <ColumnConstraints percentWidth="30" /> 
+                <ColumnConstraints percentWidth="40" /> 
+                <ColumnConstraints percentWidth="30" /> 
+            </columnConstraints>
+            
+            <rowConstraints>
+                <RowConstraints percentHeight="50" />
+                <RowConstraints percentHeight="50" />
+            </rowConstraints>
+
+            <children>
+                <VBox styleClass="rpg-box" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                    <Label text="⚔ ATRIBUTOS" styleClass="box-title" />
+                    <VBox spacing="10" styleClass="internal-container">
+                        <Label text="Fuerza: 12" styleClass="text-stat" />
+                        <Label text="Intelecto: 25" styleClass="text-stat" />
+                        <Label text="Productividad: 88%" styleClass="text-stat" />
+                    </VBox>
+                </VBox>
+
+                <VBox styleClass="rpg-box-main" GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.rowSpan="2">
+                    <Label text="📜 REGISTRO DE MISIONES" styleClass="box-title-main" />
+                    <ListView fx:id="questList" VBox.vgrow="ALWAYS" styleClass="pixel-list" />
+                    <Button text="+ NUEVA MISIÓN" onAction="#handleNewQuest" styleClass="pixel-button-add" maxWidth="Infinity" />
+                </VBox>
+
+                <VBox styleClass="rpg-box" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                    <Label text="🎒 INVENTARIO" styleClass="box-title" />
+                    <TilePane hgap="10" vgap="10" prefColumns="3" alignment="CENTER" styleClass="internal-container">
+                        <StackPane styleClass="item-slot"><Label text="🧪" /></StackPane>
+                        <StackPane styleClass="item-slot"><Label text="📖" /></StackPane>
+                        <StackPane styleClass="item-slot"><Label text="🛠" /></StackPane>
+                    </TilePane>
+                </VBox>
+
+                <VBox styleClass="rpg-box" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                    <Label text="📡 MONITOREO LOCAL" styleClass="box-title" />
+                    <Label fx:id="currentAppLabel" text="App Actual: IntelliJ IDEA" styleClass="text-mini" />
+                    <Label text="Tiempo en foco: 02h 15m" styleClass="text-mini" />
+                </VBox>
+
+                <VBox styleClass="rpg-box" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                    <Label text="🏆 LOGROS RECIENTES" styleClass="box-title" />
+                    <VBox spacing="5">
+                        <Label text="✔ Primer Código Limpio" styleClass="text-achievement" />
+                        <Label text="✔ Madrugador Nivel 1" styleClass="text-achievement" />
+                    </VBox>
+                </VBox>
+            </children>
+        </GridPane>
+    </center>
+</BorderPane>

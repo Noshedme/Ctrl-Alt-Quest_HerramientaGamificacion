@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.shape.Line?>
+
+<HBox xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="com.ctrlaltquest.ui.controllers.CharacterEditorController"
+      styleClass="root" spacing="0" stylesheets="/styles/character_editor.css">
+
+    <VBox styleClass="sidebar" spacing="35" alignment="TOP_CENTER" prefWidth="480">
+        
+        <VBox alignment="CENTER" spacing="10">
+            <Label text="FORJAR HÉROE" styleClass="sidebar-title-runic" />
+            <Label text="Dale un nombre y una senda a tu avatar" styleClass="settings-sublabel" />
+        </VBox>
+
+        <VBox styleClass="settings-pane" spacing="25" VBox.vgrow="NEVER">
+            
+            <VBox spacing="10">
+                <Label text="NOMBRE DEL AVATAR" styleClass="settings-label" />
+                <TextField fx:id="nameField" styleClass="custom-field" 
+                           promptText="Escribe el nombre..." />
+            </VBox>
+
+            <Line endX="300" styleClass="settings-divider" />
+
+            <VBox spacing="15">
+                <Label text="SELECCIONA TU CLASE" styleClass="settings-label" />
+                <HBox spacing="12" alignment="CENTER">
+                    <Button text="GUERRERO" onAction="#selectWarrior" 
+                            styleClass="primary-button-hero" style="-fx-font-size: 14; -fx-padding: 10 15;" />
+                    <Button text="MAGO" onAction="#selectMage" 
+                            styleClass="primary-button-hero" style="-fx-font-size: 14; -fx-padding: 10 15;" />
+                    <Button text="PÍCARO" onAction="#selectRogue" 
+                            styleClass="primary-button-hero" style="-fx-font-size: 14; -fx-padding: 10 15;" />
+                </HBox>
+            </VBox>
+
+            <Line endX="300" styleClass="settings-divider" />
+
+            <VBox spacing="15" alignment="CENTER">
+                <Button text="FORJAR PERSONAJE" onAction="#handleSave" 
+                        styleClass="primary-button-hero" prefWidth="300" />
+                <Button text="ABANDONAR FORJA" onAction="#handleCancel" 
+                        styleClass="link-button-clean" />
+            </VBox>
+        </VBox>
+    </VBox>
+
+    <StackPane HBox.hgrow="ALWAYS">
+        <Region styleClass="overlay-dark" style="-fx-background-color: rgba(0,0,0,0.3);" />
+        
+        <VBox alignment="CENTER" spacing="30">
+            <StackPane fx:id="spritePreview" styleClass="auth-panel" 
+                       maxWidth="450" maxHeight="550"
+                       style="-fx-background-color: rgba(20, 15, 35, 0.5); -fx-border-color: rgba(247, 210, 122, 0.4);">
+                
+                <Label text="Cargando esencia..." styleClass="splash-text" />
+            </StackPane>
+            
+            <VBox alignment="CENTER" spacing="5">
+                <Label text="VISTA PREVIA DEL AVATAR" styleClass="card-category-runic" />
+                <Label text="Los cambios se verán reflejados al instante" styleClass="splash-text" />
+            </VBox>
+        </VBox>
+    </StackPane>
+</HBox>
