@@ -8,160 +8,232 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
+import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 public class CharacterEditorController {
 
+    // --- FXML BINDINGS ---
     @FXML private TextField nameField;
-    @FXML private StackPane spritePreview;
+    @FXML private StackPane rootContainer;
+    @FXML private MediaView bgMedia;
+    
+    // Capas del Avatar (StackPane en FXML)
+    @FXML private ImageView layerBody, layerHead, layerChest, layerLegs, layerFeet;
+    
+    // Controles de UI
+    @FXML private ToggleButton toggleMale, toggleFemale;
+    @FXML private Label lblHeadName, lblChestName, lblLegsName;
+    @FXML private ChoiceBox<String> classSelector;
 
+    // --- ESTADO DEL PERSONAJE ---
+    private MediaPlayer mediaPlayer;
     private int userId;
     private int slotIndex;
-    private int selectedClassId = 1; // 1: Guerrero por defecto
+    
+    private String currentGender = "male";
+    private int headIndex = 0;
+    private int chestIndex = 0;
+    private int legsIndex = 0;
 
-    /**
-     * Recibe los datos necesarios desde el SelectionController.
-     */
-    public void setInitData(int userId, int slotIndex) {
-        this.userId = userId;
-        this.slotIndex = slotIndex;
-        updatePreview(); // Cargar preview inicial
-    }
+    // Listas de items (Deben coincidir con los nombres de tus archivos .png)
+    private final List<String> headItems = Arrays.asList("none", "prog_visor", "read_monocle", "write_beret");
+    private final List<String> chestItems = Arrays.asList("basic", "prog_hoodie", "read_tunic", "write_shirt");
+    private final List<String> legsItems = Arrays.asList("basic", "prog_pants", "read_skirt", "write_dark");
 
     @FXML
     public void initialize() {
-        // Configuraciones iniciales si fueran necesarias
-    }
-
-    // --- SELECCIÓN DE CLASES ---
-
-    @FXML
-    private void selectWarrior() {
-        this.selectedClassId = 1;
-        playSelectionSound();
-        updatePreview();
-    }
-
-    @FXML
-    private void selectMage() {
-        this.selectedClassId = 2;
-        playSelectionSound();
-        updatePreview();
-    }
-
-    @FXML
-    private void selectRogue() {
-        this.selectedClassId = 3;
-        playSelectionSound();
-        updatePreview();
-    }
-
-    /**
-     * Actualiza la imagen del personaje en el StackPane.
-     */
-    private void updatePreview() {
-        spritePreview.getChildren().clear();
+        if (bgMedia != null) {
+            bgMedia.setEffect(new javafx.scene.effect.GaussianBlur(15));
+            setupBackground();
+        }
         
+        // Inicializar Selector de Clases
+        if (classSelector != null) {
+            classSelector.getItems().clear();
+            classSelector.getItems().addAll("Programador", "Lector", "Escritor");
+            classSelector.setValue("Programador");
+            classSelector.setOnAction(e -> playSelectionSound());
+        }
+
+        // Configurar ToggleGroup para Género
+        ToggleGroup genderGroup = new ToggleGroup();
+        if (toggleMale != null && toggleFemale != null) {
+            toggleMale.setToggleGroup(genderGroup);
+            toggleFemale.setToggleGroup(genderGroup);
+            toggleMale.setSelected(true);
+        }
+
+        SoundManager.getInstance().synchronizeMusic();
+        refreshAvatar();
+    }
+
+    // --- LÓGICA DE PERSONALIZACIÓN DEL AVATAR ---
+
+    private void refreshAvatar() {
         try {
-            String path = "/assets/images/sprites/base/class_" + selectedClassId + ".png";
-            URL imgUrl = getClass().getResource(path);
+            // 1. Cuerpo Base
+            if (layerBody != null) layerBody.setImage(loadImage("bases/body_" + currentGender));
             
-            if (imgUrl != null) {
-                ImageView view = new ImageView(new Image(imgUrl.toExternalForm()));
-                
-                // Configuración Pixel-Perfect para el editor
-                view.setFitHeight(300); 
-                view.setPreserveRatio(true);
-                view.setSmooth(false); 
-                
-                spritePreview.getChildren().add(view);
-                
-                // Efecto visual de "aparición"
-                FadeTransition ft = new FadeTransition(Duration.millis(300), view);
-                ft.setFromValue(0.4);
-                ft.setToValue(1.0);
-                ft.play();
+            // 2. Cabeza
+            String head = headItems.get(headIndex);
+            if (lblHeadName != null) lblHeadName.setText(head.replace("_", " ").toUpperCase());
+            if (layerHead != null) layerHead.setImage(head.equals("none") ? null : loadImage("head/" + head));
+
+            // 3. Torso
+            String chest = chestItems.get(chestIndex);
+            if (lblChestName != null) lblChestName.setText(chest.replace("_", " ").toUpperCase());
+            if (layerChest != null) layerChest.setImage(loadImage("chest/" + chest));
+
+            // 4. Piernas
+            String legs = legsItems.get(legsIndex);
+            if (lblLegsName != null) lblLegsName.setText(legs.replace("_", " ").toUpperCase());
+            if (layerLegs != null) layerLegs.setImage(loadImage("legs/" + legs));
+
+            // Feedback visual suave al cambiar
+            if (layerBody != null && layerBody.getParent() != null) {
+                FadeTransition ft = new FadeTransition(Duration.millis(200), layerBody.getParent());
+                ft.setFromValue(0.8); ft.setToValue(1.0); ft.play();
             }
+
         } catch (Exception e) {
-            System.err.println("❌ Error al cargar preview: " + e.getMessage());
+            System.err.println("⚠️ Nota: Error al actualizar capas del avatar: " + e.getMessage());
         }
     }
 
-    // --- ACCIONES PRINCIPALES ---
+    private Image loadImage(String path) {
+        String fullPath = "/assets/images/sprites/" + path + ".png";
+        InputStream is = getClass().getResourceAsStream(fullPath);
+        if (is == null) {
+            System.err.println("❌ No se encontró la imagen: " + fullPath);
+            return null; 
+        }
+        return new Image(is);
+    }
+
+    // --- ACCIONES DE UI ---
+
+    @FXML private void setMale() { currentGender = "male"; refreshAvatar(); }
+    @FXML private void setFemale() { currentGender = "female"; refreshAvatar(); }
+
+    @FXML private void nextHead() { headIndex = (headIndex + 1) % headItems.size(); playSelectionSound(); refreshAvatar(); }
+    @FXML private void prevHead() { headIndex = (headIndex - 1 + headItems.size()) % headItems.size(); playSelectionSound(); refreshAvatar(); }
+    
+    @FXML private void nextChest() { chestIndex = (chestIndex + 1) % chestItems.size(); playSelectionSound(); refreshAvatar(); }
+    @FXML private void prevChest() { chestIndex = (chestIndex - 1 + chestItems.size()) % chestItems.size(); playSelectionSound(); refreshAvatar(); }
+    
+    @FXML private void nextLegs() { legsIndex = (legsIndex + 1) % legsItems.size(); playSelectionSound(); refreshAvatar(); }
+    @FXML private void prevLegs() { legsIndex = (legsIndex - 1 + legsItems.size()) % legsItems.size(); playSelectionSound(); refreshAvatar(); }
+
+    @FXML
+    public void handleOpenSettings() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
+            Parent root = loader.load();
+            
+            // Pasar referencia si es necesario
+            SettingsController settingsCtrl = loader.getController();
+            settingsCtrl.setEditorController(this);
+
+            Stage settingsStage = new Stage();
+            settingsStage.initModality(Modality.APPLICATION_MODAL);
+            settingsStage.initOwner(rootContainer.getScene().getWindow());
+            settingsStage.initStyle(StageStyle.TRANSPARENT);
+            Scene scene = new Scene(root);
+            scene.setFill(Color.TRANSPARENT);
+            settingsStage.setScene(scene);
+            settingsStage.show();
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    // --- GESTIÓN DE VIDEO Y FONDO ---
+
+    private void setupBackground() {
+        URL videoUrl = getClass().getResource("/assets/videos/login_bg.mp4");
+        if (videoUrl != null) {
+            mediaPlayer = new MediaPlayer(new Media(videoUrl.toExternalForm()));
+            bgMedia.setMediaPlayer(mediaPlayer);
+            mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+            mediaPlayer.setMute(true);
+            mediaPlayer.setRate(0.5);
+            
+            if (!SettingsController.isVideoPaused) {
+                mediaPlayer.setOnReady(() -> mediaPlayer.play());
+            }
+        }
+    }
+
+    /**
+     * MÉTODO CRÍTICO: Repara el error de compilación en SettingsController
+     */
+    public void setVideoPlaying(boolean play) {
+        if (mediaPlayer != null) {
+            if (play) mediaPlayer.play();
+            else mediaPlayer.pause();
+        }
+    }
+
+    public void setInitData(int userId, int slotIndex) {
+        this.userId = userId;
+        this.slotIndex = slotIndex;
+    }
 
     @FXML
     private void handleSave() {
         String name = nameField.getText().trim();
+        if (name.isEmpty() || name.length() < 3) return;
 
-        if (name.isEmpty() || name.length() < 3) {
-            System.out.println("⚠️ El nombre es demasiado corto.");
-            // Aquí podrías disparar una animación de sacudida en el TextField
-            return;
-        }
-
-        // Creamos el objeto modelo
         Character newChar = new Character();
         newChar.setUserId(userId);
         newChar.setName(name);
-        newChar.setClassId(selectedClassId);
         newChar.setSlotIndex(slotIndex);
         newChar.setLevel(1);
+        
+        // Obtener ID de clase (1: Programador, 2: Lector, 3: Escritor)
+        int classId = classSelector.getSelectionModel().getSelectedIndex() + 1;
+        newChar.setClassId(classId);
 
-        // Guardamos en DB mediante el DAO
-        boolean success = CharacterDAO.saveCharacter(newChar);
-
-        if (success) {
-            System.out.println("✅ Personaje forjado con éxito.");
-            volverALaSeleccion();
-        } else {
-            System.err.println("❌ Error al guardar en la base de datos.");
+        if (CharacterDAO.saveCharacter(newChar)) {
+            regresarEscena("/fxml/character_selection.fxml");
         }
     }
 
-    @FXML
-    private void handleCancel() {
-        volverALaSeleccion();
-    }
+    @FXML private void handleCancel() { regresarEscena("/fxml/login.fxml"); }
 
-    private void volverALaSeleccion() {
+    private void regresarEscena(String fxmlPath) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/character_selection.fxml"));
+            if (mediaPlayer != null) { 
+                mediaPlayer.stop(); 
+                mediaPlayer.dispose(); 
+            }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
             
-            // Re-inyectamos los datos del usuario para que la lista se refresque
-            CharacterSelectionController controller = loader.getController();
-            // Nota: Aquí necesitarías tener guardado el username en una sesión global 
-            // o pasarlo entre controllers. Por ahora usamos un placeholder.
-            controller.initData(userId, "Jugador");
+            if (fxmlPath.contains("character_selection")) {
+                CharacterSelectionController controller = loader.getController();
+                controller.initData(userId, "Jugador");
+            }
 
-            Stage stage = (Stage) nameField.getScene().getWindow();
-            
-            // Transición de salida
-            FadeTransition ft = new FadeTransition(Duration.millis(400), nameField.getScene().getRoot());
-            ft.setFromValue(1.0);
-            ft.setToValue(0.0);
-            ft.setOnFinished(e -> {
-                Scene scene = new Scene(root, 1280, 720);
-                stage.setScene(scene);
-            });
-            ft.play();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            Stage stage = (Stage) rootContainer.getScene().getWindow();
+            stage.setScene(new Scene(root, 1280, 720));
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
-    private void playSelectionSound() {
-        try {
-            SoundManager.playKeyClick();
-        } catch (Exception ignored) {}
-    }
+    private void playSelectionSound() { SoundManager.playKeyClick(); }
 }

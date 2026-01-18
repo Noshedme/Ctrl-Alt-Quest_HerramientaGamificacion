@@ -1,124 +1,125 @@
 /* ==========================================================
-   1. FONDO Y CAPAS
+   CHARACTER_SELECTION.CSS - EL SALÓN DE LOS HÉROES
    ========================================================== */
-.selection-root {
-    -fx-background-color: #0d0915; /* Usamos tu color base del proyecto */
+
+.root {
+    -fx-background-color: #0d0915;
+    -fx-font-family: "Georgia";
 }
 
-.overlay-dark {
-    /* Degradado para que el video de fondo se sienta integrado */
-    -fx-background-color: linear-gradient(to top, rgba(13, 9, 21, 0.95) 0%, rgba(13, 9, 21, 0.4) 50%, transparent 100%);
+/* 1. TEXTOS PRINCIPALES */
+.auth-title-hero {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 36px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 10, 0, 0, 5);
 }
 
-/* ==========================================================
-   2. TEXTOS RÚNICOS
-   ========================================================== */
-.title-label {
-    -fx-font-family: "Runewood"; 
-    -fx-font-size: 52px;
-    -fx-text-fill: linear-gradient(#f7d27a, #d6b05a);
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 5, 0, 0, 3);
-    -fx-letter-spacing: 4;
+.card-text-pixel {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px;
+    -fx-text-fill: #b5a7c6;
 }
 
-.subtitle-label {
-    -fx-font-family: "Pixelcastle";
-    -fx-font-size: 18px;
-    -fx-text-fill: #b5a7c6; /* Púrpura suave para coherencia */
-    -fx-italic: true;
-}
-
-/* ==========================================================
-   3. TARJETAS DE PERSONAJE (SLOTS)
-   ========================================================== */
-.char-card {
-    /* Usamos el estilo 'news-card-compact' mejorado */
+/* 2. LAS TARJETAS (SLOTS DE PERSONAJE) */
+.news-card-compact {
     -fx-background-color: linear-gradient(to bottom right, #1a122b, #0d0915);
     -fx-background-radius: 40; 
-    -fx-border-color: rgba(247, 210, 122, 0.25);
+    -fx-border-color: rgba(247, 210, 122, 0.2);
     -fx-border-width: 2;
     -fx-border-radius: 40;
     -fx-padding: 30;
-    -fx-pref-width: 250; 
-    -fx-pref-height: 400;
-    -fx-alignment: center;
-    -fx-cursor: hand;
-    
-    /* Sombra dinámica */
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 20, 0, 0, 10);
+    /* La transición permite que el escalado y el movimiento sean fluidos */
+    -fx-transition: all 0.3s ease-out;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 25, 0, 0, 15);
 }
 
-.char-card:hover {
-    -fx-border-color: #f7d27a;
+/* Efecto Hover: La tarjeta "se ilumina" y flota como un ente místico */
+.news-card-compact:hover {
     -fx-background-color: linear-gradient(to bottom right, #251a3d, #120c21);
-    -fx-translate-y: -15; /* Salto más dinámico */
-    -fx-scale-x: 1.02;
-    -fx-scale-y: 1.02;
-    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.4), 30, 0, 0, 0);
+    -fx-border-color: #f7d27a;
+    /* El movimiento hacia arriba da profundidad visual */
+    -fx-translate-y: -15; 
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.3), 40, 0, 0, 0);
 }
 
-/* Contenedor del Sprite dentro de la tarjeta */
-.sprite-container {
-    -fx-background-color: rgba(5, 5, 10, 0.5);
+/* 3. CONTENEDORES INTERNOS (Donde reside el Sprite del Héroe) */
+.news-card-compact .stack-pane { 
+    -fx-background-color: rgba(5, 5, 10, 0.5) !important;
     -fx-background-radius: 25;
     -fx-border-color: rgba(247, 210, 122, 0.1);
+    -fx-border-width: 1;
     -fx-border-radius: 25;
-    -fx-min-height: 180;
-    -fx-alignment: center;
-    -fx-effect: inner-shadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 0);
 }
 
-.char-name {
-    -fx-font-family: "Runewood";
-    -fx-font-size: 24px;
+.news-card-compact:hover .stack-pane {
+    -fx-border-color: rgba(247, 210, 122, 0.5);
+    -fx-background-color: rgba(247, 210, 122, 0.05) !important;
+}
+
+/* 4. ELEMENTOS DECORATIVOS */
+.settings-divider {
+    -fx-stroke: linear-gradient(to right, transparent, #f7d27a, transparent);
+    -fx-stroke-width: 1.5;
+    -fx-opacity: 0.4;
+}
+
+.card-category-runic {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 22px;
     -fx-text-fill: #f7d27a;
-    -fx-padding: 15 0 5 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 4, 0, 0, 2);
 }
 
-.char-detail {
-    -fx-font-family: "Pixelcastle";
-    -fx-font-size: 16px;
-    -fx-text-fill: #cccccc;
-}
-
-/* Separador místico entre nombre y detalle */
-.pixel-separator {
-    -fx-background-color: linear-gradient(to right, transparent, #f7d27a, transparent);
-    -fx-max-height: 1px;
-    -fx-opacity: 0.5;
-}
-
-/* Icono de añadir (+) para slots vacíos */
-.add-icon {
-    -fx-font-family: "Runewood";
-    -fx-font-size: 60px;
-    -fx-text-fill: rgba(247, 210, 122, 0.2);
-}
-
-.char-card:hover .add-icon {
+/* El símbolo "+" de los slots vacíos y placeholders */
+.empty-slot-label {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 60px; /* Aumentado para mejor visibilidad */
     -fx-text-fill: #f7d27a;
-    -fx-effect: dropshadow(gaussian, #f7d27a, 10, 0.5, 0, 0);
+    -fx-opacity: 0.2;
 }
 
-/* ==========================================================
-   4. BOTÓN DE RETORNO (CERRAR PORTAL)
-   ========================================================== */
-.pixel-button-red {
-    -fx-background-color: linear-gradient(to bottom, #8b0000, #4a0000);
-    -fx-border-color: #ff4500;
-    -fx-border-width: 2;
-    -fx-font-family: "Runewood";
-    -fx-font-size: 18px;
-    -fx-text-fill: white;
-    -fx-padding: 12 35;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
+.news-card-compact:hover .empty-slot-label {
+    -fx-opacity: 0.8;
+    -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.5, 0, 0);
+}
+
+/* 5. BOTÓN CERRAR PORTAL (Volver) */
+.link-button-clean {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px;
     -fx-cursor: hand;
 }
 
-.pixel-button-red:hover {
-    -fx-background-color: linear-gradient(to bottom, #ff0000, #8b0000);
-    -fx-effect: dropshadow(gaussian, #ff4500, 15, 0.4, 0, 0);
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
+.link-button-clean:hover {
+    -fx-text-fill: #ff4545 !important; /* Rojo místico de advertencia al salir */
+    -fx-effect: dropshadow(gaussian, rgba(255, 69, 69, 0.6), 12, 0, 0, 0);
+}
+
+/* 6. INFO ADICIONAL (Nivel, Clase, etc.) */
+.char-info-subtext {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 12px;
+    -fx-text-fill: #8a7fa1;
+    -fx-font-style: italic;
+}
+
+/* 7. BOTÓN AJUSTES (HEREDADO DE AUTH.CSS PARA CONSISTENCIA) */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 28px;
+    -fx-cursor: hand;
+}
+
+.icon-button:hover {
+    -fx-text-fill: #ffffff;
+    -fx-rotate: 90;
+    -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.5, 0, 0);
 }

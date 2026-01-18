@@ -1,6 +1,7 @@
 com\ctrlaltquest\ui\controllers\LoginController.class
 com\ctrlaltquest\ui\controllers\SettingsController.class
 com\ctrlaltquest\dao\CharacterDAO.class
+com\ctrlaltquest\services\SessionManager.class
 com\ctrlaltquest\ui\controllers\RegisterController.class
 com\ctrlaltquest\ui\app\AppLauncher.class
 com\ctrlaltquest\ui\utils\SoundManager.class

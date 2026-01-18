@@ -5,31 +5,40 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.media.MediaView?>
 <?import javafx.scene.shape.Circle?>
+<?import java.net.URL?>
 
-<StackPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ctrlaltquest.ui.controllers.LoginController"
-            stylesheets="/styles/auth.css" prefWidth="1280" prefHeight="720">
+<StackPane xmlns:fx="http://javafx.com/fxml" 
+           fx:controller="com.ctrlaltquest.ui.controllers.LoginController"
+           styleClass="root" prefWidth="1280" prefHeight="720">
+    
+    <stylesheets>
+        <URL value="@/styles/auth.css" />
+    </stylesheets>
     
     <MediaView fx:id="backgroundVideo" fitWidth="1280" fitHeight="720" preserveRatio="false" />
 
+    <Region style="-fx-background-color: rgba(13, 9, 21, 0.65);" />
+
     <BorderPane styleClass="main-container">
+        
         <top>
             <HBox alignment="CENTER_RIGHT" spacing="15" styleClass="top-bar" style="-fx-padding: 25;">
-                <Button text="⚙" onAction="#handleOpenSettings" styleClass="icon-button" focusTraversable="false" />
+                <Button text="⚙" onAction="#handleOpenSettings" 
+                        styleClass="icon-button" focusTraversable="false" />
             </HBox>
         </top>
         
         <left>
-            <VBox spacing="0" styleClass="sidebar" alignment="TOP_CENTER">
+            <VBox spacing="0" styleClass="sidebar" alignment="TOP_CENTER" prefWidth="420">
                 <VBox alignment="CENTER" prefHeight="280" spacing="15">
                     <ImageView fx:id="sidebarLogo" fitHeight="130" preserveRatio="true" />
                     <Label text="CTRL + ALT + QUEST" styleClass="sidebar-title-runic" />
                 </VBox>
 
-                <VBox alignment="TOP_CENTER" spacing="25" VBox.vgrow="ALWAYS">
+                <VBox alignment="TOP_CENTER" spacing="25" VBox.vgrow="ALWAYS" style="-fx-padding: 0 40;">
                     <StackPane fx:id="carouselContainer" styleClass="carousel-viewport-clean">
                         <StackPane fx:id="newsSlider">
-                            
-                            <VBox styleClass="news-card-compact" alignment="TOP_LEFT">
+                            <VBox styleClass="news-card-compact" alignment="TOP_LEFT" spacing="12">
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="✦" styleClass="bullet-icon-gold"/>
                                     <Label text="ACTUALIZACIÓN" styleClass="card-category-runic" />
@@ -38,7 +47,7 @@
                                        wrapText="true" styleClass="card-text-pixel" />
                             </VBox>
                             
-                            <VBox styleClass="news-card-compact" alignment="TOP_LEFT">
+                            <VBox styleClass="news-card-compact" alignment="TOP_LEFT" spacing="12" visible="false">
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="⚔" styleClass="bullet-icon-gold"/>
                                     <Label text="ANUNCIOS" styleClass="card-category-runic" />
@@ -46,7 +55,6 @@
                                 <Label text="El torneo de hojas de cálculo comienza este viernes. ¿Tienes tu macro lista para el combate?" 
                                        wrapText="true" styleClass="card-text-pixel" />
                             </VBox>
-
                         </StackPane>
                     </StackPane>
                     
@@ -60,11 +68,15 @@
 
         <center>
             <StackPane>
-                <VBox alignment="CENTER" spacing="30" maxWidth="550" maxHeight="520" styleClass="auth-panel">
-                    <Label text="BIENVENIDO AVENTURERO" styleClass="auth-title-hero" 
-                           wrapText="true" textAlignment="CENTER" maxWidth="Infinity" />
+                <VBox alignment="CENTER" spacing="30" maxWidth="550" maxHeight="580" styleClass="auth-panel">
                     
-                    <VBox spacing="20" styleClass="input-group">
+                    <VBox alignment="CENTER" spacing="10">
+                        <Label text="BIENVENIDO AVENTURERO" styleClass="auth-title-hero" 
+                               wrapText="true" textAlignment="CENTER" maxWidth="Infinity" />
+                        <Region prefHeight="5" />
+                    </VBox>
+                    
+                    <VBox spacing="25" styleClass="input-group" maxWidth="420">
                         <VBox spacing="8">
                             <Label text="IDENTIDAD" styleClass="input-label-runic-gold"/>
                             <TextField fx:id="usernameField" promptText="Nombre de usuario" styleClass="custom-field" />
@@ -83,13 +95,23 @@
                                         focusTraversable="false" />
                             </StackPane>
                         </VBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <CheckBox fx:id="rememberMeCheck" styleClass="pixel-checkbox" />
+                            <Label text="Recordar mi juramento (contraseña)" 
+                                   styleClass="settings-sublabel" 
+                                   style="-fx-text-fill: #b5a7c6; -fx-font-size: 14px;"/>
+                        </HBox>
                     </VBox>
                     
-                    <Button text="INICIAR AVENTURA" onAction="#handleLogin" styleClass="primary-button-hero" />
+                    <Button text="INICIAR AVENTURA" onAction="#handleLogin" 
+                            styleClass="primary-button-hero" prefWidth="420" />
                     
-                    <HBox alignment="CENTER" spacing="40">
-                        <Button text="Crear cuenta" onAction="#handleGoToRegister" styleClass="link-button-clean" focusTraversable="false" />
-                        <Button text="¿Olvidaste tu llave?" onAction="#handleForgotPassword" styleClass="link-button-clean" focusTraversable="false" />
+                    <HBox alignment="CENTER" spacing="45">
+                        <Button text="Crear cuenta" onAction="#handleGoToRegister" 
+                                styleClass="link-button-clean" focusTraversable="false" />
+                        <Button text="¿Olvidaste tu llave?" onAction="#handleForgotPassword" 
+                                styleClass="link-button-clean" focusTraversable="false" />
                     </HBox>
                 </VBox>
             </StackPane>

@@ -1,16 +1,20 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.Map;
+import java.util.prefs.Preferences;
+
 import com.ctrlaltquest.dao.AuthDAO;
 import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.services.AuditService;
 import com.ctrlaltquest.ui.utils.SoundManager;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Map;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -18,6 +22,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -42,10 +48,13 @@ public class LoginController {
     @FXML private ImageView sidebarLogo;
     @FXML private MediaView backgroundVideo;
     @FXML private StackPane newsSlider; 
+    @FXML private CheckBox rememberMeCheck; 
     
-    private MediaPlayer mediaPlayer;
+    private MediaPlayer videoPlayer;
     private boolean isPasswordVisible = false;
     private int currentNewsIndex = 0;
+
+    private Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
 
     @FXML
     public void initialize() {
@@ -53,8 +62,13 @@ public class LoginController {
             backgroundVideo.setEffect(new javafx.scene.effect.GaussianBlur(15));
             configurarVideo();
         }
+        
+        SoundManager.getInstance().synchronizeMusic(); 
+        setupTypingSounds(); 
+        
         cargarLogo();
         setupCarousel(); 
+        verificarRecordatorios();
     }
 
     private void configurarVideo() {
@@ -62,17 +76,16 @@ public class LoginController {
         if (videoUrl != null) {
             try {
                 Media media = new Media(videoUrl.toExternalForm());
-                mediaPlayer = new MediaPlayer(media);
-                backgroundVideo.setMediaPlayer(mediaPlayer);
-                mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-                mediaPlayer.setMute(true);
-                mediaPlayer.setRate(0.5); 
+                videoPlayer = new MediaPlayer(media);
+                backgroundVideo.setMediaPlayer(videoPlayer);
+                videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+                videoPlayer.setMute(true);
+                videoPlayer.setRate(0.5); 
                 
-                // Verificamos si los ajustes globales indican que el video debe estar pausado
                 if (SettingsController.isVideoPaused) {
-                    mediaPlayer.pause();
+                    videoPlayer.pause();
                 } else {
-                    mediaPlayer.setOnReady(() -> mediaPlayer.play());
+                    videoPlayer.setOnReady(() -> videoPlayer.play());
                 }
             } catch (Exception e) {
                 System.err.println("❌ Error carga video: " + e.getMessage());
@@ -81,9 +94,41 @@ public class LoginController {
     }
 
     public void setVideoPlaying(boolean play) {
-        if (mediaPlayer != null) {
-            if (play) mediaPlayer.play();
-            else mediaPlayer.pause();
+        if (videoPlayer != null) {
+            if (play) videoPlayer.play();
+            else videoPlayer.pause();
+        }
+    }
+
+    private void setupTypingSounds() {
+        TextField[] fields = {usernameField, passwordHidden, passwordShown};
+        for (TextField field : fields) {
+            field.setOnKeyTyped(e -> {
+                SoundManager.playKeyClick();
+            });
+        }
+    }
+
+    private void verificarRecordatorios() {
+        if (prefs.getBoolean("remember_active", false)) {
+            String user = prefs.get("saved_user", "");
+            String pass = prefs.get("saved_pass", "");
+            usernameField.setText(user);
+            passwordHidden.setText(pass);
+            passwordShown.setText(pass);
+            rememberMeCheck.setSelected(true);
+        }
+    }
+
+    private void procesarGuardadoCredenciales(String user, String pass) {
+        if (rememberMeCheck.isSelected()) {
+            prefs.putBoolean("remember_active", true);
+            prefs.put("saved_user", user);
+            prefs.put("saved_pass", pass);
+        } else {
+            prefs.putBoolean("remember_active", false);
+            prefs.remove("saved_user");
+            prefs.remove("saved_pass");
         }
     }
 
@@ -103,14 +148,12 @@ public class LoginController {
             Node inNode = newsSlider.getChildren().get(currentNewsIndex);
 
             FadeTransition fadeOut = new FadeTransition(Duration.millis(800), outNode);
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
+            fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(e -> {
                 outNode.setManaged(false);
                 inNode.setManaged(true);
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(800), inNode);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
+                fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0);
                 fadeIn.play();
             });
             fadeOut.play();
@@ -145,29 +188,19 @@ public class LoginController {
             return;
         }
 
-        // --- LLAMADA AL DAO ACTUALIZADO CON AUDITORÍA ---
-        // Este método valida el usuario, registra el dispositivo, la IP y el log en la BBDD
         if (AuthDAO.loginCompleto(user, pass)) {
-            
+            procesarGuardadoCredenciales(user, pass);
             int userId = AuthDAO.getUserIdByUsername(user); 
-            
-            // Consultar personajes existentes
             Map<Integer, Character> personajes = CharacterDAO.getCharactersByUser(userId);
 
             if (personajes.isEmpty()) {
-                // Usuario sin personajes -> Editor de Personaje
-                System.out.println("✨ Nuevo héroe detectado. Abriendo la forja.");
                 navigateToEditor(userId, user);
             } else {
-                // Usuario veterano -> Selección de Personaje
-                System.out.println("📜 Héroes encontrados. Cargando selección.");
                 navigateToSelection(userId, user);
             }
-            
             AuditService.log(null, "LOGIN_SUCCESS", "Acceso concedido para: " + user);
         } else {
-            // El DAO ya registró el log de fallo internamente
-            showAlert("Fallo Astral", "La identidad o la llave mágica no son válidas.");
+            showAlert("Fallo Astral", "La identidad o la llave mágica no han sido reconocidas por el Oráculo.");
         }
     }
 
@@ -175,14 +208,11 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/character_selection.fxml"));
             Parent root = loader.load();
-            
             CharacterSelectionController ctrl = loader.getController();
             ctrl.initData(userId, username);
-
             ejecutarCambioEscena(root);
         } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "No se pudo cargar la sala de selección.");
+            showAlert("Error Crítico", "No se pudo cargar la sala de selección de héroes.");
         }
     }
 
@@ -190,54 +220,30 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/character_editor.fxml"));
             Parent root = loader.load();
-            
             CharacterEditorController ctrl = loader.getController();
-            ctrl.setInitData(userId, 1); // Empezamos siempre en el Slot 1 para nuevos
-
+            ctrl.setInitData(userId, 1); 
             ejecutarCambioEscena(root);
         } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "No se pudo cargar el oráculo de creación.");
+            showAlert("Error Crítico", "No se pudo cargar el oráculo de creación.");
         }
     }
 
     private void ejecutarCambioEscena(Parent nextRoot) {
         Stage stage = (Stage) usernameField.getScene().getWindow();
-
         FadeTransition fadeOut = new FadeTransition(Duration.millis(500), usernameField.getScene().getRoot());
-        fadeOut.setFromValue(1.0);
-        fadeOut.setToValue(0.0);
+        fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
         
         fadeOut.setOnFinished(event -> {
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.dispose();
-            }
-
+            if (videoPlayer != null) { videoPlayer.stop(); videoPlayer.dispose(); }
             Scene nextScene = new Scene(nextRoot, 1280, 720);
-            
-            // Inyectar sonido global de teclado en la nueva escena
-            nextScene.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
-                try { SoundManager.playKeyClick(); } catch(Exception ignored) {}
-            });
-            
+            nextScene.addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
             stage.setScene(nextScene);
             stage.centerOnScreen();
-
             nextRoot.setOpacity(0);
             FadeTransition fadeIn = new FadeTransition(Duration.millis(500), nextRoot);
-            fadeIn.setToValue(1.0);
-            fadeIn.play();
+            fadeIn.setToValue(1.0); fadeIn.play();
         });
         fadeOut.play();
-    }
-
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 
     @FXML 
@@ -245,10 +251,8 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
             Parent root = loader.load();
-            
             SettingsController settingsCtrl = loader.getController();
             settingsCtrl.setLoginController(this);
-
             Stage settingsStage = new Stage();
             settingsStage.initModality(Modality.APPLICATION_MODAL);
             settingsStage.initOwner(usernameField.getScene().getWindow());
@@ -268,16 +272,13 @@ public class LoginController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/register.fxml"));
             Parent registerRoot = loader.load();
             Stage stage = (Stage) usernameField.getScene().getWindow();
-            
             FadeTransition fadeOut = new FadeTransition(Duration.millis(400), usernameField.getScene().getRoot());
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
+            fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
+                if (videoPlayer != null) { videoPlayer.stop(); videoPlayer.dispose(); }
                 stage.getScene().setRoot(registerRoot);
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(400), registerRoot);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                if (mediaPlayer != null) { mediaPlayer.stop(); mediaPlayer.dispose(); }
+                fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0);
                 fadeIn.play();
             });
             fadeOut.play();
@@ -293,7 +294,46 @@ public class LoginController {
         }
     }
 
-    @FXML public void handleForgotPassword() { 
-        System.out.println("🔮 Invocando recuperación de runa a través del oráculo..."); 
+    // --- MÉTODO SHOWALERT PERSONALIZADO Y ROBUSTO ---
+    private void showAlert(String title, String content) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Aviso del Reino");
+            alert.setHeaderText(title);
+            alert.setContentText(content);
+            
+            DialogPane dialogPane = alert.getDialogPane();
+
+            try {
+                // Ruta actualizada: /styles/alerts.css
+                URL cssUrl = getClass().getResource("/styles/alerts.css");
+                if (cssUrl != null) {
+                    dialogPane.getStylesheets().add(cssUrl.toExternalForm());
+                    dialogPane.getStyleClass().add("custom-alert");
+                    
+                    // Solo intentamos quitar bordes si el CSS cargó (evita errores visuales)
+                    Stage alertStage = (Stage) dialogPane.getScene().getWindow();
+                    if (alertStage.getStyle() != StageStyle.UNDECORATED) {
+                        alertStage.initStyle(StageStyle.UNDECORATED);
+                    }
+                    
+                    // Efecto de aparición
+                    dialogPane.setOpacity(0);
+                    FadeTransition ft = new FadeTransition(Duration.millis(300), dialogPane);
+                    ft.setToValue(1.0);
+                    ft.play();
+                }
+            } catch (Exception e) {
+                // Si falla el estilo, al menos logueamos el error y la alerta sale normal
+                System.err.println("⚠️ No se pudo aplicar el estilo épico: " + e.getMessage());
+            }
+
+            alert.showAndWait();
+        });
+    }
+
+    @FXML 
+    public void handleForgotPassword() { 
+        showAlert("Plegaria al Olvido", "Las runas de recuperación aún no han sido forjadas por los antiguos.");
     }
 }

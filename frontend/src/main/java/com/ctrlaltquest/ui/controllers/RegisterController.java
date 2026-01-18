@@ -3,6 +3,7 @@ package com.ctrlaltquest.ui.controllers;
 import com.ctrlaltquest.dao.AuthDAO;
 import com.ctrlaltquest.services.EmailService;
 import com.ctrlaltquest.services.AuditService;
+import com.ctrlaltquest.ui.utils.SoundManager;
 import javafx.animation.FadeTransition;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -36,7 +37,7 @@ public class RegisterController {
     @FXML private VBox loadingLayer;  
 
     // --- Variables Lógicas ---
-    private MediaPlayer mediaPlayer;
+    private MediaPlayer videoPlayer;
     private final AuthDAO authDAO = new AuthDAO();
     private final EmailService emailService = new EmailService();
 
@@ -46,7 +47,9 @@ public class RegisterController {
             backgroundVideo.setEffect(new javafx.scene.effect.GaussianBlur(15));
             configurarVideo();
         }
-        setupTypingSounds();
+        
+        SoundManager.getInstance().synchronizeMusic(); 
+        setupTypingSounds(); 
     }
 
     private void configurarVideo() {
@@ -54,27 +57,27 @@ public class RegisterController {
             URL videoUrl = getClass().getResource("/assets/videos/login_bg.mp4");
             if (videoUrl != null) {
                 Media media = new Media(videoUrl.toExternalForm());
-                mediaPlayer = new MediaPlayer(media);
-                backgroundVideo.setMediaPlayer(mediaPlayer);
-                mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-                mediaPlayer.setMute(true);
-                mediaPlayer.setRate(0.5);
+                videoPlayer = new MediaPlayer(media);
+                backgroundVideo.setMediaPlayer(videoPlayer);
+                videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+                videoPlayer.setMute(true);
+                videoPlayer.setRate(0.5);
 
                 if (SettingsController.isVideoPaused) {
-                    mediaPlayer.pause();
+                    videoPlayer.pause();
                 } else {
-                    mediaPlayer.play();
+                    videoPlayer.play();
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error al cargar video en Registro: " + e.getMessage());
+            System.err.println("❌ Error video registro: " + e.getMessage());
         }
     }
 
     public void setVideoPlaying(boolean play) {
-        if (mediaPlayer != null) {
-            if (play) mediaPlayer.play();
-            else mediaPlayer.pause();
+        if (videoPlayer != null) {
+            if (play) videoPlayer.play();
+            else videoPlayer.pause();
         }
     }
 
@@ -82,9 +85,7 @@ public class RegisterController {
         TextField[] fields = {usernameField, emailField, passwordField, confirmPasswordField};
         for (TextField field : fields) {
             field.setOnKeyTyped(e -> {
-                if (SettingsController.isTypingSoundEnabled) {
-                    // AudioManager.playTypeSound(); 
-                }
+                SoundManager.playKeyClick(); 
             });
         }
     }
@@ -123,6 +124,8 @@ public class RegisterController {
 
         fadeOut.setOnFinished(e -> {
             try {
+                if (videoPlayer != null) { videoPlayer.stop(); videoPlayer.dispose(); }
+
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
                 Parent loginRoot = loader.load();
                 loginRoot.setOpacity(0);
@@ -131,11 +134,6 @@ public class RegisterController {
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(500), loginRoot);
                 fadeIn.setFromValue(0.0);
                 fadeIn.setToValue(1.0);
-
-                if (mediaPlayer != null) {
-                    mediaPlayer.stop();
-                    mediaPlayer.dispose();
-                }
                 fadeIn.play();
             } catch (IOException ex) {
                 System.err.println("Error al regresar al Login: " + ex.getMessage());
@@ -190,7 +188,6 @@ public class RegisterController {
             String registeredEmail = registerTask.getValue();
             AuditService.log(null, "REGISTRO_PENDIENTE", "Código enviado a: " + registeredEmail);
 
-            // ABRIR OVERLAY DE VERIFICACIÓN
             abrirVentanaVerificacion(registeredEmail);
         });
 
@@ -217,12 +214,9 @@ public class RegisterController {
             Stage stage = new Stage();
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.initOwner(usernameField.getScene().getWindow());
-            
-            // --- ESTILO OVERLAY TRANSPARENTE ---
             stage.initStyle(StageStyle.TRANSPARENT); 
             Scene scene = new Scene(root);
             scene.setFill(Color.TRANSPARENT); 
-            
             stage.setScene(scene);
             stage.show();
 
@@ -239,12 +233,24 @@ public class RegisterController {
 
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Ctrl + Alt + Quest");
+        alert.setTitle("Mensaje del Oráculo");
         alert.setHeaderText(title);
         alert.setContentText(content);
+
+        // Vincular el CSS al DialogPane
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/styles/alerts.css").toExternalForm());
+        dialogPane.getStyleClass().add("custom-alert");
+
+        // Configurar el Stage de la alerta para ser transparente y sin bordes de Windows
+        Stage stage = (Stage) dialogPane.getScene().getWindow();
+        stage.initStyle(StageStyle.TRANSPARENT);
+        dialogPane.getScene().setFill(Color.TRANSPARENT);
+
         if (usernameField.getScene() != null) {
             alert.initOwner(usernameField.getScene().getWindow());
         }
+
         alert.showAndWait();
     }
 }
