@@ -29,20 +29,18 @@ import java.util.List;
 
 public class CharacterEditorController {
 
-    // --- FXML BINDINGS ---
     @FXML private TextField nameField;
     @FXML private StackPane rootContainer;
     @FXML private MediaView bgMedia;
     
-    // Capas del Avatar (StackPane en FXML)
+    // Capas del Avatar
     @FXML private ImageView layerBody, layerHead, layerChest, layerLegs, layerFeet;
+    @FXML private StackPane spritePreview;
     
-    // Controles de UI
     @FXML private ToggleButton toggleMale, toggleFemale;
     @FXML private Label lblHeadName, lblChestName, lblLegsName;
     @FXML private ChoiceBox<String> classSelector;
 
-    // --- ESTADO DEL PERSONAJE ---
     private MediaPlayer mediaPlayer;
     private int userId;
     private int slotIndex;
@@ -52,7 +50,6 @@ public class CharacterEditorController {
     private int chestIndex = 0;
     private int legsIndex = 0;
 
-    // Listas de items (Deben coincidir con los nombres de tus archivos .png)
     private final List<String> headItems = Arrays.asList("none", "prog_visor", "read_monocle", "write_beret");
     private final List<String> chestItems = Arrays.asList("basic", "prog_hoodie", "read_tunic", "write_shirt");
     private final List<String> legsItems = Arrays.asList("basic", "prog_pants", "read_skirt", "write_dark");
@@ -64,7 +61,6 @@ public class CharacterEditorController {
             setupBackground();
         }
         
-        // Inicializar Selector de Clases
         if (classSelector != null) {
             classSelector.getItems().clear();
             classSelector.getItems().addAll("Programador", "Lector", "Escritor");
@@ -72,7 +68,6 @@ public class CharacterEditorController {
             classSelector.setOnAction(e -> playSelectionSound());
         }
 
-        // Configurar ToggleGroup para Género
         ToggleGroup genderGroup = new ToggleGroup();
         if (toggleMale != null && toggleFemale != null) {
             toggleMale.setToggleGroup(genderGroup);
@@ -84,36 +79,54 @@ public class CharacterEditorController {
         refreshAvatar();
     }
 
-    // --- LÓGICA DE PERSONALIZACIÓN DEL AVATAR ---
-
     private void refreshAvatar() {
         try {
             // 1. Cuerpo Base
-            if (layerBody != null) layerBody.setImage(loadImage("bases/body_" + currentGender));
+            updateLayer(layerBody, "bases/body_" + currentGender);
             
             // 2. Cabeza
             String head = headItems.get(headIndex);
             if (lblHeadName != null) lblHeadName.setText(head.replace("_", " ").toUpperCase());
-            if (layerHead != null) layerHead.setImage(head.equals("none") ? null : loadImage("head/" + head));
+            updateLayer(layerHead, head.equals("none") ? null : "head/" + head);
 
             // 3. Torso
             String chest = chestItems.get(chestIndex);
             if (lblChestName != null) lblChestName.setText(chest.replace("_", " ").toUpperCase());
-            if (layerChest != null) layerChest.setImage(loadImage("chest/" + chest));
+            updateLayer(layerChest, "chest/" + chest);
 
             // 4. Piernas
             String legs = legsItems.get(legsIndex);
             if (lblLegsName != null) lblLegsName.setText(legs.replace("_", " ").toUpperCase());
-            if (layerLegs != null) layerLegs.setImage(loadImage("legs/" + legs));
+            updateLayer(layerLegs, "legs/" + legs);
 
-            // Feedback visual suave al cambiar
-            if (layerBody != null && layerBody.getParent() != null) {
-                FadeTransition ft = new FadeTransition(Duration.millis(200), layerBody.getParent());
-                ft.setFromValue(0.8); ft.setToValue(1.0); ft.play();
+            // Animación suave al cambiar
+            if (spritePreview != null) {
+                FadeTransition ft = new FadeTransition(Duration.millis(200), spritePreview);
+                ft.setFromValue(0.85); ft.setToValue(1.0); ft.play();
             }
 
         } catch (Exception e) {
-            System.err.println("⚠️ Nota: Error al actualizar capas del avatar: " + e.getMessage());
+            System.err.println("⚠️ Error al actualizar capas: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Actualiza una capa específica asegurando el tamaño y alineación.
+     */
+    private void updateLayer(ImageView layer, String path) {
+        if (layer == null) return;
+        
+        if (path == null) {
+            layer.setImage(null);
+            return;
+        }
+
+        Image img = loadImage(path);
+        if (img != null) {
+            layer.setImage(img);
+            layer.setFitHeight(380); // Mismo tamaño para todas las capas
+            layer.setPreserveRatio(true);
+            layer.setSmooth(false); // Estilo Pixel Art nítido
         }
     }
 
@@ -126,8 +139,6 @@ public class CharacterEditorController {
         }
         return new Image(is);
     }
-
-    // --- ACCIONES DE UI ---
 
     @FXML private void setMale() { currentGender = "male"; refreshAvatar(); }
     @FXML private void setFemale() { currentGender = "female"; refreshAvatar(); }
@@ -146,8 +157,6 @@ public class CharacterEditorController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
             Parent root = loader.load();
-            
-            // Pasar referencia si es necesario
             SettingsController settingsCtrl = loader.getController();
             settingsCtrl.setEditorController(this);
 
@@ -162,8 +171,6 @@ public class CharacterEditorController {
         } catch (IOException e) { e.printStackTrace(); }
     }
 
-    // --- GESTIÓN DE VIDEO Y FONDO ---
-
     private void setupBackground() {
         URL videoUrl = getClass().getResource("/assets/videos/login_bg.mp4");
         if (videoUrl != null) {
@@ -172,16 +179,10 @@ public class CharacterEditorController {
             mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
             mediaPlayer.setMute(true);
             mediaPlayer.setRate(0.5);
-            
-            if (!SettingsController.isVideoPaused) {
-                mediaPlayer.setOnReady(() -> mediaPlayer.play());
-            }
+            if (!SettingsController.isVideoPaused) mediaPlayer.play();
         }
     }
 
-    /**
-     * MÉTODO CRÍTICO: Repara el error de compilación en SettingsController
-     */
     public void setVideoPlaying(boolean play) {
         if (mediaPlayer != null) {
             if (play) mediaPlayer.play();
@@ -204,10 +205,7 @@ public class CharacterEditorController {
         newChar.setName(name);
         newChar.setSlotIndex(slotIndex);
         newChar.setLevel(1);
-        
-        // Obtener ID de clase (1: Programador, 2: Lector, 3: Escritor)
-        int classId = classSelector.getSelectionModel().getSelectedIndex() + 1;
-        newChar.setClassId(classId);
+        newChar.setClassId(classSelector.getSelectionModel().getSelectedIndex() + 1);
 
         if (CharacterDAO.saveCharacter(newChar)) {
             regresarEscena("/fxml/character_selection.fxml");
@@ -218,18 +216,13 @@ public class CharacterEditorController {
 
     private void regresarEscena(String fxmlPath) {
         try {
-            if (mediaPlayer != null) { 
-                mediaPlayer.stop(); 
-                mediaPlayer.dispose(); 
-            }
+            if (mediaPlayer != null) { mediaPlayer.stop(); mediaPlayer.dispose(); }
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
-            
             if (fxmlPath.contains("character_selection")) {
                 CharacterSelectionController controller = loader.getController();
                 controller.initData(userId, "Jugador");
             }
-
             Stage stage = (Stage) rootContainer.getScene().getWindow();
             stage.setScene(new Scene(root, 1280, 720));
         } catch (IOException e) { e.printStackTrace(); }

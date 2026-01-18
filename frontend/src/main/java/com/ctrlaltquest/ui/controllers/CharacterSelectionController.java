@@ -8,10 +8,14 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -26,6 +30,7 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
+import java.util.Optional;
 
 public class CharacterSelectionController {
 
@@ -33,6 +38,7 @@ public class CharacterSelectionController {
     @FXML private Label name1, name2, name3;
     @FXML private Label detail1, detail2, detail3;
     @FXML private StackPane container1, container2, container3;
+    @FXML private Button btnDelete1, btnDelete2, btnDelete3;
     @FXML private MediaView bgMedia;
     @FXML private Button btnSettings;
 
@@ -43,7 +49,6 @@ public class CharacterSelectionController {
 
     @FXML
     public void initialize() {
-        // Al igual que en el login, aplicamos desenfoque para que resalten las cartas
         if (bgMedia != null) {
             bgMedia.setEffect(new javafx.scene.effect.GaussianBlur(15));
             setupBackground();
@@ -53,7 +58,7 @@ public class CharacterSelectionController {
     }
 
     private void setupBackground() {
-        URL videoUrl = getClass().getResource("/assets/videos/login_bg.mp4"); // Usamos el mismo video para coherencia
+        URL videoUrl = getClass().getResource("/assets/videos/login_bg.mp4");
         if (videoUrl != null) {
             try {
                 Media media = new Media(videoUrl.toExternalForm());
@@ -61,9 +66,8 @@ public class CharacterSelectionController {
                 bgMedia.setMediaPlayer(mediaPlayer);
                 mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                 mediaPlayer.setMute(true);
-                mediaPlayer.setRate(0.5); // Velocidad relajada
+                mediaPlayer.setRate(0.5);
 
-                // Respetar el estado global de pausa del video
                 if (SettingsController.isVideoPaused) {
                     mediaPlayer.pause();
                 } else {
@@ -75,7 +79,6 @@ public class CharacterSelectionController {
         }
     }
 
-    // Método para que el SettingsController pueda pausar/reproducir este video
     public void setVideoPlaying(boolean play) {
         if (mediaPlayer != null) {
             if (play) mediaPlayer.play();
@@ -88,7 +91,7 @@ public class CharacterSelectionController {
         for (VBox slot : slots) {
             slot.setOnMouseEntered(e -> {
                 SoundManager.playKeyClick();
-                applyScaleAnimation(slot, 1.03); // Escala sutil según el CSS
+                applyScaleAnimation(slot, 1.03);
             });
             slot.setOnMouseExited(e -> applyScaleAnimation(slot, 1.0));
         }
@@ -110,12 +113,12 @@ public class CharacterSelectionController {
     private void cargarPersonajes() {
         this.personajes = CharacterDAO.getCharactersByUser(currentUserId);
         
-        actualizarSlot(1, personajes.get(1), name1, detail1, container1);
-        actualizarSlot(2, personajes.get(2), name2, detail2, container2);
-        actualizarSlot(3, personajes.get(3), name3, detail3, container3);
+        actualizarSlot(1, personajes.get(1), name1, detail1, container1, btnDelete1);
+        actualizarSlot(2, personajes.get(2), name2, detail2, container2, btnDelete2);
+        actualizarSlot(3, personajes.get(3), name3, detail3, container3, btnDelete3);
     }
 
-    private void actualizarSlot(int index, Character c, Label lblName, Label lblDetail, StackPane container) {
+    private void actualizarSlot(int index, Character c, Label lblName, Label lblDetail, StackPane container, Button btnDelete) {
         container.getChildren().clear();
         
         if (c != null) {
@@ -123,11 +126,13 @@ public class CharacterSelectionController {
             lblName.getStyleClass().add("card-category-runic");
             lblDetail.setText("NIVEL " + c.getLevel() + " - " + obtenerNombreClase(c.getClassId()));
             lblDetail.getStyleClass().add("card-text-pixel");
+            btnDelete.setVisible(true);
             
             renderizarPersonaje(container, c);
         } else {
             lblName.setText("VACÍO");
             lblDetail.setText("Slot disponible");
+            btnDelete.setVisible(false);
             
             Label addIcon = new Label("+");
             addIcon.getStyleClass().add("empty-slot-label");
@@ -144,7 +149,7 @@ public class CharacterSelectionController {
                 ImageView body = new ImageView(new Image(imgUrl.toExternalForm()));
                 body.setFitHeight(180);
                 body.setPreserveRatio(true);
-                body.setSmooth(false); // Pixel art nítido
+                body.setSmooth(false);
                 container.getChildren().add(body);
             }
         } catch (Exception e) {
@@ -175,21 +180,80 @@ public class CharacterSelectionController {
         }
     }
 
+    @FXML private void handleDelete1() { confirmarEliminacion(1); }
+    @FXML private void handleDelete2() { confirmarEliminacion(2); }
+    @FXML private void handleDelete3() { confirmarEliminacion(3); }
+
+    private void confirmarEliminacion(int slotIndex) {
+        SoundManager.playKeyClick();
+        Character c = personajes.get(slotIndex);
+        if (c == null) return;
+
+        // Título y contenido temático
+        String title = "Sacrificio de Alma";
+        String content = "El personaje " + c.getName().toUpperCase() + " será borrado de los anales del tiempo. ¿Deseas proceder?";
+
+        // Llamamos a nuestra alerta personalizada con estilo épico
+        showConfirmAlert(title, content, () -> {
+            if (CharacterDAO.deleteCharacter(c.getId())) {
+                cargarPersonajes();
+            }
+        });
+    }
+
+    /**
+     * Muestra una alerta de confirmación con el estilo UNDECORATED y el CSS del Login
+     */
+    private void showConfirmAlert(String title, String content, Runnable onConfirm) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Aviso del Reino");
+            alert.setHeaderText(title);
+            alert.setContentText(content);
+            
+            DialogPane dialogPane = alert.getDialogPane();
+            try {
+                // Usamos el mismo archivo CSS que usas en el Login
+                URL cssUrl = getClass().getResource("/styles/alerts.css");
+                if (cssUrl != null) {
+                    dialogPane.getStylesheets().add(cssUrl.toExternalForm());
+                    dialogPane.getStyleClass().add("custom-alert");
+                    
+                    Stage alertStage = (Stage) dialogPane.getScene().getWindow();
+                    
+                    // Aplicamos el estilo sin bordes de Windows
+                    if (alertStage.getStyle() != StageStyle.UNDECORATED) {
+                        alertStage.initStyle(StageStyle.UNDECORATED);
+                    }
+                    
+                    // Animación de entrada (FadeIn)
+                    dialogPane.setOpacity(0);
+                    FadeTransition ft = new FadeTransition(Duration.millis(300), dialogPane);
+                    ft.setToValue(1.0);
+                    ft.play();
+                }
+            } catch (Exception e) {
+                System.err.println("⚠️ No se pudo aplicar el estilo épico en Selección: " + e.getMessage());
+            }
+
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == ButtonType.OK) {
+                onConfirm.run();
+            }
+        });
+    }
+
     @FXML 
     public void handleOpenSettings() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
             Parent root = loader.load();
-            
             SettingsController settingsCtrl = loader.getController();
-            // Le pasamos este controlador para que pueda pausar el video de selección
             settingsCtrl.setSelectionController(this); 
-
             Stage settingsStage = new Stage();
             settingsStage.initModality(Modality.APPLICATION_MODAL);
             settingsStage.initOwner(slot1.getScene().getWindow());
             settingsStage.initStyle(StageStyle.TRANSPARENT); 
-            
             Scene scene = new Scene(root);
             scene.setFill(Color.TRANSPARENT); 
             settingsStage.setScene(scene);
@@ -202,7 +266,6 @@ public class CharacterSelectionController {
     private void cambiarEscena(String fxmlPath, Object data) {
         try {
             Stage stage = (Stage) slot1.getScene().getWindow();
-            
             FadeTransition ft = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
             ft.setFromValue(1.0);
             ft.setToValue(0.0);
@@ -212,20 +275,14 @@ public class CharacterSelectionController {
                         mediaPlayer.stop();
                         mediaPlayer.dispose();
                     }
-
                     FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
                     Parent root = loader.load();
-
                     if (fxmlPath.contains("character_editor")) {
                         CharacterEditorController ctrl = loader.getController();
                         ctrl.setInitData(currentUserId, (Integer) data);
-                    } else if (fxmlPath.contains("home")) {
-                        // Aquí iría tu lógica para el Home
                     }
-
                     Scene scene = new Scene(root, 1280, 720);
                     stage.setScene(scene);
-                    
                     root.setOpacity(0);
                     FadeTransition fi = new FadeTransition(Duration.millis(500), root);
                     fi.setToValue(1.0);
@@ -244,13 +301,9 @@ public class CharacterSelectionController {
     private void handleBack() {
         SoundManager.playKeyClick();
         try {
-            if (mediaPlayer != null) { 
-                mediaPlayer.stop(); 
-                mediaPlayer.dispose(); 
-            }
+            if (mediaPlayer != null) { mediaPlayer.stop(); mediaPlayer.dispose(); }
             Parent loginRoot = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
             Stage stage = (Stage) slot1.getScene().getWindow();
-            
             FadeTransition ft = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
             ft.setFromValue(1.0);
             ft.setToValue(0.0);

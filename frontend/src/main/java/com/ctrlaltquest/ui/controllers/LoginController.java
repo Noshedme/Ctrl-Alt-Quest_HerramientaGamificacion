@@ -9,6 +9,7 @@ import com.ctrlaltquest.dao.AuthDAO;
 import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.services.AuditService;
+import com.ctrlaltquest.services.SessionManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
 
 import javafx.animation.FadeTransition;
@@ -188,17 +189,22 @@ public class LoginController {
             return;
         }
 
+        // AuthDAO.loginCompleto ya hace todo el registro interno en la BD
         if (AuthDAO.loginCompleto(user, pass)) {
             procesarGuardadoCredenciales(user, pass);
-            int userId = AuthDAO.getUserIdByUsername(user); 
+            
+            // Usamos SessionManager para obtener los datos de la sesión recién creada
+            int userId = SessionManager.getInstance().getUserId();
+            String finalUsername = SessionManager.getInstance().getUsername();
+            
             Map<Integer, Character> personajes = CharacterDAO.getCharactersByUser(userId);
 
             if (personajes.isEmpty()) {
-                navigateToEditor(userId, user);
+                navigateToEditor(userId, finalUsername);
             } else {
-                navigateToSelection(userId, user);
+                navigateToSelection(userId, finalUsername);
             }
-            AuditService.log(null, "LOGIN_SUCCESS", "Acceso concedido para: " + user);
+            AuditService.log(null, "LOGIN_SUCCESS", "Acceso concedido para: " + finalUsername);
         } else {
             showAlert("Fallo Astral", "La identidad o la llave mágica no han sido reconocidas por el Oráculo.");
         }
@@ -213,6 +219,7 @@ public class LoginController {
             ejecutarCambioEscena(root);
         } catch (IOException e) {
             showAlert("Error Crítico", "No se pudo cargar la sala de selección de héroes.");
+            e.printStackTrace();
         }
     }
 
@@ -225,6 +232,7 @@ public class LoginController {
             ejecutarCambioEscena(root);
         } catch (IOException e) {
             showAlert("Error Crítico", "No se pudo cargar el oráculo de creación.");
+            e.printStackTrace();
         }
     }
 
@@ -294,7 +302,6 @@ public class LoginController {
         }
     }
 
-    // --- MÉTODO SHOWALERT PERSONALIZADO Y ROBUSTO ---
     private void showAlert(String title, String content) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -303,31 +310,25 @@ public class LoginController {
             alert.setContentText(content);
             
             DialogPane dialogPane = alert.getDialogPane();
-
             try {
-                // Ruta actualizada: /styles/alerts.css
                 URL cssUrl = getClass().getResource("/styles/alerts.css");
                 if (cssUrl != null) {
                     dialogPane.getStylesheets().add(cssUrl.toExternalForm());
                     dialogPane.getStyleClass().add("custom-alert");
                     
-                    // Solo intentamos quitar bordes si el CSS cargó (evita errores visuales)
                     Stage alertStage = (Stage) dialogPane.getScene().getWindow();
                     if (alertStage.getStyle() != StageStyle.UNDECORATED) {
                         alertStage.initStyle(StageStyle.UNDECORATED);
                     }
                     
-                    // Efecto de aparición
                     dialogPane.setOpacity(0);
                     FadeTransition ft = new FadeTransition(Duration.millis(300), dialogPane);
                     ft.setToValue(1.0);
                     ft.play();
                 }
             } catch (Exception e) {
-                // Si falla el estilo, al menos logueamos el error y la alerta sale normal
                 System.err.println("⚠️ No se pudo aplicar el estilo épico: " + e.getMessage());
             }
-
             alert.showAndWait();
         });
     }

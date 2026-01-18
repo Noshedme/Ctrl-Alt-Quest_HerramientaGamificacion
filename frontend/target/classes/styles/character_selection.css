@@ -30,16 +30,13 @@
     -fx-border-width: 2;
     -fx-border-radius: 40;
     -fx-padding: 30;
-    /* La transición permite que el escalado y el movimiento sean fluidos */
     -fx-transition: all 0.3s ease-out;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 25, 0, 0, 15);
 }
 
-/* Efecto Hover: La tarjeta "se ilumina" y flota como un ente místico */
 .news-card-compact:hover {
     -fx-background-color: linear-gradient(to bottom right, #251a3d, #120c21);
     -fx-border-color: #f7d27a;
-    /* El movimiento hacia arriba da profundidad visual */
     -fx-translate-y: -15; 
     -fx-scale-x: 1.03;
     -fx-scale-y: 1.03;
@@ -75,10 +72,9 @@
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 4, 0, 0, 2);
 }
 
-/* El símbolo "+" de los slots vacíos y placeholders */
 .empty-slot-label {
     -fx-font-family: "Georgia";
-    -fx-font-size: 60px; /* Aumentado para mejor visibilidad */
+    -fx-font-size: 60px;
     -fx-text-fill: #f7d27a;
     -fx-opacity: 0.2;
 }
@@ -88,7 +84,31 @@
     -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.5, 0, 0);
 }
 
-/* 5. BOTÓN CERRAR PORTAL (Volver) */
+/* 5. BOTÓN ELIMINAR PERSONAJE (SACRIFICIO) */
+.delete-character-button {
+    -fx-background-color: rgba(20, 10, 10, 0.6);
+    -fx-text-fill: #ff4d4d;
+    -fx-border-color: rgba(255, 77, 77, 0.4);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 50;
+    -fx-background-radius: 50;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 6 10 6 10;
+    -fx-transition: all 0.2s;
+}
+
+.delete-character-button:hover {
+    -fx-background-color: #ff4d4d;
+    -fx-text-fill: white;
+    -fx-border-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(255, 77, 77, 0.8), 15, 0, 0, 0);
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+}
+
+/* 6. BOTÓN CERRAR PORTAL (Volver) */
 .link-button-clean {
     -fx-background-color: transparent;
     -fx-text-fill: #b5a7c6;
@@ -98,19 +118,42 @@
 }
 
 .link-button-clean:hover {
-    -fx-text-fill: #ff4545 !important; /* Rojo místico de advertencia al salir */
+    -fx-text-fill: #ff4545 !important;
     -fx-effect: dropshadow(gaussian, rgba(255, 69, 69, 0.6), 12, 0, 0, 0);
 }
 
-/* 6. INFO ADICIONAL (Nivel, Clase, etc.) */
-.char-info-subtext {
-    -fx-font-family: "Verdana";
-    -fx-font-size: 12px;
-    -fx-text-fill: #8a7fa1;
-    -fx-font-style: italic;
+/* 7. DIÁLOGO DE CONFIRMACIÓN (ESTILO "FALLO ASTRAL") */
+.dialog-pane {
+    -fx-background-color: #1a122b;
+    -fx-border-color: #f7d27a;
+    -fx-border-width: 2;
+    -fx-padding: 10;
 }
 
-/* 7. BOTÓN AJUSTES (HEREDADO DE AUTH.CSS PARA CONSISTENCIA) */
+.dialog-pane .label {
+    -fx-text-fill: #f7d27a;
+    -fx-font-family: "Georgia";
+}
+
+.dialog-pane .content.label {
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 13px;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #251b36;
+    -fx-text-fill: #f7d27a;
+    -fx-border-color: rgba(247, 210, 122, 0.3);
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: #f7d27a;
+    -fx-text-fill: #0d0915;
+}
+
+/* 8. BOTÓN AJUSTES */
 .icon-button {
     -fx-background-color: transparent;
     -fx-text-fill: #f7d27a;

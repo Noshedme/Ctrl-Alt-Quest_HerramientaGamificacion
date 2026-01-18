@@ -3,22 +3,35 @@ package com.ctrlaltquest.dao;
 import com.ctrlaltquest.db.DatabaseConnection;
 import com.ctrlaltquest.services.SessionManager;
 import org.mindrot.jbcrypt.BCrypt;
-import java.sql.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.URL;
+import java.sql.*;
 import java.util.UUID;
 
 public class AuthDAO {
 
-    /**
-     * Obtiene el ID único de un usuario por su nombre o email.
-     */
+    private static class GeoData {
+        String publicIp = "0.0.0.0";
+        String city = "Desconocida";
+        String country = "Desconocido";
+        String isp = "Desconocido";
+    }
+
+    private static String limit(String text, int max) {
+        if (text == null) return "Unknown";
+        return text.length() > max ? text.substring(0, max) : text;
+    }
+
     public static int getUserIdByUsername(String username) {
         String sql = "SELECT id FROM users WHERE username = ? OR email = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             if (conn == null) return -1;
-            ps.setString(1, username);
-            ps.setString(2, username);
+            ps.setString(1, limit(username, 50));
+            ps.setString(2, limit(username, 100));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt("id");
             }
@@ -28,10 +41,32 @@ public class AuthDAO {
         return -1;
     }
 
-    /**
-     * VALIDA USUARIO Y REGISTRA DISPOSITIVO/IP/SESIÓN/LOGS
-     * Este es el corazón del rastreo de tu aplicación.
-     */
+    private static GeoData fetchGeoData() {
+        GeoData data = new GeoData();
+        try {
+            URL url = new URL("http://ip-api.com/csv/?fields=query,city,country,isp");
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(3000); 
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                String line = reader.readLine();
+                if (line != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 4) {
+                        data.publicIp = parts[0];
+                        data.city = parts[1];
+                        data.country = parts[2];
+                        data.isp = parts[3];
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ GeoLog Error: " + e.getMessage());
+        }
+        return data;
+    }
+
     public static boolean loginCompleto(String identifier, String plainPassword) {
         String sql = "SELECT id, username, password_hash, is_active FROM users WHERE username = ? OR email = ?";
         
@@ -39,8 +74,8 @@ public class AuthDAO {
             if (conn == null) return false;
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, identifier);
-                ps.setString(2, identifier);
+                ps.setString(1, limit(identifier, 100));
+                ps.setString(2, limit(identifier, 100));
                 
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
@@ -51,195 +86,166 @@ public class AuthDAO {
 
                         if (BCrypt.checkpw(plainPassword, hash)) {
                             if (isActive) {
-                                // 1. Registrar/Obtener Dispositivo
-                                int deviceId = registrarDispositivo(conn, userId);
-                                
-                                // 2. Registrar/Obtener IP de red
-                                int networkIpId = registrarIP(conn, deviceId);
-                                
-                                // 3. Crear Sesión de Actividad
+                                GeoData geo = fetchGeoData();
+                                String pcName = limit(InetAddress.getLocalHost().getHostName(), 50);
+                                String osInfo = limit(System.getProperty("os.name") + " " + System.getProperty("os.version"), 50);
+
+                                int deviceId = registrarDispositivo(conn, userId, pcName, osInfo);
+                                int networkIpId = registrarIPCompleta(conn, deviceId, geo);
                                 int sessionId = abrirSesionActividad(conn, userId, deviceId, networkIpId);
                                 
-                                // 4. Inicializar el Singleton Global (SessionManager)
                                 if (sessionId > 0) {
                                     SessionManager.getInstance().startSession(userId, deviceId, sessionId, dbUsername);
-                                    
-                                    // 5. Log de Auditoría de Login Exitoso
-                                    registrarLogLogin(conn, userId, deviceId, true, null);
-                                    System.out.println("✅ Login exitoso: " + dbUsername + " [Sesión: " + sessionId + "]");
+                                    registrarLogLogin(conn, userId, deviceId, true, null, geo.publicIp);
+                                    // Cambiado a 'events' según tu SQL
+                                    registrarAuditLog(conn, userId, "LOGIN_SUCCESS", 
+                                        "Acceso desde " + geo.city + ", " + geo.country, geo.publicIp, pcName, osInfo);
+
                                     return true;
-                                } else {
-                                    System.err.println("❌ Fallo al generar ID de sesión.");
                                 }
                             } else {
-                                registrarLogLogin(conn, userId, 0, false, "Cuenta no activada");
+                                registrarLogLogin(conn, userId, 0, false, "Cuenta no activada", "0.0.0.0");
                                 return false;
                             }
                         }
                     }
                 }
             }
-            // Fallo de credenciales o usuario no encontrado
-            registrarLogLogin(conn, 0, 0, false, "Credenciales incorrectas para: " + identifier);
         } catch (Exception e) {
-            System.err.println("❌ Error crítico en login: " + e.getMessage());
+            System.err.println("❌ Error en loginCompleto: " + e.getMessage());
         }
         return false;
     }
 
-    private static int registrarDispositivo(Connection conn, int userId) throws Exception {
-        String deviceName = InetAddress.getLocalHost().getHostName();
-        String os = System.getProperty("os.name");
-        String cpu = System.getenv("PROCESSOR_IDENTIFIER");
-        // Generamos un UUID basado en el nombre del equipo para que sea consistente
-        String deviceUuidStr = UUID.nameUUIDFromBytes(deviceName.getBytes()).toString();
+    private static int registrarDispositivo(Connection conn, int userId, String pcName, String osInfo) throws Exception {
+        String cpu = limit(System.getenv("PROCESSOR_IDENTIFIER"), 100);
+        String deviceUuidStr = UUID.nameUUIDFromBytes(pcName.getBytes()).toString();
 
         String sql = "INSERT INTO devices (user_id, device_uuid, device_name, os, cpu_info, last_seen) " +
-                     "VALUES (?, ?, ?, ?, ?, NOW()) " +
-                     "ON CONFLICT (device_uuid) DO UPDATE SET last_seen = NOW(), user_id = EXCLUDED.user_id " +
+                     "VALUES (?, ?, ?, ?, ?, NOW()) ON CONFLICT (device_uuid) " +
+                     "DO UPDATE SET last_seen = NOW(), device_name = EXCLUDED.device_name, os = EXCLUDED.os " +
                      "RETURNING id";
         
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
-            ps.setObject(2, UUID.fromString(deviceUuidStr)); // PostgreSQL requiere objeto UUID
-            ps.setString(3, deviceName);
-            ps.setString(4, os);
-            ps.setString(5, cpu != null ? cpu : "Unknown");
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
-            }
+            ps.setObject(2, UUID.fromString(deviceUuidStr));
+            ps.setString(3, pcName); 
+            ps.setString(4, osInfo); 
+            ps.setString(5, cpu);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getInt(1) : 0; }
         }
     }
 
-    private static int registrarIP(Connection conn, int deviceId) throws Exception {
-        String localIp = InetAddress.getLocalHost().getHostAddress();
-        
-        String sql = "INSERT INTO network_ips (device_id, local_ip, last_detected) " +
-                     "VALUES (?, ?, NOW()) " +
-                     "ON CONFLICT (device_id, local_ip) DO UPDATE SET last_detected = NOW() " +
+    private static int registrarIPCompleta(Connection conn, int deviceId, GeoData geo) throws Exception {
+        String localIp = limit(InetAddress.getLocalHost().getHostAddress(), 45);
+        // CORRECCIÓN: Se añaden los campos al DO UPDATE para que se guarden si la IP local ya existe
+        String sql = "INSERT INTO network_ips (device_id, local_ip, public_ip, isp, country, city, last_detected) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, NOW()) " +
+                     "ON CONFLICT (device_id, local_ip) DO UPDATE SET " +
+                     "public_ip = EXCLUDED.public_ip, isp = EXCLUDED.isp, " +
+                     "country = EXCLUDED.country, city = EXCLUDED.city, last_detected = NOW() " +
                      "RETURNING id"; 
-                     
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, deviceId);
             ps.setString(2, localIp);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
-            }
+            ps.setString(3, limit(geo.publicIp, 45));
+            ps.setString(4, limit(geo.isp, 100));
+            ps.setString(5, limit(geo.country, 50));
+            ps.setString(6, limit(geo.city, 50));
+            try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getInt(1) : 0; }
         }
     }
 
     private static int abrirSesionActividad(Connection conn, int userId, int deviceId, int networkIpId) throws SQLException {
-        String sql = "INSERT INTO activity_sessions (user_id, device_id, network_ip_id, session_start) " +
-                     "VALUES (?, ?, ?, NOW()) RETURNING id";
+        String sql = "INSERT INTO activity_sessions (user_id, device_id, network_ip_id, session_start) VALUES (?, ?, ?, NOW()) RETURNING id";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ps.setInt(2, deviceId);
-            if (networkIpId > 0) ps.setInt(3, networkIpId); 
-            else ps.setNull(3, Types.INTEGER);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getInt(1) : 0;
-            }
+            if (networkIpId > 0) ps.setInt(3, networkIpId); else ps.setNull(3, Types.INTEGER);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next() ? rs.getInt(1) : 0; }
         }
     }
 
-    private static void registrarLogLogin(Connection conn, int userId, int deviceId, boolean success, String reason) {
+    private static void registrarLogLogin(Connection conn, int userId, int deviceId, boolean success, String reason, String ip) {
         String sql = "INSERT INTO login_logs (user_id, device_id, success, failure_reason, ip_address) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             if (userId > 0) ps.setInt(1, userId); else ps.setNull(1, Types.INTEGER);
             if (deviceId > 0) ps.setInt(2, deviceId); else ps.setNull(2, Types.INTEGER);
             ps.setBoolean(3, success);
-            ps.setString(4, reason);
-            ps.setString(5, InetAddress.getLocalHost().getHostAddress());
+            ps.setString(4, limit(reason, 255));
+            ps.setString(5, limit(ip, 45));
             ps.executeUpdate();
-        } catch (Exception e) {
-            System.err.println("⚠️ No se pudo guardar el log de login: " + e.getMessage());
-        }
+        } catch (Exception e) {}
     }
 
-    public String registerUser(String username, String email, String plainPassword) throws SQLException {
-        String passwordHash = BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
-        String tokenString = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+    private static void registrarAuditLog(Connection conn, int userId, String action, String desc, String ip, String pc, String os) {
+        // Ajustado a tu tabla 'events' del script SQL
+        String sql = "INSERT INTO events (user_id, type, description, occurred_at) VALUES (?, ?, ?, NOW())";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            if (userId > 0) ps.setInt(1, userId); else ps.setNull(1, Types.INTEGER);
+            ps.setString(2, limit(action, 50));
+            ps.setString(3, limit(desc + " | IP: " + ip + " | PC: " + pc, 500));
+            ps.executeUpdate();
+        } catch (SQLException e) {}
+    }
 
+    public String registerUser(String username, String email, String pass) throws SQLException {
+        String passwordHash = BCrypt.hashpw(pass, BCrypt.gensalt(12));
+        String token = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         try (Connection conn = DatabaseConnection.getConnection()) {
-            if (conn == null) throw new SQLException("No hay conexión con la base de datos.");
+            if (conn == null) throw new SQLException("Error de conexión");
             conn.setAutoCommit(false);
-            
             String sqlUser = "INSERT INTO users (username, email, password_hash, is_active) VALUES (?, ?, ?, false) RETURNING id";
-            try (PreparedStatement psUser = conn.prepareStatement(sqlUser)) {
-                psUser.setString(1, username);
-                psUser.setString(2, email);
-                psUser.setString(3, passwordHash);
-                
-                try (ResultSet rs = psUser.executeQuery()) {
+            try (PreparedStatement ps = conn.prepareStatement(sqlUser)) {
+                ps.setString(1, limit(username, 50));
+                ps.setString(2, limit(email, 100));
+                ps.setString(3, passwordHash);
+                try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        int userId = rs.getInt("id");
-                        String sqlVerify = "INSERT INTO email_verifications (user_id, email, token, expires_at) " +
-                                           "VALUES (?, ?, ?, NOW() + INTERVAL '24 hours')";
-                        try (PreparedStatement psVerify = conn.prepareStatement(sqlVerify)) {
-                            psVerify.setInt(1, userId);
-                            psVerify.setString(2, email);
-                            psVerify.setString(3, tokenString);
-                            psVerify.executeUpdate();
+                        int uid = rs.getInt("id");
+                        String sqlV = "INSERT INTO email_verifications (user_id, email, token, expires_at) VALUES (?, ?, ?, NOW() + INTERVAL '24 hours')";
+                        try (PreparedStatement psV = conn.prepareStatement(sqlV)) {
+                            psV.setInt(1, uid); psV.setString(2, limit(email, 100)); psV.setString(3, token);
+                            psV.executeUpdate();
                         }
                     }
                 }
             }
-            conn.commit();
-            return tokenString;
-        } catch (SQLException e) {
-            System.err.println("❌ Error en registro: " + e.getMessage());
-            throw e;
+            conn.commit(); return token;
         }
     }
 
     public boolean verifyUserCode(String email, String inputCode) throws SQLException {
-        String sqlCheck = "SELECT user_id FROM email_verifications WHERE email = ? AND token = ? AND expires_at > NOW()";
+        String sql = "SELECT user_id FROM email_verifications WHERE email = ? AND token = ? AND expires_at > NOW()";
         try (Connection conn = DatabaseConnection.getConnection()) {
             if (conn == null) return false;
             int userId = -1;
-            
-            try (PreparedStatement ps = conn.prepareStatement(sqlCheck)) {
-                ps.setString(1, email);
-                ps.setString(2, inputCode.toUpperCase());
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) userId = rs.getInt("user_id");
-                }
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, limit(email, 100)); ps.setString(2, inputCode.toUpperCase());
+                try (ResultSet rs = ps.executeQuery()) { if (rs.next()) userId = rs.getInt("user_id"); }
             }
-            
             if (userId != -1) {
                 conn.setAutoCommit(false);
                 try {
-                    try (PreparedStatement psAct = conn.prepareStatement("UPDATE users SET is_active = true WHERE id = ?")) {
-                        psAct.setInt(1, userId);
-                        psAct.executeUpdate();
+                    try (PreparedStatement psA = conn.prepareStatement("UPDATE users SET is_active = true WHERE id = ?")) {
+                        psA.setInt(1, userId); psA.executeUpdate();
                     }
-                    try (PreparedStatement psDel = conn.prepareStatement("DELETE FROM email_verifications WHERE email = ?")) {
-                        psDel.setString(1, email);
-                        psDel.executeUpdate();
+                    try (PreparedStatement psD = conn.prepareStatement("DELETE FROM email_verifications WHERE email = ?")) {
+                        psD.setString(1, limit(email, 100)); psD.executeUpdate();
                     }
-                    conn.commit();
-                    return true;
-                } catch (SQLException ex) {
-                    conn.rollback();
-                    throw ex;
-                }
+                    conn.commit(); return true;
+                } catch (SQLException ex) { conn.rollback(); throw ex; }
             }
             return false;
         }
     }
 
-    public boolean userExists(String username, String email) throws SQLException {
+    public boolean userExists(String user, String email) throws SQLException {
         String sql = "SELECT COUNT(*) FROM users WHERE username = ? OR email = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, username);
-            ps.setString(2, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1) > 0;
-            }
+            ps.setString(1, limit(user, 50)); ps.setString(2, limit(email, 100));
+            try (ResultSet rs = ps.executeQuery()) { return rs.next() && rs.getInt(1) > 0; }
         }
-        return false;
     }
 }

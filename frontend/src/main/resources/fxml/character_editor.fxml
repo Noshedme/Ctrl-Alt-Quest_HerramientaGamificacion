@@ -93,11 +93,11 @@
 
                 <VBox alignment="CENTER" spacing="20">
                     <StackPane fx:id="spritePreview" styleClass="auth-panel" prefWidth="400" prefHeight="500">
-                        <ImageView fx:id="layerBody" fitHeight="380" preserveRatio="true" smooth="false" />
-                        <ImageView fx:id="layerLegs" fitHeight="380" preserveRatio="true" smooth="false" />
-                        <ImageView fx:id="layerChest" fitHeight="380" preserveRatio="true" smooth="false" />
-                        <ImageView fx:id="layerHead" fitHeight="380" preserveRatio="true" smooth="false" />
-                        <ImageView fx:id="layerFeet" fitHeight="380" preserveRatio="true" smooth="false" />
+                        <ImageView fx:id="layerBody" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                        <ImageView fx:id="layerLegs" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                        <ImageView fx:id="layerChest" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                        <ImageView fx:id="layerHead" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                        <ImageView fx:id="layerFeet" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
                     </StackPane>
                     
                     <VBox alignment="CENTER" spacing="5">
