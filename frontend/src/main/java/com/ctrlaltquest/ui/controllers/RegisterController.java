@@ -150,17 +150,17 @@ public class RegisterController {
         String confirm = confirmPasswordField.getText();
 
         if (user.isEmpty() || pass.isEmpty() || email.isEmpty()) {
-            showAlert("Campos Incompletos", "Debes llenar todos los datos del pergamino.");
+            showAlert("Campos Incompletos", "Debes llenar todos los datos del formulario.");
             return;
         }
 
         if (!isValidEmail(email)) {
-            showAlert("Correo Inválido", "El correo astral no tiene un formato válido.");
+            showAlert("Correo Inválido", "El correo no tiene un formato válido.");
             return;
         }
 
         if (!pass.equals(confirm)) {
-            showAlert("Error de Llave", "Las llaves mágicas no coinciden.");
+            showAlert("Error de Contraseña", "Las contraseñas no coinciden.");
             return;
         }
 
@@ -173,7 +173,7 @@ public class RegisterController {
             @Override
             protected String call() throws Exception {
                 if (authDAO.userExists(user, email)) {
-                    throw new Exception("El nombre de guerrero o el correo ya están registrados.");
+                    throw new Exception("El usuario o correo ya están registrados.");
                 }
                 String token = authDAO.registerUser(user, email, pass);
                 emailService.sendVerificationCode(email, token);
@@ -196,7 +196,7 @@ public class RegisterController {
             if(loadingLayer != null) loadingLayer.setVisible(false);
             
             Throwable error = registerTask.getException();
-            showAlert("Error en el Ritual", error.getMessage());
+            showAlert("Error en el Registro", error.getMessage());
             AuditService.log(null, "REGISTRO_FALLIDO", "Error: " + error.getMessage());
         });
 
@@ -221,7 +221,7 @@ public class RegisterController {
             stage.show();
 
         } catch (IOException e) {
-            showAlert("Error de Interfaz", "No se pudo abrir la cámara de verificación.");
+            showAlert("Error de Interfaz", "No se pudo abrir la ventana de verificación.");
             e.printStackTrace();
         }
     }
@@ -233,7 +233,7 @@ public class RegisterController {
 
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Mensaje del Oráculo");
+        alert.setTitle("Ctrl + Alt + Quest");
         alert.setHeaderText(title);
         alert.setContentText(content);
 

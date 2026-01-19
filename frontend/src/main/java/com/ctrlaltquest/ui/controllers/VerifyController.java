@@ -31,7 +31,7 @@ public class VerifyController {
         String code = codeField.getText().trim();
 
         if (code.isEmpty()) {
-            showSimpleAlert("Campo Vacío", "Debes ingresar la runa numérica.");
+            showSimpleAlert("Campo Vacío", "Debes ingresar el código de verificación.");
             return;
         }
 
@@ -43,7 +43,7 @@ public class VerifyController {
                 // 🛡️ AUDITORÍA: Éxito en la validación
                 AuditService.log(null, "CUENTA_ACTIVADA", "Correo verificado: " + userEmail);
                 
-                showSimpleAlert("¡Ritual Completado!", "Tu cuenta ha sido activada. Volviendo al inicio...");
+                showSimpleAlert("¡Verificación Completada!", "Tu cuenta ha sido activada. Volviendo al inicio...");
                 
                 // 2. Cerrar el overlay actual
                 closeWindow();
@@ -53,10 +53,10 @@ public class VerifyController {
             } else {
                 // 🛡️ AUDITORÍA: Intento fallido
                 AuditService.log(null, "VERIFICACION_FALLIDA", "Código incorrecto para: " + userEmail);
-                showSimpleAlert("Runa Inválida", "El código no coincide con el enviado a tu correo.");
+                showSimpleAlert("Código Inválido", "El código no coincide con el enviado a tu correo.");
             }
         } catch (Exception e) {
-            showSimpleAlert("Error en la Validación", "Ocurrió un error al consultar el Oráculo: " + e.getMessage());
+            showSimpleAlert("Error en la Validación", "Ocurrió un error al verificar el código: " + e.getMessage());
         }
     }
 

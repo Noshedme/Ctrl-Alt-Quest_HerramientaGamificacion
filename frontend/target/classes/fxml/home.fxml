@@ -1,94 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.shape.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.media.MediaView?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.ctrlaltquest.ui.controllers.HomeController"
-            prefWidth="1280" prefHeight="720" styleClass="home-root" stylesheets="/styles/home.css">
-    
-    <top>
-        <HBox spacing="30" styleClass="status-bar" alignment="CENTER_LEFT">
-            <padding><Insets left="30" right="30" top="15" bottom="15"/></padding>
-            <children>
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.ctrlaltquest.ui.controllers.HomeController"
+           stylesheets="@/styles/home.css">
+
+    <MediaView fx:id="backgroundVideo" preserveRatio="false" />
+    <Pane style="-fx-background-color: rgba(0, 0, 0, 0.6);" />
+
+    <BorderPane>
+        <top>
+            <HBox spacing="30" styleClass="status-header">
+                <padding><Insets top="15" right="25" bottom="15" left="25"/></padding>
+                
                 <VBox alignment="CENTER_LEFT">
-                    <Label fx:id="lblWelcome" text="AVENTURERO: ESPERANDO..." styleClass="text-pixel-gold" />
-                    <Label text="NIVEL 15 - PALADÍN DE CÓDIGO" styleClass="text-pixel-silver" />
+                    <Label fx:id="lblUsername" text="CARGANDO..." styleClass="hero-name"/>
+                    <Label fx:id="lblClass" text="CLASE" styleClass="hero-class"/>
                 </VBox>
-                
-                <Region HBox.hgrow="ALWAYS" />
-                
-                <VBox spacing="5" alignment="CENTER_RIGHT">
-                    <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <Label text="HP" styleClass="label-stat" />
-                        <ProgressBar fx:id="hpBar" progress="0.8" prefWidth="200" styleClass="bar-hp" />
+
+                <VBox HBox.hgrow="ALWAYS" alignment="CENTER" spacing="5">
+                    <HBox spacing="10" alignment="CENTER">
+                        <Label text="LVL" styleClass="text-lvl"/>
+                        <Label fx:id="lblLevel" text="1" styleClass="text-lvl-value"/>
                     </HBox>
-                    <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <Label text="XP" styleClass="label-stat" />
-                        <ProgressBar fx:id="xpBar" progress="0.4" prefWidth="200" styleClass="bar-xp" />
-                    </HBox>
+                    <ProgressBar fx:id="xpBar" progress="0.0" prefWidth="450" styleClass="custom-xp-bar"/>
+                    <Label fx:id="lblXPText" text="0 / 1000 XP" styleClass="text-tiny"/>
                 </VBox>
-                <Button text="❌" onAction="#handleLogout" styleClass="pixel-button-exit" />
-            </children>
-        </HBox>
-    </top>
 
-    <center>
-        <GridPane hgap="20" vgap="20" styleClass="dashboard-grid">
-            <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
-            
-            <columnConstraints>
-                <ColumnConstraints percentWidth="30" /> 
-                <ColumnConstraints percentWidth="40" /> 
-                <ColumnConstraints percentWidth="30" /> 
-            </columnConstraints>
-            
-            <rowConstraints>
-                <RowConstraints percentHeight="50" />
-                <RowConstraints percentHeight="50" />
-            </rowConstraints>
-
-            <children>
-                <VBox styleClass="rpg-box" GridPane.columnIndex="0" GridPane.rowIndex="0">
-                    <Label text="⚔ ATRIBUTOS" styleClass="box-title" />
-                    <VBox spacing="10" styleClass="internal-container">
-                        <Label text="Fuerza: 12" styleClass="text-stat" />
-                        <Label text="Intelecto: 25" styleClass="text-stat" />
-                        <Label text="Productividad: 88%" styleClass="text-stat" />
+                <HBox spacing="15" alignment="CENTER_RIGHT">
+                    <VBox alignment="CENTER">
+                        <Label text="💰 MONEDAS" styleClass="text-label-gold"/>
+                        <Label fx:id="lblCoins" text="0" styleClass="text-value-gold"/>
                     </VBox>
-                </VBox>
+                </HBox>
+            </HBox>
+        </top>
 
-                <VBox styleClass="rpg-box-main" GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.rowSpan="2">
-                    <Label text="📜 REGISTRO DE MISIONES" styleClass="box-title-main" />
-                    <ListView fx:id="questList" VBox.vgrow="ALWAYS" styleClass="pixel-list" />
-                    <Button text="+ NUEVA MISIÓN" onAction="#handleNewQuest" styleClass="pixel-button-add" maxWidth="Infinity" />
-                </VBox>
+        <left>
+            <VBox spacing="15" styleClass="side-menu">
+                <padding><Insets top="20" left="15" right="15"/></padding>
+                <Button text="MISIONES" onAction="#showMissions" styleClass="btn-nav-active"/>
+                <Button text="TIENDA" onAction="#showStore" styleClass="btn-nav"/>
+                <Button text="INVENTARIO" onAction="#showInventory" styleClass="btn-nav"/>
+                <Button text="ESTADÍSTICAS" onAction="#showStats" styleClass="btn-nav"/>
+                <Separator styleClass="menu-separator"/>
+                <Button text="AJUSTES" onAction="#showSettings" styleClass="btn-nav"/>
+                <Button text="LOGOUT" onAction="#handleLogout" styleClass="btn-nav-danger"/>
+            </VBox>
+        </left>
 
-                <VBox styleClass="rpg-box" GridPane.columnIndex="2" GridPane.rowIndex="0">
-                    <Label text="🎒 INVENTARIO" styleClass="box-title" />
-                    <TilePane hgap="10" vgap="10" prefColumns="3" alignment="CENTER" styleClass="internal-container">
-                        <StackPane styleClass="item-slot"><Label text="🧪" /></StackPane>
-                        <StackPane styleClass="item-slot"><Label text="📖" /></StackPane>
-                        <StackPane styleClass="item-slot"><Label text="🛠" /></StackPane>
-                    </TilePane>
-                </VBox>
-
-                <VBox styleClass="rpg-box" GridPane.columnIndex="0" GridPane.rowIndex="1">
-                    <Label text="📡 MONITOREO LOCAL" styleClass="box-title" />
-                    <Label fx:id="currentAppLabel" text="App Actual: IntelliJ IDEA" styleClass="text-mini" />
-                    <Label text="Tiempo en foco: 02h 15m" styleClass="text-mini" />
-                </VBox>
-
-                <VBox styleClass="rpg-box" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                    <Label text="🏆 LOGROS RECIENTES" styleClass="box-title" />
-                    <VBox spacing="5">
-                        <Label text="✔ Primer Código Limpio" styleClass="text-achievement" />
-                        <Label text="✔ Madrugador Nivel 1" styleClass="text-achievement" />
+        <center>
+            <VBox spacing="20">
+                <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+                <Label text="DIARIO DE AVENTURAS" styleClass="section-title"/>
+                <ScrollPane fitToWidth="true" styleClass="transparent-scroll">
+                    <VBox fx:id="missionsContainer" spacing="12">
+                        <Label text="No hay misiones activas..." textFill="gray"/>
                     </VBox>
+                </ScrollPane>
+            </VBox>
+        </center>
+
+        <right>
+            <VBox spacing="20" prefWidth="280" styleClass="activity-panel">
+                <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                <Label text="ESTADO DE ACTIVIDAD" styleClass="section-title-small"/>
+                
+                <VBox styleClass="activity-card">
+                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                    <Label text="APP EN FOCO" styleClass="text-tiny-bright"/>
+                    <Label fx:id="lblCurrentApp" text="Detectando..." styleClass="text-app-name"/>
+                    <Label fx:id="lblAppStatus" text="DESCONOCIDO" styleClass="status-tag"/>
                 </VBox>
-            </children>
-        </GridPane>
-    </center>
-</BorderPane>
+
+                <VBox styleClass="health-card">
+                    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                    <Label text="Racha de Salud" styleClass="text-tiny-bright"/>
+                    <Label fx:id="lblHealthStreak" text="0 min" styleClass="text-health-value"/>
+                    <ProgressBar fx:id="healthBar" progress="1.0" styleClass="health-progress"/>
+                </VBox>
+            </VBox>
+        </right>
+    </BorderPane>
+
+    <VBox fx:id="loadingLayer" visible="false" styleClass="loading-overlay" alignment="CENTER">
+        <ProgressIndicator />
+    </VBox>
+</StackPane>

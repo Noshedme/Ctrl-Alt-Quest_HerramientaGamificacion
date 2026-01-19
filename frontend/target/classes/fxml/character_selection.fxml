@@ -30,8 +30,8 @@
         <center>
             <VBox alignment="CENTER" spacing="50">
                 <VBox alignment="CENTER" spacing="10">
-                    <Label text="SELECCIONA TU AVATAR" styleClass="auth-title-hero" style="-fx-font-size: 45px;" />
-                    <Label text="¿Quién se adentrará en el Reino de los Datos hoy?" styleClass="card-text-pixel" />
+                    <Label text="ELIGE TU PROFESIÓN TECH" styleClass="auth-title-hero" style="-fx-font-size: 45px;" />
+                    <Label text="¿Quién dominará el stack productivo hoy?" styleClass="card-text-pixel" />
                 </VBox>
 
                 <HBox spacing="40" alignment="CENTER">
@@ -86,7 +86,7 @@
 
                 </HBox>
 
-                <Button text="CERRAR PORTAL" onAction="#handleBack" styleClass="link-button-clean" 
+                <Button text="VOLVER" onAction="#handleBack" styleClass="link-button-clean" 
                         style="-fx-font-size: 18; -fx-padding: 30 0 0 0;" />
             </VBox>
         </center>

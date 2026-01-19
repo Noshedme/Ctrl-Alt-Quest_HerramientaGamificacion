@@ -16,21 +16,18 @@ import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -49,7 +46,8 @@ public class LoginController {
     @FXML private ImageView sidebarLogo;
     @FXML private MediaView backgroundVideo;
     @FXML private StackPane newsSlider; 
-    @FXML private CheckBox rememberMeCheck; 
+    @FXML private CheckBox rememberMeCheck;
+    @FXML private VBox loadingLayer; // Vinculado al nuevo FXML
     
     private MediaPlayer videoPlayer;
     private boolean isPasswordVisible = false;
@@ -60,6 +58,7 @@ public class LoginController {
     @FXML
     public void initialize() {
         if (backgroundVideo != null) {
+            // Desenfoque sutil para que el texto resalte sobre el video
             backgroundVideo.setEffect(new javafx.scene.effect.GaussianBlur(15));
             configurarVideo();
         }
@@ -94,19 +93,10 @@ public class LoginController {
         }
     }
 
-    public void setVideoPlaying(boolean play) {
-        if (videoPlayer != null) {
-            if (play) videoPlayer.play();
-            else videoPlayer.pause();
-        }
-    }
-
     private void setupTypingSounds() {
         TextField[] fields = {usernameField, passwordHidden, passwordShown};
         for (TextField field : fields) {
-            field.setOnKeyTyped(e -> {
-                SoundManager.playKeyClick();
-            });
+            field.setOnKeyTyped(e -> SoundManager.playKeyClick());
         }
     }
 
@@ -185,28 +175,79 @@ public class LoginController {
         String pass = isPasswordVisible ? passwordShown.getText() : passwordHidden.getText();
 
         if (user.isEmpty() || pass.isEmpty()) {
-            showAlert("Portal Cerrado", "Debes ingresar tu identidad y tu llave para cruzar.");
+            SoundManager.playErrorSound();
+            showAlert("Campos Incompletos", "Debes ingresar tu identidad para cruzar el umbral.");
             return;
         }
 
-        // AuthDAO.loginCompleto ya hace todo el registro interno en la BD
-        if (AuthDAO.loginCompleto(user, pass)) {
-            procesarGuardadoCredenciales(user, pass);
-            
-            // Usamos SessionManager para obtener los datos de la sesión recién creada
-            int userId = SessionManager.getInstance().getUserId();
-            String finalUsername = SessionManager.getInstance().getUsername();
-            
-            Map<Integer, Character> personajes = CharacterDAO.getCharactersByUser(userId);
+        // Activamos feedback visual de carga
+        if (loadingLayer != null) loadingLayer.setVisible(true);
 
-            if (personajes.isEmpty()) {
-                navigateToEditor(userId, finalUsername);
-            } else {
-                navigateToSelection(userId, finalUsername);
+        Task<Boolean> loginTask = new Task<>() {
+            @Override
+            protected Boolean call() {
+                return AuthDAO.loginCompleto(user, pass);
             }
-            AuditService.log(null, "LOGIN_SUCCESS", "Acceso concedido para: " + finalUsername);
-        } else {
-            showAlert("Fallo Astral", "La identidad o la llave mágica no han sido reconocidas por el Oráculo.");
+        };
+
+        loginTask.setOnSucceeded(e -> {
+            if (loginTask.getValue()) {
+                procesarGuardadoCredenciales(user, pass);
+                int userId = SessionManager.getInstance().getUserId();
+                String finalUsername = SessionManager.getInstance().getUsername();
+                Map<Integer, Character> personajes = CharacterDAO.getCharactersByUser(userId);
+
+                if (personajes.isEmpty()) {
+                    navigateToEditor(userId, finalUsername);
+                } else {
+                    navigateToSelection(userId, finalUsername);
+                }
+                AuditService.log(null, "LOGIN_SUCCESS", "Acceso concedido para: " + finalUsername);
+            } else {
+                if (loadingLayer != null) loadingLayer.setVisible(false);
+                SoundManager.playErrorSound();
+                showAlert("Credenciales Inválidas", "El usuario o contraseña no coinciden con nuestros registros.");
+            }
+        });
+
+        loginTask.setOnFailed(e -> {
+            if (loadingLayer != null) loadingLayer.setVisible(false);
+            SoundManager.playErrorSound();
+            showAlert("Error de Conexión", "No se pudo establecer contacto con la base de datos.");
+        });
+
+        new Thread(loginTask).start();
+    }
+
+    @FXML 
+    public void handleForgotPassword() { 
+        try {
+            SoundManager.playClickSound();
+            // Cargamos la nueva pantalla de recuperación
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/forgot_password.fxml"));
+            Parent root = loader.load();
+            
+            Stage stage = (Stage) usernameField.getScene().getWindow();
+            
+            // Transición suave de salida
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(event -> {
+                limpiarRecursos(); // Detiene el video del login
+                stage.getScene().setRoot(root);
+                
+                // Transición suave de entrada
+                FadeTransition fadeIn = new FadeTransition(Duration.millis(400), root);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
+                fadeIn.play();
+            });
+            fadeOut.play();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "No se pudo cargar la interfaz de recuperación.");
         }
     }
 
@@ -218,7 +259,6 @@ public class LoginController {
             ctrl.initData(userId, username);
             ejecutarCambioEscena(root);
         } catch (IOException e) {
-            showAlert("Error Crítico", "No se pudo cargar la sala de selección de héroes.");
             e.printStackTrace();
         }
     }
@@ -231,18 +271,17 @@ public class LoginController {
             ctrl.setInitData(userId, 1); 
             ejecutarCambioEscena(root);
         } catch (IOException e) {
-            showAlert("Error Crítico", "No se pudo cargar el oráculo de creación.");
             e.printStackTrace();
         }
     }
 
     private void ejecutarCambioEscena(Parent nextRoot) {
         Stage stage = (Stage) usernameField.getScene().getWindow();
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(500), usernameField.getScene().getRoot());
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(500), stage.getScene().getRoot());
         fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
         
         fadeOut.setOnFinished(event -> {
-            if (videoPlayer != null) { videoPlayer.stop(); videoPlayer.dispose(); }
+            limpiarRecursos();
             Scene nextScene = new Scene(nextRoot, 1280, 720);
             nextScene.addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
             stage.setScene(nextScene);
@@ -254,17 +293,28 @@ public class LoginController {
         fadeOut.play();
     }
 
+    private void limpiarRecursos() {
+        if (videoPlayer != null) {
+            videoPlayer.stop();
+            videoPlayer.dispose();
+            videoPlayer = null;
+        }
+    }
+
     @FXML 
     public void handleOpenSettings() {
         try {
+            SoundManager.playClickSound();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
             Parent root = loader.load();
             SettingsController settingsCtrl = loader.getController();
             settingsCtrl.setLoginController(this);
+            
             Stage settingsStage = new Stage();
             settingsStage.initModality(Modality.APPLICATION_MODAL);
             settingsStage.initOwner(usernameField.getScene().getWindow());
             settingsStage.initStyle(StageStyle.TRANSPARENT); 
+            
             Scene scene = new Scene(root);
             scene.setFill(Color.TRANSPARENT); 
             settingsStage.setScene(scene);
@@ -277,13 +327,15 @@ public class LoginController {
     @FXML 
     public void handleGoToRegister() { 
         try {
+            SoundManager.playClickSound();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/register.fxml"));
             Parent registerRoot = loader.load();
             Stage stage = (Stage) usernameField.getScene().getWindow();
-            FadeTransition fadeOut = new FadeTransition(Duration.millis(400), usernameField.getScene().getRoot());
+            
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
             fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
-                if (videoPlayer != null) { videoPlayer.stop(); videoPlayer.dispose(); }
+                limpiarRecursos();
                 stage.getScene().setRoot(registerRoot);
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(400), registerRoot);
                 fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0);
@@ -305,7 +357,7 @@ public class LoginController {
     private void showAlert(String title, String content) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Aviso del Reino");
+            alert.setTitle("Ctrl + Alt + Quest");
             alert.setHeaderText(title);
             alert.setContentText(content);
             
@@ -327,14 +379,16 @@ public class LoginController {
                     ft.play();
                 }
             } catch (Exception e) {
-                System.err.println("⚠️ No se pudo aplicar el estilo épico: " + e.getMessage());
+                System.err.println("⚠️ Estilo de alerta fallido.");
             }
             alert.showAndWait();
         });
     }
 
-    @FXML 
-    public void handleForgotPassword() { 
-        showAlert("Plegaria al Olvido", "Las runas de recuperación aún no han sido forjadas por los antiguos.");
+    public void setVideoPlaying(boolean play) {
+        if (videoPlayer != null) {
+            if (play) videoPlayer.play();
+            else videoPlayer.pause();
+        }
     }
 }

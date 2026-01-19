@@ -13,9 +13,9 @@
         <Insets top="30" right="30" bottom="30" left="30" />
     </padding>
 
-    <Label text="VERIFICAR RUNA" styleClass="auth-title-hero" style="-fx-font-size: 24px;" />
+    <Label text="VERIFICAR CUENTA" styleClass="auth-title-hero" style="-fx-font-size: 24px;" />
     
-    <Label text="Ingresa el código enviado a tu correo astral para completar el ritual." 
+    <Label text="Ingresa el código de verificación enviado a tu correo para completar el registro." 
            wrapText="true" textAlignment="CENTER" style="-fx-text-fill: #b4a3c2;" />
 
     <TextField fx:id="codeField" promptText="CÓDIGO DE 6 DÍGITOS" 

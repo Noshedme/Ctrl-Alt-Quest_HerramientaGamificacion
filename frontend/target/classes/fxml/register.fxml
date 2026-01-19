@@ -29,41 +29,41 @@
             <StackPane>
                 <VBox alignment="CENTER" spacing="25" maxWidth="550" maxHeight="700" styleClass="auth-panel">
                     
-                    <Label text="NUEVO PERGAMINO" styleClass="auth-title-hero" />
+                    <Label text="CREAR CUENTA" styleClass="auth-title-hero" />
                     
                     <VBox spacing="18" styleClass="input-group" maxWidth="420">
                         <VBox spacing="6">
-                            <Label text="CORREO ASTRAL" styleClass="input-label-runic-gold"/>
-                            <TextField fx:id="emailField" promptText="tu@reino.com" styleClass="custom-field" />
+                            <Label text="CORREO" styleClass="input-label-runic-gold"/>
+                            <TextField fx:id="emailField" promptText="tu@email.com" styleClass="custom-field" />
                         </VBox>
                         
                         <VBox spacing="6">
                             <Label text="IDENTIDAD" styleClass="input-label-runic-gold"/>
-                            <TextField fx:id="usernameField" promptText="Nombre de guerrero" styleClass="custom-field" />
+                            <TextField fx:id="usernameField" promptText="Tu nombre de usuario" styleClass="custom-field" />
                         </VBox>
 
                         <VBox spacing="6">
-                            <Label text="LLAVE MÁGICA" styleClass="input-label-runic-gold"/>
-                            <PasswordField fx:id="passwordField" promptText="Crea tu llave" styleClass="custom-field" />
+                            <Label text="CONTRASEÑA" styleClass="input-label-runic-gold"/>
+                            <PasswordField fx:id="passwordField" promptText="Crea tu contraseña" styleClass="custom-field" />
                         </VBox>
 
                         <VBox spacing="6">
-                            <Label text="REPETIR LLAVE" styleClass="input-label-runic-gold"/>
-                            <PasswordField fx:id="confirmPasswordField" promptText="Confirma tu llave" styleClass="custom-field" />
+                            <Label text="CONFIRMAR CONTRASEÑA" styleClass="input-label-runic-gold"/>
+                            <PasswordField fx:id="confirmPasswordField" promptText="Confirma tu contraseña" styleClass="custom-field" />
                         </VBox>
                     </VBox>
                     
-                    <Button fx:id="btnRegister" text="FORJAR CUENTA" onAction="#handleRegister" 
+                    <Button fx:id="btnRegister" text="REGISTRARSE" onAction="#handleRegister" 
                             styleClass="primary-button-hero" prefWidth="420" />
                     
-                    <Button text="Ya soy un aventurero (Volver)" onAction="#handleBackToLogin" 
+                    <Button text="Ya tengo cuenta (Volver)" onAction="#handleBackToLogin" 
                             styleClass="link-button-clean" focusTraversable="false" />
                 </VBox>
 
                 <VBox fx:id="loadingLayer" visible="false" alignment="CENTER" spacing="20" 
                       style="-fx-background-color: rgba(26, 15, 38, 0.9); -fx-background-radius: 40; -fx-border-color: #f7d27a; -fx-border-radius: 40; -fx-border-width: 2;">
                     <ProgressIndicator prefWidth="70" prefHeight="70" />
-                    <Label text="Consultando con los Dioses..." 
+                    <Label text="Registrando tu perfil tech..." 
                            style="-fx-text-fill: #f7d27a; -fx-font-family: 'Runewood'; -fx-font-size: 20px;" />
                 </VBox>
             </StackPane>

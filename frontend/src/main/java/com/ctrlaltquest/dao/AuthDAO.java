@@ -10,6 +10,7 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.sql.*;
 import java.util.UUID;
+import java.util.Random;
 
 public class AuthDAO {
 
@@ -30,7 +31,7 @@ public class AuthDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             if (conn == null) return -1;
-            ps.setString(1, limit(username, 50));
+            ps.setString(1, limit(username, 100));
             ps.setString(2, limit(username, 100));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt("id");
@@ -97,7 +98,6 @@ public class AuthDAO {
                                 if (sessionId > 0) {
                                     SessionManager.getInstance().startSession(userId, deviceId, sessionId, dbUsername);
                                     registrarLogLogin(conn, userId, deviceId, true, null, geo.publicIp);
-                                    // Cambiado a 'events' según tu SQL
                                     registrarAuditLog(conn, userId, "LOGIN_SUCCESS", 
                                         "Acceso desde " + geo.city + ", " + geo.country, geo.publicIp, pcName, osInfo);
 
@@ -138,7 +138,6 @@ public class AuthDAO {
 
     private static int registrarIPCompleta(Connection conn, int deviceId, GeoData geo) throws Exception {
         String localIp = limit(InetAddress.getLocalHost().getHostAddress(), 45);
-        // CORRECCIÓN: Se añaden los campos al DO UPDATE para que se guarden si la IP local ya existe
         String sql = "INSERT INTO network_ips (device_id, local_ip, public_ip, isp, country, city, last_detected) " +
                      "VALUES (?, ?, ?, ?, ?, ?, NOW()) " +
                      "ON CONFLICT (device_id, local_ip) DO UPDATE SET " +
@@ -179,7 +178,6 @@ public class AuthDAO {
     }
 
     private static void registrarAuditLog(Connection conn, int userId, String action, String desc, String ip, String pc, String os) {
-        // Ajustado a tu tabla 'events' del script SQL
         String sql = "INSERT INTO events (user_id, type, description, occurred_at) VALUES (?, ?, ?, NOW())";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             if (userId > 0) ps.setInt(1, userId); else ps.setNull(1, Types.INTEGER);
@@ -189,29 +187,124 @@ public class AuthDAO {
         } catch (SQLException e) {}
     }
 
+    // --- REGISTRO DE USUARIO ---
     public String registerUser(String username, String email, String pass) throws SQLException {
         String passwordHash = BCrypt.hashpw(pass, BCrypt.gensalt(12));
-        String token = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        String token = String.format("%06d", new Random().nextInt(999999));
+        
         try (Connection conn = DatabaseConnection.getConnection()) {
             if (conn == null) throw new SQLException("Error de conexión");
             conn.setAutoCommit(false);
-            String sqlUser = "INSERT INTO users (username, email, password_hash, is_active) VALUES (?, ?, ?, false) RETURNING id";
-            try (PreparedStatement ps = conn.prepareStatement(sqlUser)) {
-                ps.setString(1, limit(username, 50));
-                ps.setString(2, limit(email, 100));
-                ps.setString(3, passwordHash);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        int uid = rs.getInt("id");
-                        String sqlV = "INSERT INTO email_verifications (user_id, email, token, expires_at) VALUES (?, ?, ?, NOW() + INTERVAL '24 hours')";
-                        try (PreparedStatement psV = conn.prepareStatement(sqlV)) {
-                            psV.setInt(1, uid); psV.setString(2, limit(email, 100)); psV.setString(3, token);
-                            psV.executeUpdate();
+            try {
+                String sqlUser = "INSERT INTO users (username, email, password_hash, is_active) VALUES (?, ?, ?, false) RETURNING id";
+                try (PreparedStatement ps = conn.prepareStatement(sqlUser)) {
+                    ps.setString(1, limit(username, 50));
+                    ps.setString(2, limit(email, 100));
+                    ps.setString(3, passwordHash);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            int uid = rs.getInt("id");
+                            String sqlV = "INSERT INTO email_verifications (user_id, email, token, expires_at) VALUES (?, ?, ?, NOW() + INTERVAL '24 hours')";
+                            try (PreparedStatement psV = conn.prepareStatement(sqlV)) {
+                                psV.setInt(1, uid); psV.setString(2, limit(email, 100)); psV.setString(3, token);
+                                psV.executeUpdate();
+                            }
                         }
                     }
                 }
+                conn.commit(); 
+                return token;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
             }
-            conn.commit(); return token;
+        }
+    }
+
+    // --- LOGICA DE CLASES (NUEVO) ---
+    public void updateUserClass(int userId, int classId) throws SQLException {
+        String sql = "UPDATE users SET selected_class_id = ?, updated_at = NOW() WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, classId);
+            pstmt.setInt(2, userId);
+            pstmt.executeUpdate();
+        }
+    }
+
+    // --- LÓGICA DE RECUPERACIÓN DE CONTRASEÑA ---
+
+    public String generateResetCode(String email) throws SQLException {
+        int userId = getUserIdByUsername(email);
+        if (userId == -1) return null;
+
+        String token = String.format("%06d", new Random().nextInt(999999));
+        
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                String deleteOld = "DELETE FROM email_verifications WHERE email = ?";
+                try (PreparedStatement psD = conn.prepareStatement(deleteOld)) {
+                    psD.setString(1, limit(email, 100));
+                    psD.executeUpdate();
+                }
+
+                String sql = "INSERT INTO email_verifications (user_id, email, token, expires_at) " +
+                             "VALUES (?, ?, ?, NOW() + INTERVAL '15 minutes')";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, userId);
+                    ps.setString(2, limit(email, 100));
+                    ps.setString(3, token);
+                    ps.executeUpdate();
+                }
+                conn.commit();
+                return token;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        }
+    }
+
+    public boolean verifyResetCode(String email, String code) throws SQLException {
+        String sql = "SELECT id FROM email_verifications WHERE email = ? AND token = ? AND expires_at > NOW()";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, limit(email, 100));
+            ps.setString(2, code.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public boolean resetPassword(String email, String newPassword) throws SQLException {
+        String passwordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
+        String sql = "UPDATE users SET password_hash = ? WHERE email = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, passwordHash);
+                    ps.setString(2, limit(email, 100));
+                    int affected = ps.executeUpdate();
+                    
+                    if (affected > 0) {
+                        try (PreparedStatement psD = conn.prepareStatement("DELETE FROM email_verifications WHERE email = ?")) {
+                            psD.setString(1, limit(email, 100));
+                            psD.executeUpdate();
+                        }
+                        conn.commit();
+                        return true;
+                    }
+                }
+                conn.rollback();
+                return false;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
         }
     }
 
@@ -221,7 +314,7 @@ public class AuthDAO {
             if (conn == null) return false;
             int userId = -1;
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, limit(email, 100)); ps.setString(2, inputCode.toUpperCase());
+                ps.setString(1, limit(email, 100)); ps.setString(2, inputCode.trim());
                 try (ResultSet rs = ps.executeQuery()) { if (rs.next()) userId = rs.getInt("user_id"); }
             }
             if (userId != -1) {
@@ -244,7 +337,7 @@ public class AuthDAO {
         String sql = "SELECT COUNT(*) FROM users WHERE username = ? OR email = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, limit(user, 50)); ps.setString(2, limit(email, 100));
+            ps.setString(1, limit(user, 100)); ps.setString(2, limit(email, 100));
             try (ResultSet rs = ps.executeQuery()) { return rs.next() && rs.getInt(1) > 0; }
         }
     }

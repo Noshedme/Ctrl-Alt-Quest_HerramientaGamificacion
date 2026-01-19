@@ -8,7 +8,6 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -112,7 +111,6 @@ public class CharacterSelectionController {
 
     private void cargarPersonajes() {
         this.personajes = CharacterDAO.getCharactersByUser(currentUserId);
-        
         actualizarSlot(1, personajes.get(1), name1, detail1, container1, btnDelete1);
         actualizarSlot(2, personajes.get(2), name2, detail2, container2, btnDelete2);
         actualizarSlot(3, personajes.get(3), name3, detail3, container3, btnDelete3);
@@ -120,20 +118,17 @@ public class CharacterSelectionController {
 
     private void actualizarSlot(int index, Character c, Label lblName, Label lblDetail, StackPane container, Button btnDelete) {
         container.getChildren().clear();
-        
         if (c != null) {
             lblName.setText(c.getName().toUpperCase());
             lblName.getStyleClass().add("card-category-runic");
             lblDetail.setText("NIVEL " + c.getLevel() + " - " + obtenerNombreClase(c.getClassId()));
             lblDetail.getStyleClass().add("card-text-pixel");
             btnDelete.setVisible(true);
-            
             renderizarPersonaje(container, c);
         } else {
             lblName.setText("VACÍO");
             lblDetail.setText("Slot disponible");
             btnDelete.setVisible(false);
-            
             Label addIcon = new Label("+");
             addIcon.getStyleClass().add("empty-slot-label");
             container.getChildren().add(addIcon);
@@ -144,7 +139,6 @@ public class CharacterSelectionController {
         try {
             String path = "/assets/images/sprites/base/class_" + c.getClassId() + ".png";
             URL imgUrl = getClass().getResource(path);
-            
             if (imgUrl != null) {
                 ImageView body = new ImageView(new Image(imgUrl.toExternalForm()));
                 body.setFitHeight(180);
@@ -159,10 +153,10 @@ public class CharacterSelectionController {
 
     private String obtenerNombreClase(int classId) {
         return switch (classId) {
-            case 1 -> "GUERRERO";
-            case 2 -> "MAGO";
-            case 3 -> "PÍCARO";
-            default -> "AVENTURERO";
+            case 1 -> "PROGRAMADOR";
+            case 2 -> "LECTOR";
+            case 3 -> "ANALISTA";
+            default -> "PROFESIONAL";
         };
     }
 
@@ -189,53 +183,19 @@ public class CharacterSelectionController {
         Character c = personajes.get(slotIndex);
         if (c == null) return;
 
-        // Título y contenido temático
-        String title = "Sacrificio de Alma";
-        String content = "El personaje " + c.getName().toUpperCase() + " será borrado de los anales del tiempo. ¿Deseas proceder?";
-
-        // Llamamos a nuestra alerta personalizada con estilo épico
-        showConfirmAlert(title, content, () -> {
+        showConfirmAlert("Eliminar Perfil", "¿Estás seguro?", () -> {
             if (CharacterDAO.deleteCharacter(c.getId())) {
                 cargarPersonajes();
             }
         });
     }
 
-    /**
-     * Muestra una alerta de confirmación con el estilo UNDECORATED y el CSS del Login
-     */
     private void showConfirmAlert(String title, String content, Runnable onConfirm) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Aviso del Reino");
+            alert.setTitle("Ctrl + Alt + Quest");
             alert.setHeaderText(title);
             alert.setContentText(content);
-            
-            DialogPane dialogPane = alert.getDialogPane();
-            try {
-                // Usamos el mismo archivo CSS que usas en el Login
-                URL cssUrl = getClass().getResource("/styles/alerts.css");
-                if (cssUrl != null) {
-                    dialogPane.getStylesheets().add(cssUrl.toExternalForm());
-                    dialogPane.getStyleClass().add("custom-alert");
-                    
-                    Stage alertStage = (Stage) dialogPane.getScene().getWindow();
-                    
-                    // Aplicamos el estilo sin bordes de Windows
-                    if (alertStage.getStyle() != StageStyle.UNDECORATED) {
-                        alertStage.initStyle(StageStyle.UNDECORATED);
-                    }
-                    
-                    // Animación de entrada (FadeIn)
-                    dialogPane.setOpacity(0);
-                    FadeTransition ft = new FadeTransition(Duration.millis(300), dialogPane);
-                    ft.setToValue(1.0);
-                    ft.play();
-                }
-            } catch (Exception e) {
-                System.err.println("⚠️ No se pudo aplicar el estilo épico en Selección: " + e.getMessage());
-            }
-
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 onConfirm.run();
@@ -266,57 +226,48 @@ public class CharacterSelectionController {
     private void cambiarEscena(String fxmlPath, Object data) {
         try {
             Stage stage = (Stage) slot1.getScene().getWindow();
-            FadeTransition ft = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
-            ft.setFromValue(1.0);
-            ft.setToValue(0.0);
-            ft.setOnFinished(e -> {
-                try {
-                    if (mediaPlayer != null) {
-                        mediaPlayer.stop();
-                        mediaPlayer.dispose();
-                    }
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-                    Parent root = loader.load();
-                    if (fxmlPath.contains("character_editor")) {
-                        CharacterEditorController ctrl = loader.getController();
-                        ctrl.setInitData(currentUserId, (Integer) data);
-                    }
-                    Scene scene = new Scene(root, 1280, 720);
-                    stage.setScene(scene);
-                    root.setOpacity(0);
-                    FadeTransition fi = new FadeTransition(Duration.millis(500), root);
-                    fi.setToValue(1.0);
-                    fi.play();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            });
-            ft.play();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+            
+            // 1. CARGAR EL LOADER PRIMERO (Si falla aquí, saltará al catch y no dejará la pantalla blanca)
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            Parent root = loader.load();
 
-    @FXML
-    private void handleBack() {
-        SoundManager.playKeyClick();
-        try {
-            if (mediaPlayer != null) { mediaPlayer.stop(); mediaPlayer.dispose(); }
-            Parent loginRoot = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
-            Stage stage = (Stage) slot1.getScene().getWindow();
+            // 2. INYECTAR DATOS
+            if (fxmlPath.contains("character_editor")) {
+                CharacterEditorController ctrl = loader.getController();
+                ctrl.setInitData(currentUserId, (Integer) data);
+            } else if (fxmlPath.contains("home")) {
+                HomeController ctrl = loader.getController();
+                ctrl.initPlayerData((Character) data);
+            }
+
+            // 3. ANIMACIÓN DE SALIDA
             FadeTransition ft = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
             ft.setFromValue(1.0);
             ft.setToValue(0.0);
             ft.setOnFinished(e -> {
-                stage.getScene().setRoot(loginRoot);
-                loginRoot.setOpacity(0);
-                FadeTransition fi = new FadeTransition(Duration.millis(400), loginRoot);
+                if (mediaPlayer != null) {
+                    mediaPlayer.stop();
+                    mediaPlayer.dispose();
+                }
+                
+                Scene scene = new Scene(root, 1280, 720);
+                stage.setScene(scene);
+                
+                root.setOpacity(0);
+                FadeTransition fi = new FadeTransition(Duration.millis(500), root);
                 fi.setToValue(1.0);
                 fi.play();
             });
             ft.play();
-        } catch (IOException e) {
+
+        } catch (Exception e) {
+            System.err.println("❌ Error crítico al cambiar escena: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    @FXML private void handleBack() {
+        SoundManager.playKeyClick();
+        cambiarEscena("/fxml/login.fxml", null);
     }
 }

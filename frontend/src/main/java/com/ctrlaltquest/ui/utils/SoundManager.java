@@ -13,22 +13,34 @@ import java.net.URL;
 public class SoundManager {
     private static SoundManager instance;
     private static AudioClip keySound;
+    private static AudioClip clickSound;
+    private static AudioClip errorSound;
+    private static AudioClip hoverSound;
     private MediaPlayer musicPlayer;
 
-    // --- BLOQUE ESTÁTICO PARA EFECTOS DE SONIDO ---
+    // --- BLOQUE ESTÁTICO PARA PRECARGAR EFECTOS DE SONIDO ---
     static {
+        loadEffects();
+    }
+
+    private static void loadEffects() {
         try {
-            // Asegúrate de que el nombre del archivo coincida exactamente (key_press.wav o key_click.mp3)
-            URL soundUrl = SoundManager.class.getResource("/assets/sounds/key_press.wav");
-            if (soundUrl != null) {
-                keySound = new AudioClip(soundUrl.toExternalForm());
-                keySound.setVolume(0.2); // Volumen bajo para que no sea molesto
-            } else {
-                System.err.println("⚠️ No se encontró el archivo de sonido de teclas.");
-            }
+            keySound = loadAudioClip("/assets/sounds/key_press.wav");
+            clickSound = loadAudioClip("/assets/sounds/click.mp3");
+            errorSound = loadAudioClip("/assets/sounds/error.mp3");
+            hoverSound = loadAudioClip("/assets/sounds/hover.mp3");
         } catch (Exception e) {
             System.err.println("❌ Error al precargar sonidos: " + e.getMessage());
         }
+    }
+
+    private static AudioClip loadAudioClip(String path) {
+        URL url = SoundManager.class.getResource(path);
+        if (url != null) {
+            return new AudioClip(url.toExternalForm());
+        }
+        System.err.println("⚠️ No se encontró el recurso de audio: " + path);
+        return null;
     }
 
     // --- CONSTRUCTOR (Singleton) ---
@@ -53,11 +65,8 @@ public class SoundManager {
         return instance;
     }
 
-    // --- MÉTODOS DE CONTROL ---
+    // --- MÉTODOS DE CONTROL DE MÚSICA ---
 
-    /**
-     * Sincroniza el estado de la música con la configuración global.
-     */
     public void synchronizeMusic() {
         if (musicPlayer == null) return;
 
@@ -70,21 +79,44 @@ public class SoundManager {
         }
     }
 
-    /**
-     * Reproduce el sonido de tecla. 
-     * Este es el Portero: si la opción está desactivada, no suena nada.
-     */
+    // --- MÉTODOS ESTÁTICOS PARA EFECTOS (Lo que pedían los controladores) ---
+
     public static void playKeyClick() {
-        // VALIDACIÓN CRÍTICA: Aquí es donde se soluciona tu problema
         if (SettingsController.isTypingSoundEnabled && keySound != null) {
-            // Usamos una pequeña validación para no saturar el canal de audio si se escribe muy rápido
-            if (!keySound.isPlaying()) {
-                keySound.play();
-            } else {
-                // Si ya está sonando, lo detenemos y reiniciamos para que se sienta reactivo
-                keySound.stop();
-                keySound.play();
+            playEffect(keySound, 0.2);
+        }
+    }
+
+    public static void playClickSound() {
+        if (clickSound != null) {
+            playEffect(clickSound, 0.5);
+        }
+    }
+
+    public static void playErrorSound() {
+        if (errorSound != null) {
+            playEffect(errorSound, 0.6);
+        }
+    }
+
+    public static void playHoverSound() {
+        if (hoverSound != null) {
+            playEffect(hoverSound, 0.3);
+        }
+    }
+
+    /**
+     * Lógica interna para reproducir un efecto sin solapamiento brusco.
+     */
+    private static void playEffect(AudioClip clip, double volume) {
+        try {
+            if (clip.isPlaying()) {
+                clip.stop();
             }
+            clip.setVolume(volume);
+            clip.play();
+        } catch (Exception e) {
+            System.err.println("❌ Error al reproducir efecto: " + e.getMessage());
         }
     }
 }

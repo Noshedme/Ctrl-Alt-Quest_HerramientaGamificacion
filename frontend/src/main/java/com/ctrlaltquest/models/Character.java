@@ -7,20 +7,29 @@ public class Character {
     private int userId;
     private int level;
     private int slotIndex;
+    
+    // Atributos adicionales requeridos por HomeController y la BBDD
+    private int currentXp;
+    private int coins;
+    private int healthStreak;
 
-    // Constructor vacío (VITAL para el error de la línea 100)
+    // Constructor vacío (VITAL para instanciación desde DAOs)
     public Character() {}
 
-    // Constructor completo por si lo necesitas
-    public Character(int id, String name, int classId, int userId, int level) {
+    // Constructor completo actualizado
+    public Character(int id, String name, int classId, int userId, int level, int currentXp, int coins, int healthStreak) {
         this.id = id;
         this.name = name;
         this.classId = classId;
         this.userId = userId;
         this.level = level;
+        this.currentXp = currentXp;
+        this.coins = coins;
+        this.healthStreak = healthStreak;
     }
 
-    // Getters y Setters (VITALES para los errores "cannot find symbol")
+    // --- GETTERS Y SETTERS ---
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -38,4 +47,15 @@ public class Character {
 
     public int getSlotIndex() { return slotIndex; }
     public void setSlotIndex(int slotIndex) { this.slotIndex = slotIndex; }
+
+    // Métodos VITALES para corregir errores de compilación en HomeController:
+    
+    public int getCurrentXp() { return currentXp; }
+    public void setCurrentXp(int currentXp) { this.currentXp = currentXp; }
+
+    public int getCoins() { return coins; }
+    public void setCoins(int coins) { this.coins = coins; }
+
+    public int getHealthStreak() { return healthStreak; }
+    public void setHealthStreak(int healthStreak) { this.healthStreak = healthStreak; }
 }

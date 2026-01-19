@@ -10,21 +10,20 @@ import java.util.Map;
 public class CharacterDAO {
 
     /**
-     * Recupera todos los personajes de un usuario específico.
-     * Mapeado por slot_index para la pantalla de selección.
-     * @param userId El ID del usuario (si es <= 0, usa el del SessionManager)
+     * Recupera todos los personajes de un usuario específico incluyendo XP, Monedas y Racha.
      */
     public static Map<Integer, Character> getCharactersByUser(int userId) {
         Map<Integer, Character> map = new HashMap<>();
         
-        // Si el controlador pasa 0 o -1, intentamos recuperar el ID de la sesión actual
         if (userId <= 0) {
             userId = SessionManager.getInstance().getUserId();
         }
         
-        if (userId <= 0) return map; // Si sigue siendo inválido, devolvemos mapa vacío
+        if (userId <= 0) return map;
 
-        String query = "SELECT id, name, class_id, user_id, level, slot_index FROM characters WHERE user_id = ? ORDER BY slot_index";
+        // SELECT actualizado con los campos de gamificación
+        String query = "SELECT id, name, class_id, user_id, level, slot_index, current_xp, coins, health_streak " +
+                       "FROM characters WHERE user_id = ? ORDER BY slot_index";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
@@ -42,6 +41,11 @@ public class CharacterDAO {
                     c.setLevel(rs.getInt("level"));
                     c.setSlotIndex(rs.getInt("slot_index"));
                     
+                    // Mapeo de nuevos campos requeridos por el HomeController
+                    c.setCurrentXp(rs.getInt("current_xp"));
+                    c.setCoins(rs.getInt("coins"));
+                    c.setHealthStreak(rs.getInt("health_streak"));
+                    
                     map.put(c.getSlotIndex(), c);
                 }
             }
@@ -52,19 +56,22 @@ public class CharacterDAO {
     }
 
     /**
-     * Guarda un objeto Character completo.
-     * Implementa lógica de actualización si ya existe el slot para ese usuario.
+     * Guarda o actualiza un objeto Character completo.
      */
     public static boolean saveCharacter(Character c) {
-        // Aseguramos que el ID de usuario esté presente
         int userId = c.getUserId();
         if (userId <= 0) userId = SessionManager.getInstance().getUserId();
 
-        // SQL con ON CONFLICT para manejar actualizaciones de slots existentes
-        String query = "INSERT INTO characters (user_id, name, class_id, slot_index, level) " +
-                       "VALUES (?, ?, ?, ?, ?) " +
+        // SQL actualizado para incluir persistencia de progreso
+        String query = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak) " +
+                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
                        "ON CONFLICT (user_id, slot_index) DO UPDATE SET " +
-                       "name = EXCLUDED.name, class_id = EXCLUDED.class_id, level = EXCLUDED.level";
+                       "name = EXCLUDED.name, " +
+                       "class_id = EXCLUDED.class_id, " +
+                       "level = EXCLUDED.level, " +
+                       "current_xp = EXCLUDED.current_xp, " +
+                       "coins = EXCLUDED.coins, " +
+                       "health_streak = EXCLUDED.health_streak";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
@@ -76,6 +83,9 @@ public class CharacterDAO {
             ps.setInt(3, c.getClassId());
             ps.setInt(4, c.getSlotIndex());
             ps.setInt(5, c.getLevel());
+            ps.setInt(6, c.getCurrentXp());
+            ps.setInt(7, c.getCoins());
+            ps.setInt(8, c.getHealthStreak());
             
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -85,21 +95,20 @@ public class CharacterDAO {
     }
 
     /**
-     * Crea un personaje nuevo inicializando su clase.
-     * Este es el método que llama tu controlador por parámetros individuales.
+     * Crea un personaje nuevo inicializando valores por defecto (XP 0, Monedas 0).
      */
     public static boolean createCharacter(int userId, String name, int classId, int slotIndex) {
-        // Usamos una transacción para asegurar integridad
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
             if (conn == null) return false;
             conn.setAutoCommit(false); 
 
-            // 1. Insertar el personaje
-            String sqlChar = "INSERT INTO characters (user_id, name, class_id, slot_index, level) VALUES (?, ?, ?, ?, 1) RETURNING id";
-            int characterId = -1;
+            // Insertamos con valores iniciales de nivel 1 y 0 progreso
+            String sqlChar = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak) " +
+                             "VALUES (?, ?, ?, ?, 1, 0, 0, 0) RETURNING id";
             
+            int characterId = -1;
             try (PreparedStatement ps = conn.prepareStatement(sqlChar)) {
                 ps.setInt(1, userId);
                 ps.setString(2, name);
@@ -110,7 +119,7 @@ public class CharacterDAO {
             }
 
             if (characterId != -1) {
-                // 2. Actualizamos la clase seleccionada en el perfil del usuario principal
+                // Sincronizamos la clase en la tabla de usuarios para preferencias globales
                 String sqlUpdateUser = "UPDATE users SET selected_class_id = ? WHERE id = ?";
                 try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateUser)) {
                     psUp.setInt(1, classId);
@@ -119,7 +128,7 @@ public class CharacterDAO {
                 }
 
                 conn.commit();
-                System.out.println("✨ Personaje '" + name + "' creado exitosamente.");
+                System.out.println("✨ Personaje '" + name + "' creado exitosamente con stats base.");
                 return true;
             }
             
@@ -130,6 +139,8 @@ public class CharacterDAO {
             if (conn != null) try { conn.rollback(); } catch (SQLException ex) { }
             System.err.println("❌ Error en createCharacter: " + e.getMessage());
             return false;
+        } finally {
+            if (conn != null) try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ex) { }
         }
     }
 

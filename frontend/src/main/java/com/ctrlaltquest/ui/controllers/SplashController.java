@@ -38,13 +38,13 @@ public class SplashController {
     private final int TOTAL_CYCLES = 60; // Controla la duración de la barra
 
     private final String[] rpgTips = {
-        "Invocando el reino de los datos...",
-        "Encantando la interfaz de usuario...",
-        "Afilando las hojas de cálculo...",
-        "Preparando herramientas de Office...",
-        "Reclutando aventureros en la base de datos...",
-        "Forjando videos de Youtube...",
-        "Leyendo antiguos pergaminos del historial de navegación..."
+        "Inicializando el stack productivo...",
+        "Configurando tu interfaz de desarrollo...",
+        "Optimizando herramientas de productividad...",
+        "Cargando aplicaciones de escritorio...",
+        "Preparando tu espacio de trabajo...",
+        "Activando monitores de aplicaciones...",
+        "Sincronizando tu área de trabajo..."
     };
     private final Random random = new Random();
 
@@ -99,7 +99,7 @@ public class SplashController {
     }
 
     private void playFadeOut() {
-        loadingText.setText("¡Aventura lista!");
+        loadingText.setText("¡Sistema listo!");
         FadeTransition fadeOut = new FadeTransition(Duration.millis(1000), root);
         fadeOut.setFromValue(1.0);
         fadeOut.setToValue(0.0);

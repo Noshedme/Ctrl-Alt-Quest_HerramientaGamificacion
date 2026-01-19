@@ -42,6 +42,13 @@ public class SessionManager {
     }
 
     /**
+     * Alias para cerrar sesión, compatible con la llamada desde HomeController.
+     */
+    public void logout() {
+        closeSession();
+    }
+
+    /**
      * Limpia los datos al cerrar sesión o salir de la app.
      */
     public void closeSession() {
@@ -51,6 +58,14 @@ public class SessionManager {
         this.username = null;
         this.sessionStartTime = null;
         System.out.println("🔒 Sesión Global Cerrada.");
+    }
+
+    /**
+     * Verifica si hay un usuario autenticado. 
+     * Requerido por HomeController para validar el acceso al Dashboard.
+     */
+    public boolean isUserLoggedIn() {
+        return userId != -1 && currentSessionId != -1;
     }
 
     // --- GETTERS Y SETTERS ---
@@ -69,7 +84,10 @@ public class SessionManager {
 
     public LocalDateTime getSessionStartTime() { return sessionStartTime; }
 
+    /**
+     * Alias de comprobación de sesión.
+     */
     public boolean isLoggedIn() {
-        return userId != -1 && currentSessionId != -1;
+        return isUserLoggedIn();
     }
 }

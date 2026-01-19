@@ -43,16 +43,16 @@
                                     <Label text="✦" styleClass="bullet-icon-gold"/>
                                     <Label text="ACTUALIZACIÓN" styleClass="card-category-runic" />
                                 </HBox>
-                                <Label text="Se han corregido los pergaminos de inicio de sesión para una experiencia más mágica y fluida." 
+                                <Label text="Se optimizó el login para una experiencia más fluida en tu stack productivo." 
                                        wrapText="true" styleClass="card-text-pixel" />
                             </VBox>
                             
                             <VBox styleClass="news-card-compact" alignment="TOP_LEFT" spacing="12" visible="false">
                                 <HBox spacing="10" alignment="CENTER_LEFT">
                                     <Label text="⚔" styleClass="bullet-icon-gold"/>
-                                    <Label text="ANUNCIOS" styleClass="card-category-runic" />
+                                    <Label text="DESAFÍOS" styleClass="card-category-runic" />
                                 </HBox>
-                                <Label text="El torneo de hojas de cálculo comienza este viernes. ¿Tienes tu macro lista para el combate?" 
+                                <Label text="Desafío de productividad iniciado: automatiza tu workflow esta semana y gana XP extra." 
                                        wrapText="true" styleClass="card-text-pixel" />
                             </VBox>
                         </StackPane>
@@ -71,7 +71,7 @@
                 <VBox alignment="CENTER" spacing="30" maxWidth="550" maxHeight="580" styleClass="auth-panel">
                     
                     <VBox alignment="CENTER" spacing="10">
-                        <Label text="BIENVENIDO AVENTURERO" styleClass="auth-title-hero" 
+                        <Label text="BIENVENIDO DESARROLLADOR" styleClass="auth-title-hero" 
                                wrapText="true" textAlignment="CENTER" maxWidth="Infinity" />
                         <Region prefHeight="5" />
                     </VBox>
@@ -83,7 +83,7 @@
                         </VBox>
                         
                         <VBox spacing="8">
-                            <Label text="LLAVE MÁGICA" styleClass="input-label-runic-gold"/>
+                            <Label text="CONTRASEÑA" styleClass="input-label-runic-gold"/>
                             <StackPane alignment="CENTER_RIGHT">
                                 <PasswordField fx:id="passwordHidden" promptText="Contraseña" styleClass="custom-field" />
                                 <TextField fx:id="passwordShown" promptText="Contraseña" styleClass="custom-field" visible="false" />
@@ -113,6 +113,15 @@
                         <Button text="¿Olvidaste tu llave?" onAction="#handleForgotPassword" 
                                 styleClass="link-button-clean" focusTraversable="false" />
                     </HBox>
+                </VBox>
+
+                <VBox fx:id="loadingLayer" visible="false" alignment="CENTER" spacing="20" 
+                      style="-fx-background-color: rgba(26, 15, 38, 0.9); -fx-background-radius: 40; 
+                             -fx-border-color: #f7d27a; -fx-border-radius: 40; -fx-border-width: 2;"
+                      maxWidth="450" maxHeight="300">
+                    <ProgressIndicator prefWidth="70" prefHeight="70" />
+                    <Label text="Sincronizando con el servidor..." 
+                           style="-fx-text-fill: #f7d27a; -fx-font-family: 'Runewood'; -fx-font-size: 18px;" />
                 </VBox>
             </StackPane>
         </center>
