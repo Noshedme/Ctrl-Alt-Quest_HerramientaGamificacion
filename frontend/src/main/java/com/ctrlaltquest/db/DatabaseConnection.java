@@ -13,7 +13,7 @@ public class DatabaseConnection {
     // Configuración de la base de datos
     private static final String URL = "jdbc:postgresql://localhost:5432/CtrlAltQuestDB";
     private static final String USER = "postgres"; 
-    private static final String PASSWORD = "crac10andy"; 
+    private static final String PASSWORD = "intesud"; 
 
     private static Connection connection = null;
 
