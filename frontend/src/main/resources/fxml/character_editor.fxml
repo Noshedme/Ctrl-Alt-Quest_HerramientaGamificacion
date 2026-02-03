@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.media.MediaView?>
+<?import java.net.URL?>
+
+<StackPane fx:id="rootContainer" xmlns:fx="http://javafx.com/fxml" 
+           fx:controller="com.ctrlaltquest.ui.controllers.CharacterEditorController"
+           styleClass="root" prefWidth="1280" prefHeight="720">
+    
+    <stylesheets>
+        <URL value="@/styles/auth.css" />
+        <URL value="@/styles/character_editor.css" />
+    </stylesheets>
+
+    <MediaView fx:id="bgMedia" fitWidth="1280" fitHeight="720" preserveRatio="false" />
+    <Region style="-fx-background-color: rgba(13, 9, 21, 0.85);" />
+
+    <BorderPane>
+        <top>
+            <HBox alignment="CENTER_RIGHT" style="-fx-padding: 25;">
+                <Button text="⚙" onAction="#handleOpenSettings" styleClass="icon-button" focusTraversable="false" />
+            </HBox>
+        </top>
+        
+        <center>
+            <HBox spacing="40" alignment="CENTER">
+                
+                <VBox spacing="25" alignment="CENTER_LEFT" prefWidth="500">
+                    <VBox spacing="5">
+                        <Label text="EDITOR DE PERFIL TECH" styleClass="auth-title-hero" />
+                        <Label text="Personaliza tu identidad digital" styleClass="settings-sublabel" />
+                    </VBox>
+
+                    <VBox styleClass="settings-pane" spacing="20">
+                        <VBox spacing="8">
+                            <Label text="NOMBRE DEL AVATAR" styleClass="settings-label" />
+                            <TextField fx:id="nameField" styleClass="custom-field" promptText="Ej. DevMaster..." />
+                        </VBox>
+
+                        <HBox spacing="15">
+                            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                <Label text="SEXO" styleClass="settings-label" />
+                                <HBox spacing="5">
+                                    <ToggleButton text="M" fx:id="toggleMale" onAction="#setMale" selected="true" styleClass="toggle-rpg" prefWidth="50"/>
+                                    <ToggleButton text="F" fx:id="toggleFemale" onAction="#setFemale" styleClass="toggle-rpg" prefWidth="50"/>
+                                </HBox>
+                            </VBox>
+                            <VBox spacing="8" HBox.hgrow="ALWAYS">
+                                <Label text="PROFESIÓN" styleClass="settings-label" />
+                                <ChoiceBox fx:id="classSelector" prefWidth="150" styleClass="custom-choice-box" />
+                            </VBox>
+                        </HBox>
+
+                        <Line endX="350" styleClass="settings-divider" />
+
+                        <VBox spacing="15">
+                            <Label text="EQUIPAMIENTO" styleClass="settings-label" />
+                            
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <Label text="CABEZA" styleClass="attribute-label" prefWidth="80" />
+                                <Button text="&lt;" onAction="#prevHead" styleClass="arrow-button" />
+                                <Label fx:id="lblHeadName" text="Ninguno" alignment="CENTER" prefWidth="120" styleClass="item-name-label" />
+                                <Button text="&gt;" onAction="#nextHead" styleClass="arrow-button" />
+                            </HBox>
+
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <Label text="TORSO" styleClass="attribute-label" prefWidth="80" />
+                                <Button text="&lt;" onAction="#prevChest" styleClass="arrow-button" />
+                                <Label fx:id="lblChestName" text="Ropa Inicial" alignment="CENTER" prefWidth="120" styleClass="item-name-label" />
+                                <Button text="&gt;" onAction="#nextChest" styleClass="arrow-button" />
+                            </HBox>
+
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <Label text="PIERNAS" styleClass="attribute-label" prefWidth="80" />
+                                <Button text="&lt;" onAction="#prevLegs" styleClass="arrow-button" />
+                                <Label fx:id="lblLegsName" text="Básico" alignment="CENTER" prefWidth="120" styleClass="item-name-label" />
+                                <Button text="&gt;" onAction="#nextLegs" styleClass="arrow-button" />
+                            </HBox>
+                        </VBox>
+
+                        <Line endX="350" styleClass="settings-divider" />
+
+                        <VBox spacing="15" alignment="CENTER">
+                            <Button text="GUARDAR CAMBIOS" onAction="#handleSave" styleClass="primary-button-hero" prefWidth="350" />
+                            <Button text="VOLVER AL PORTAL" onAction="#handleCancel" styleClass="link-button-clean" />
+                        </VBox>
+                    </VBox>
+                </VBox>
+
+                <VBox alignment="CENTER" spacing="20">
+                    <StackPane fx:id="spritePreview" styleClass="auth-panel" prefWidth="400" prefHeight="500">
+                        <ImageView fx:id="layerBody" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                        <ImageView fx:id="layerLegs" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                        <ImageView fx:id="layerChest" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                        <ImageView fx:id="layerHead" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                        <ImageView fx:id="layerFeet" fitHeight="380" preserveRatio="true" smooth="false" pickOnBounds="false" />
+                    </StackPane>
+                    
+                    <VBox alignment="CENTER" spacing="5">
+                        <Label text="VISTA PREVIA" styleClass="card-category-runic" />
+                        <Label text="Nivel 1 - Junior" styleClass="card-text-pixel" />
+                    </VBox>
+                </VBox>
+
+            </HBox>
+        </center>
+    </BorderPane>
+</StackPane>

@@ -1,0 +1,105 @@
+/* ==========================================================
+   ALERTS.CSS - ESTILO "CÓDICE OSCURO" (Rectangular)
+   Optimizado con fuentes de sistema para máxima legibilidad.
+   ========================================================== */
+
+/* 1. ELIMINACIÓN DE FONDO DEL SISTEMA */
+.dialog-pane {
+    /* Color base profundo para asegurar que no haya fugas de blanco */
+    -fx-background-color: #0d0915; 
+    -fx-font-family: "Georgia";
+}
+
+/* 2. CONTENEDOR PRINCIPAL */
+.custom-alert {
+    -fx-background-color: #1a122b; 
+    
+    /* Mantenemos bordes rectos para llenar el Stage al 100% */
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    
+    /* Marco dorado sólido */
+    -fx-border-color: #f7d27a;
+    -fx-border-width: 3;
+    
+    /* CORRECCIÓN: innershadow (sin guion) para compatibilidad con JavaFX */
+    -fx-effect: innershadow(gaussian, rgba(247, 210, 122, 0.15), 25, 0, 0, 0);
+}
+
+/* 3. PANEL DE CABECERA (Header) */
+.custom-alert .header-panel {
+    -fx-background-color: #251a3d; 
+    -fx-padding: 20;
+    -fx-border-color: transparent transparent #f7d27a transparent;
+    -fx-border-width: 1;
+}
+
+.custom-alert .header-panel .label {
+    /* Fuente Georgia para el toque épico de los títulos */
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 22px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 4, 0, 0, 1);
+}
+
+/* 4. CONTENIDO DEL MENSAJE */
+.custom-alert .content-panel {
+    -fx-background-color: transparent;
+    -fx-padding: 30 25;
+}
+
+.custom-alert .content.label {
+    /* Verdana para que el usuario lea el error sin dificultad */
+    -fx-font-family: "Verdana";
+    -fx-font-size: 15px;
+    -fx-text-fill: #ffffff;
+    -fx-line-spacing: 5;
+}
+
+/* 5. ÁREA DE BOTONES */
+.custom-alert .button-bar {
+    -fx-background-color: #1a122b;
+    -fx-padding: 20;
+}
+
+/* 6. BOTÓN ESTILO RPG RECTANGULAR */
+.custom-alert .button {
+    -fx-background-color: linear-gradient(to bottom, #f7d27a, #d4a017);
+    -fx-background-radius: 0; 
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 15px;
+    -fx-text-fill: #1a0f26;
+    -fx-padding: 10 35;
+    -fx-cursor: hand;
+    -fx-border-color: rgba(255, 255, 255, 0.4);
+    -fx-border-width: 1;
+}
+
+.custom-alert .button:hover {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #000000;
+    -fx-border-color: #f7d27a;
+}
+
+.custom-alert .button:pressed {
+    -fx-background-color: #d4a017;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+/* 7. ICONO Y GRÁFICOS */
+.custom-alert .image-view {
+    -fx-effect: dropshadow(gaussian, #f7d27a, 12, 0, 0, 0);
+}
+
+/* Limpieza de contenedores internos de JavaFX */
+.custom-alert .graphic-container {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0 0 15;
+}
+
+.custom-alert > .label {
+    -fx-background-color: transparent;
+}

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.effect.DropShadow?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.ctrlaltquest.ui.controllers.views.StoreViewController"
+      spacing="25" styleClass="view-container" stylesheets="@/styles/home.css">
+
+    <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
+
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <VBox spacing="5">
+            <Label text="MERCADO NEGRO" styleClass="section-title" style="-fx-font-size: 28px;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Line endX="50" style="-fx-stroke: #f7d27a; -fx-stroke-width: 2;"/>
+                <Label text="Adquisiciones para potenciar tu entorno" styleClass="text-tiny-bright"/>
+            </HBox>
+        </VBox>
+        
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <HBox alignment="CENTER" spacing="15" styleClass="activity-card" style="-fx-padding: 10 25; -fx-background-color: rgba(20, 15, 35, 0.9);">
+            <VBox alignment="CENTER_RIGHT">
+                <Label text="SALDO ACTUAL" styleClass="text-tiny"/>
+                <Label fx:id="lblUserBalance" text="0 💰" styleClass="text-value-gold" style="-fx-font-size: 24px;"/>
+            </VBox>
+        </HBox>
+    </HBox>
+
+    <TabPane fx:id="storeTabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" styleClass="custom-tab-pane">
+        
+        <Tab text="CONSUMIBLES &amp; EQUIPO">
+            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox fx:id="goldStoreContainer" spacing="15" style="-fx-padding: 20 5;"/>
+            </ScrollPane>
+        </Tab>
+
+        <Tab text="ACCESO PREMIUM">
+            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox spacing="30" style="-fx-padding: 20 5;">
+                    
+                    <StackPane fx:id="battlePassBanner" style="-fx-background-color: linear-gradient(to right, #2c1a4d, #4b2d85); -fx-background-radius: 12; -fx-padding: 30; -fx-cursor: hand;">
+                        <effect>
+                            <DropShadow color="rgba(163, 53, 238, 0.4)" radius="25" spread="0.1"/>
+                        </effect>
+                        <HBox alignment="CENTER_LEFT" spacing="30">
+                            <StackPane style="-fx-background-color: rgba(0,0,0,0.3); -fx-background-radius: 50%; -fx-padding: 15;">
+                                <Label text="👑" style="-fx-font-size: 40px;"/>
+                            </StackPane>
+                            
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label text="PASE DE BATALLA: 'FULL STACK'" styleClass="card-category-runic" style="-fx-font-size: 22px; -fx-text-fill: #e0bdff;"/>
+                                <Label text="Desbloquea la rama de misiones 'Arquitecto', skins legendarias y compilación x2." styleClass="text-tiny-bright" wrapText="true"/>
+                            </VBox>
+                            
+                            <Button text="DESBLOQUEAR $4.99" styleClass="btn-action-primary" style="-fx-background-color: linear-gradient(to bottom, #a335ee, #6a0dad); -fx-text-fill: white; -fx-font-size: 14px;"/>
+                        </HBox>
+                    </StackPane>
+
+                    <Separator styleClass="menu-separator"/>
+
+                    <VBox spacing="15">
+                        <Label text="COLECCIÓN EXCLUSIVA" styleClass="section-title-small" style="-fx-text-fill: #a335ee;"/>
+                        <VBox fx:id="premiumStoreContainer" spacing="15"/>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </Tab>
+
+    </TabPane>
+</VBox>

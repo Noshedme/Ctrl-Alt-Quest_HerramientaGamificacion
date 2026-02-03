@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.effect.DropShadow?>
+
+<HBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.ctrlaltquest.ui.controllers.views.CharacterPanelController"
+      spacing="30" styleClass="view-container" stylesheets="@/styles/home.css">
+
+    <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+
+    <VBox spacing="20" prefWidth="280" styleClass="activity-card" style="-fx-padding: 25;">
+        <Label text="ATRIBUTOS" styleClass="section-title-small" style="-fx-text-fill: #f7d27a;"/>
+        
+        <VBox spacing="5">
+            <Label text="CLASE" styleClass="text-tiny-bright"/>
+            <Label fx:id="lblClassName" text="PROGRAMADOR" styleClass="hero-name" style="-fx-font-size: 20px;"/>
+            <Line endX="100" style="-fx-stroke: rgba(255,255,255,0.1);"/>
+        </VBox>
+        
+        <VBox spacing="15">
+            <VBox spacing="5">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="FUERZA (CPU)" styleClass="text-tiny"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblStrVal" text="12" styleClass="text-lvl-value" style="-fx-text-fill: #ff6b6b;"/>
+                </HBox>
+                <ProgressBar fx:id="barStr" progress="0.4" styleClass="custom-xp-bar" maxWidth="Infinity" style="-fx-accent: #ff6b6b;"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="AGILIDAD (RAM)" styleClass="text-tiny"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblDexVal" text="8" styleClass="text-lvl-value" style="-fx-text-fill: #4ade80;"/>
+                </HBox>
+                <ProgressBar fx:id="barDex" progress="0.25" styleClass="custom-xp-bar" maxWidth="Infinity" style="-fx-accent: #4ade80;"/>
+            </VBox>
+
+            <VBox spacing="5">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="INTELECTO (CODE)" styleClass="text-tiny"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblIntVal" text="15" styleClass="text-lvl-value" style="-fx-text-fill: #60a5fa;"/>
+                </HBox>
+                <ProgressBar fx:id="barInt" progress="0.6" styleClass="custom-xp-bar" maxWidth="Infinity" style="-fx-accent: #60a5fa;"/>
+            </VBox>
+        </VBox>
+        
+        <Region VBox.vgrow="ALWAYS"/>
+        <Button text="PERSONALIZAR" styleClass="btn-nav" maxWidth="Infinity"/>
+    </VBox>
+
+    <VBox spacing="20" alignment="TOP_CENTER" HBox.hgrow="ALWAYS">
+        <Label fx:id="lblCharName" text="HÉROE" styleClass="section-title" style="-fx-font-size: 24px;"/>
+        
+        <GridPane hgap="20" vgap="20" alignment="CENTER">
+            <StackPane GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.rowSpan="3">
+                <effect><DropShadow color="rgba(247, 210, 122, 0.2)" radius="40"/></effect>
+                <ImageView fx:id="imgAvatar" fitHeight="350" fitWidth="220" preserveRatio="true"/>
+            </StackPane>
+            
+            <StackPane fx:id="slotHead" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="item-slot-container">
+                <Label text="YELMO" styleClass="text-tiny" opacity="0.5"/>
+            </StackPane>
+            
+            <StackPane fx:id="slotChest" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="item-slot-container">
+                <Label text="PECHO" styleClass="text-tiny" opacity="0.5"/>
+            </StackPane>
+
+            <StackPane fx:id="slotWeapon" GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="item-slot-container">
+                <Label text="ARMA" styleClass="text-tiny" opacity="0.5"/>
+            </StackPane>
+            
+            <StackPane fx:id="slotLegs" GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="item-slot-container">
+                <Label text="PIERNAS" styleClass="text-tiny" opacity="0.5"/>
+            </StackPane>
+        </GridPane>
+    </VBox>
+
+    <VBox spacing="15" prefWidth="320" styleClass="activity-card" style="-fx-padding: 20;">
+        <Label text="MOCHILA" styleClass="section-title-small" style="-fx-text-fill: #d4af37;"/>
+        
+        <ScrollPane fitToWidth="true" styleClass="transparent-scroll" VBox.vgrow="ALWAYS" style="-fx-background: transparent; -fx-background-color: transparent;">
+            <FlowPane fx:id="inventoryGrid" hgap="10" vgap="10" prefWrapLength="260" style="-fx-padding: 5;"/>
+        </ScrollPane>
+        
+        <Separator styleClass="menu-separator"/>
+
+        <VBox spacing="10" minHeight="100">
+            <Label fx:id="lblSelectedItemName" text="Selecciona un objeto" styleClass="text-tiny-bright" style="-fx-font-size: 14px; -fx-text-fill: #f7d27a;"/>
+            <Label fx:id="lblSelectedItemDesc" text="..." styleClass="text-tiny" wrapText="true"/>
+            
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="btnUse" text="USAR" disable="true" styleClass="btn-nav"/>
+                <Button fx:id="btnEquip" text="EQUIPAR" disable="true" styleClass="btn-action-primary"/>
+            </HBox>
+        </VBox>
+    </VBox>
+
+</HBox>

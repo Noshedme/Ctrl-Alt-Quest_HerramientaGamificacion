@@ -1,0 +1,57 @@
+.root {
+    -fx-background-color: #0d0915;
+    -fx-font-family: "Georgia";
+}
+
+.sidebar {
+    -fx-background-color: linear-gradient(to right, rgba(20, 15, 35, 0.98), transparent);
+    -fx-padding: 40;
+}
+
+.settings-pane {
+    -fx-background-color: rgba(25, 18, 38, 0.95); 
+    -fx-background-radius: 40;
+    -fx-border-color: linear-gradient(to bottom, #f7d27a, rgba(247, 210, 122, 0.1));
+    -fx-border-width: 2.5;
+    -fx-border-radius: 40;
+    -fx-padding: 35;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 40, 0, 0, 10);
+}
+
+.primary-button-hero {
+    -fx-background-color: linear-gradient(to bottom, #f7d27a, #d4a017);
+    -fx-background-radius: 12;
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a0f26;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.primary-button-hero:hover {
+    -fx-background-color: linear-gradient(to bottom, #fff0c7, #f7d27a);
+    -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.4, 0, 0);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.auth-panel {
+    -fx-background-color: radial-gradient(center 50% 50%, radius 70%, rgba(85, 62, 122, 0.25) 0%, rgba(13, 9, 21, 0.95) 100%);
+    -fx-background-radius: 50;
+    -fx-border-color: linear-gradient(to bottom, rgba(247, 210, 122, 0.5), rgba(247, 210, 122, 0.05));
+    -fx-border-width: 2.5;
+    -fx-border-radius: 50;
+    -fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.1), 60, 0, 0, 0);
+}
+
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 28px;
+    -fx-cursor: hand;
+}
+
+.icon-button:hover {
+    -fx-text-fill: #ffffff;
+    -fx-rotate: 90;
+}

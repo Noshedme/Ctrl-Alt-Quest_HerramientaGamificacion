@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.media.MediaView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:id="root"
+           fx:controller="com.ctrlaltquest.ui.controllers.SplashController"
+           stylesheets="/styles/splash.css"
+           prefWidth="1280"
+           prefHeight="720">
+
+    <MediaView fx:id="introVideo"
+               fitWidth="1280"
+               fitHeight="720"
+               preserveRatio="false" />
+
+    <VBox alignment="BOTTOM_CENTER"
+          spacing="20"
+          styleClass="splash-overlay">
+
+        <VBox alignment="CENTER" spacing="5">
+            <ImageView fx:id="splashLogo"
+                       fitHeight="80"
+                       preserveRatio="true"
+                       styleClass="splash-logo">
+                <image>
+                    <Image url="@/assets/images/logo.png" />
+                </image>
+            </ImageView>
+            <Label text="CTRL + ALT + QUEST" styleClass="splash-title" />
+        </VBox>
+
+        <VBox alignment="CENTER" spacing="10" maxWidth="500">
+            <ProgressBar fx:id="loadingBar"
+                         prefWidth="500"
+                         progress="0"
+                         styleClass="splash-progress" />
+            <Label fx:id="loadingText"
+                   text="Iniciando Stack Tech..."
+                   styleClass="splash-text" />
+        </VBox>
+    </VBox>
+</StackPane>

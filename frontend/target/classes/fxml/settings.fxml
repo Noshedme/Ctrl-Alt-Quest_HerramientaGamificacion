@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.shape.Line?>
+
+<VBox fx:id="mainContainer" xmlns:fx="http://javafx.com/fxml" 
+      fx:controller="com.ctrlaltquest.ui.controllers.SettingsController"
+      spacing="25" alignment="CENTER" styleClass="settings-pane" 
+      prefWidth="480" prefHeight="450"
+      stylesheets="@../styles/auth.css"> 
+    <Label text="CONFIGURACIÓN" styleClass="settings-title" />
+    
+    <Line endX="300" styleClass="settings-divider" />
+
+    <VBox spacing="20" alignment="CENTER_LEFT" style="-fx-padding: 10 30 10 30;">
+        
+        <HBox spacing="18" alignment="CENTER_LEFT">
+            <CheckBox fx:id="checkTypingSound" styleClass="pixel-checkbox"/>
+            <VBox spacing="2">
+                <Label text="EFECTOS DE SONIDO" styleClass="settings-label" />
+                <Label text="Habilitar sonidos del teclado" styleClass="settings-sublabel" />
+            </VBox>
+        </HBox>
+
+        <HBox spacing="18" alignment="CENTER_LEFT">
+            <CheckBox fx:id="checkPauseVideo" styleClass="pixel-checkbox" onAction="#handlePauseVideo"/>
+            <VBox spacing="2">
+                <Label text="PAUSAR ANIMACIONES" styleClass="settings-label" />
+                <Label text="Detener videos de fondo" styleClass="settings-sublabel" />
+            </VBox>
+        </HBox>
+
+        <HBox spacing="18" alignment="CENTER_LEFT">
+            <CheckBox fx:id="checkBackgroundMusic" styleClass="pixel-checkbox" onAction="#handleToggleMusic"/>
+            <VBox spacing="2">
+                <Label text="MÚSICA DE FONDO" styleClass="settings-label" />
+                <Label text="Reproducir música mientras trabajas" styleClass="settings-sublabel" />
+            </VBox>
+        </HBox>
+
+    </VBox>
+
+    <Region VBox.vgrow="ALWAYS" />
+    
+    <Button text="CERRAR" onAction="#handleClose" styleClass="primary-button-hero" 
+            style="-fx-font-size: 16px; -fx-padding: 10 30;" />
+
+</VBox>

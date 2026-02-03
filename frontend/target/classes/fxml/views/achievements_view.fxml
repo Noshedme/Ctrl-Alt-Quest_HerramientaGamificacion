@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Line?>
+<?import javafx.scene.effect.Glow?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.ctrlaltquest.ui.controllers.views.AchievementsViewController"
+      spacing="25" styleClass="view-container" stylesheets="@/styles/home.css">
+
+    <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
+
+    <HBox alignment="CENTER_LEFT" spacing="30">
+        <VBox spacing="5">
+            <Label text="SALA DE TROFEOS" styleClass="section-title" style="-fx-font-size: 28px;"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Line endX="50" style="-fx-stroke: #f7d27a; -fx-stroke-width: 2;"/>
+                <Label text="Hazañas registradas en el sistema" styleClass="text-tiny-bright"/>
+            </HBox>
+        </VBox>
+        
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <HBox spacing="20" styleClass="activity-card" alignment="CENTER" style="-fx-padding: 10 25; -fx-background-color: rgba(20, 15, 35, 0.9);">
+            <VBox alignment="CENTER">
+                <Label fx:id="lblTotalUnlocked" text="0/0" styleClass="text-lvl-value" style="-fx-font-size: 20px;"/>
+                <Label text="OBTENIDOS" styleClass="text-tiny"/>
+            </VBox>
+            <Separator orientation="VERTICAL"/>
+            <VBox alignment="CENTER">
+                <Label fx:id="lblCompletionPct" text="0%" styleClass="text-value-gold" style="-fx-font-size: 20px;">
+                    <effect><Glow level="0.5"/></effect>
+                </Label>
+                <Label text="PROGRESO" styleClass="text-tiny"/>
+            </VBox>
+        </HBox>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" styleClass="transparent-scroll" VBox.vgrow="ALWAYS" style="-fx-background: transparent; -fx-background-color: transparent;">
+        <content>
+            <VBox spacing="30" style="-fx-background-color: transparent;">
+                
+                <VBox spacing="15">
+                    <Label text="GENERAL &amp; PRODUCTIVIDAD" styleClass="section-title-small" style="-fx-text-fill: #f7d27a;"/>
+                    <VBox fx:id="listGeneral" spacing="10"/>
+                </VBox>
+
+                <VBox spacing="15">
+                    <Label text="SECRETOS DEL SISTEMA" styleClass="section-title-small" style="-fx-text-fill: #a335ee;"/>
+                    <VBox fx:id="listSecrets" spacing="10"/>
+                </VBox>
+                
+            </VBox>
+        </content>
+    </ScrollPane>
+
+</VBox>

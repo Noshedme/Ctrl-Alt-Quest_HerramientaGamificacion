@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.media.MediaView?>
+<?import javafx.scene.shape.Line?>
+<?import java.net.URL?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml" 
+           fx:controller="com.ctrlaltquest.ui.controllers.CharacterSelectionController"
+           styleClass="root" prefWidth="1280" prefHeight="720">
+    
+    <stylesheets>
+        <URL value="@/styles/auth.css" />
+        <URL value="@/styles/character_selection.css" />
+    </stylesheets>
+    
+    <MediaView fx:id="bgMedia" fitWidth="1280" fitHeight="720" preserveRatio="false" />
+    <Region style="-fx-background-color: linear-gradient(to top, rgba(13, 9, 21, 1) 0%, rgba(13, 9, 21, 0.65) 100%);" />
+
+    <BorderPane>
+        <top>
+            <HBox alignment="CENTER_RIGHT" spacing="15" style="-fx-padding: 25;">
+                <Button fx:id="btnSettings" text="⚙" onAction="#handleOpenSettings" 
+                        styleClass="icon-button" focusTraversable="false" />
+            </HBox>
+        </top>
+
+        <center>
+            <VBox alignment="CENTER" spacing="50">
+                <VBox alignment="CENTER" spacing="10">
+                    <Label text="ELIGE TU PROFESIÓN TECH" styleClass="auth-title-hero" style="-fx-font-size: 45px;" />
+                    <Label text="¿Quién dominará el stack productivo hoy?" styleClass="card-text-pixel" />
+                </VBox>
+
+                <HBox spacing="40" alignment="CENTER">
+                    
+                    <AnchorPane>
+                        <VBox fx:id="slot1" styleClass="news-card-compact" alignment="CENTER" onMouseClicked="#handleSlot1" 
+                              spacing="20" prefWidth="300" prefHeight="450">
+                            <StackPane fx:id="container1" prefHeight="260" prefWidth="220" styleClass="stack-pane">
+                                <Label text="+" styleClass="empty-slot-label" />
+                            </StackPane>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label fx:id="name1" text="VACÍO" styleClass="card-category-runic" style="-fx-font-size: 26px;" />
+                                <Line endX="160" styleClass="settings-divider" />
+                                <Label fx:id="detail1" text="Slot disponible" styleClass="card-text-pixel" style="-fx-font-size: 15px;" />
+                            </VBox>
+                        </VBox>
+                        <Button fx:id="btnDelete1" text="✖" AnchorPane.topAnchor="15" AnchorPane.rightAnchor="15" 
+                                onAction="#handleDelete1" styleClass="delete-character-button" visible="false"/>
+                    </AnchorPane>
+
+                    <AnchorPane>
+                        <VBox fx:id="slot2" styleClass="news-card-compact" alignment="CENTER" onMouseClicked="#handleSlot2" 
+                              spacing="20" prefWidth="300" prefHeight="450">
+                            <StackPane fx:id="container2" prefHeight="260" prefWidth="220" styleClass="stack-pane">
+                                <Label text="+" styleClass="empty-slot-label" />
+                            </StackPane>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label fx:id="name2" text="VACÍO" styleClass="card-category-runic" style="-fx-font-size: 26px;" />
+                                <Line endX="160" styleClass="settings-divider" />
+                                <Label fx:id="detail2" text="Slot disponible" styleClass="card-text-pixel" style="-fx-font-size: 15px;" />
+                            </VBox>
+                        </VBox>
+                        <Button fx:id="btnDelete2" text="✖" AnchorPane.topAnchor="15" AnchorPane.rightAnchor="15" 
+                                onAction="#handleDelete2" styleClass="delete-character-button" visible="false"/>
+                    </AnchorPane>
+
+                    <AnchorPane>
+                        <VBox fx:id="slot3" styleClass="news-card-compact" alignment="CENTER" onMouseClicked="#handleSlot3" 
+                              spacing="20" prefWidth="300" prefHeight="450">
+                            <StackPane fx:id="container3" prefHeight="260" prefWidth="220" styleClass="stack-pane">
+                                <Label text="+" styleClass="empty-slot-label" />
+                            </StackPane>
+                            <VBox alignment="CENTER" spacing="12">
+                                <Label fx:id="name3" text="VACÍO" styleClass="card-category-runic" style="-fx-font-size: 26px;" />
+                                <Line endX="160" styleClass="settings-divider" />
+                                <Label fx:id="detail3" text="Slot disponible" styleClass="card-text-pixel" style="-fx-font-size: 15px;" />
+                            </VBox>
+                        </VBox>
+                        <Button fx:id="btnDelete3" text="✖" AnchorPane.topAnchor="15" AnchorPane.rightAnchor="15" 
+                                onAction="#handleDelete3" styleClass="delete-character-button" visible="false"/>
+                    </AnchorPane>
+
+                </HBox>
+
+                <Button text="VOLVER" onAction="#handleBack" styleClass="link-button-clean" 
+                        style="-fx-font-size: 18; -fx-padding: 30 0 0 0;" />
+            </VBox>
+        </center>
+    </BorderPane>
+</StackPane>

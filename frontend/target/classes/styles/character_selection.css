@@ -1,0 +1,168 @@
+/* ==========================================================
+   CHARACTER_SELECTION.CSS - EL SALÓN DE LOS HÉROES
+   ========================================================== */
+
+.root {
+    -fx-background-color: #0d0915;
+    -fx-font-family: "Georgia";
+}
+
+/* 1. TEXTOS PRINCIPALES */
+.auth-title-hero {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 36px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 10, 0, 0, 5);
+}
+
+.card-text-pixel {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px;
+    -fx-text-fill: #b5a7c6;
+}
+
+/* 2. LAS TARJETAS (SLOTS DE PERSONAJE) */
+.news-card-compact {
+    -fx-background-color: linear-gradient(to bottom right, #1a122b, #0d0915);
+    -fx-background-radius: 40; 
+    -fx-border-color: rgba(247, 210, 122, 0.2);
+    -fx-border-width: 2;
+    -fx-border-radius: 40;
+    -fx-padding: 30;
+    -fx-transition: all 0.3s ease-out;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 25, 0, 0, 15);
+}
+
+.news-card-compact:hover {
+    -fx-background-color: linear-gradient(to bottom right, #251a3d, #120c21);
+    -fx-border-color: #f7d27a;
+    -fx-translate-y: -15; 
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.3), 40, 0, 0, 0);
+}
+
+/* 3. CONTENEDORES INTERNOS (Donde reside el Sprite del Héroe) */
+.news-card-compact .stack-pane { 
+    -fx-background-color: rgba(5, 5, 10, 0.5) !important;
+    -fx-background-radius: 25;
+    -fx-border-color: rgba(247, 210, 122, 0.1);
+    -fx-border-width: 1;
+    -fx-border-radius: 25;
+}
+
+.news-card-compact:hover .stack-pane {
+    -fx-border-color: rgba(247, 210, 122, 0.5);
+    -fx-background-color: rgba(247, 210, 122, 0.05) !important;
+}
+
+/* 4. ELEMENTOS DECORATIVOS */
+.settings-divider {
+    -fx-stroke: linear-gradient(to right, transparent, #f7d27a, transparent);
+    -fx-stroke-width: 1.5;
+    -fx-opacity: 0.4;
+}
+
+.card-category-runic {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 22px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 4, 0, 0, 2);
+}
+
+.empty-slot-label {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 60px;
+    -fx-text-fill: #f7d27a;
+    -fx-opacity: 0.2;
+}
+
+.news-card-compact:hover .empty-slot-label {
+    -fx-opacity: 0.8;
+    -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.5, 0, 0);
+}
+
+/* 5. BOTÓN ELIMINAR PERSONAJE (SACRIFICIO) */
+.delete-character-button {
+    -fx-background-color: rgba(20, 10, 10, 0.6);
+    -fx-text-fill: #ff4d4d;
+    -fx-border-color: rgba(255, 77, 77, 0.4);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 50;
+    -fx-background-radius: 50;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 6 10 6 10;
+    -fx-transition: all 0.2s;
+}
+
+.delete-character-button:hover {
+    -fx-background-color: #ff4d4d;
+    -fx-text-fill: white;
+    -fx-border-color: white;
+    -fx-effect: dropshadow(gaussian, rgba(255, 77, 77, 0.8), 15, 0, 0, 0);
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+}
+
+/* 6. BOTÓN CERRAR PORTAL (Volver) */
+.link-button-clean {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.link-button-clean:hover {
+    -fx-text-fill: #ff4545 !important;
+    -fx-effect: dropshadow(gaussian, rgba(255, 69, 69, 0.6), 12, 0, 0, 0);
+}
+
+/* 7. DIÁLOGO DE CONFIRMACIÓN (ESTILO "FALLO ASTRAL") */
+.dialog-pane {
+    -fx-background-color: #1a122b;
+    -fx-border-color: #f7d27a;
+    -fx-border-width: 2;
+    -fx-padding: 10;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: #f7d27a;
+    -fx-font-family: "Georgia";
+}
+
+.dialog-pane .content.label {
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 13px;
+}
+
+.dialog-pane .button {
+    -fx-background-color: #251b36;
+    -fx-text-fill: #f7d27a;
+    -fx-border-color: rgba(247, 210, 122, 0.3);
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button:hover {
+    -fx-background-color: #f7d27a;
+    -fx-text-fill: #0d0915;
+}
+
+/* 8. BOTÓN AJUSTES */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 28px;
+    -fx-cursor: hand;
+}
+
+.icon-button:hover {
+    -fx-text-fill: #ffffff;
+    -fx-rotate: 90;
+    -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.5, 0, 0);
+}

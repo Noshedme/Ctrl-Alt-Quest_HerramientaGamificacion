@@ -1,0 +1,205 @@
+/* ==========================================================
+   1. CONFIGURACIÓN DE ROOT Y TIPOGRAFÍA SISTEMA
+   ========================================================== */
+.root { 
+    -fx-background-color: #0d0915; 
+    /* "Georgia" da un aire de libro antiguo/RPG. "Times New Roman" es el fallback. */
+    -fx-font-family: "Georgia", serif; 
+}
+
+/* NOTAS SOBRE FUENTES DE SISTEMA:
+   - Títulos (Runewood): Usaremos "Georgia" (Bold) para ese toque épico.
+   - Cuerpo (Pixelcastle): Usaremos "Verdana" o "Segoe UI" para máxima legibilidad.
+*/
+
+/* ==========================================================
+   2. SIDEBAR Y CONTENEDORES DE IZQUIERDA
+   ========================================================= */
+.sidebar {
+    -fx-background-color: linear-gradient(to right, rgba(20, 15, 35, 0.98), transparent);
+    -fx-padding: 30;
+    -fx-pref-width: 460; 
+}
+
+.sidebar-title-runic {
+    -fx-text-fill: #f7d27a;
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 28px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.9), 5, 0, 0, 2);
+    -fx-letter-spacing: 2px;
+}
+
+.carousel-viewport-clean {
+    -fx-max-height: 350;
+    -fx-min-height: 350;
+    -fx-pref-width: 380;
+}
+
+.news-card-compact {
+    -fx-background-color: linear-gradient(to bottom right, #1a122b, #0d0915);
+    -fx-background-radius: 40; 
+    -fx-border-color: rgba(247, 210, 122, 0.25);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 40;
+    -fx-padding: 30;
+    -fx-max-width: 380;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 20, 0, 0, 10);
+}
+
+.card-category-runic {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-text-fill: #f7d27a;
+}
+
+.card-text-pixel {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px; 
+    -fx-text-fill: #cccccc;
+    -fx-line-spacing: 4;
+}
+
+/* ==========================================================
+   3. PANEL DE LOGIN CENTRAL (HERO)
+   ========================================================== */
+.auth-panel {
+    -fx-background-color: linear-gradient(to bottom, #1e162d 0%, #0d0915 100%);
+    -fx-background-radius: 50; 
+    -fx-border-color: linear-gradient(to bottom, rgba(247, 210, 122, 0.6), rgba(247, 210, 122, 0.05));
+    -fx-border-width: 2;
+    -fx-border-radius: 50;
+    -fx-padding: 50;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 50, 0, 0, 15);
+}
+
+.auth-title-hero {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 32px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 6, 0, 0, 2);
+}
+
+/* ==========================================================
+   4. BOTONES Y CAMPOS
+   ========================================================== */
+.primary-button-hero {
+    -fx-background-color: linear-gradient(to bottom, #f7d27a, #d4a017);
+    -fx-background-radius: 15;
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-text-fill: #1a0f26;
+    -fx-padding: 14 55;
+    -fx-cursor: hand;
+}
+
+.primary-button-hero:hover {
+    -fx-background-color: linear-gradient(to bottom, #fff4cc, #f7d27a);
+    -fx-scale-x: 1.04;
+    -fx-scale-y: 1.04;
+}
+
+.input-label-runic-gold {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #f7d27a;
+}
+
+.custom-field {
+    -fx-background-color: rgba(5, 5, 10, 0.7);
+    -fx-background-radius: 12;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 15px;
+    -fx-padding: 12;
+    -fx-border-color: rgba(247, 210, 122, 0.15);
+    -fx-border-radius: 12;
+}
+
+.custom-field:focused {
+    -fx-border-color: rgba(247, 210, 122, 0.6);
+    -fx-background-color: rgba(0, 0, 0, 0.9);
+}
+
+/* Botones de enlace */
+.link-button-clean {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-padding: 5;
+}
+
+.link-button-clean:hover {
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.8), 10, 0, 0, 0);
+}
+
+/* Botón de Ajustes (Engranaje) */
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 28px;
+    -fx-cursor: hand;
+}
+
+.icon-button:hover {
+    -fx-text-fill: #ffffff;
+    -fx-rotate: 90;
+    -fx-effect: dropshadow(gaussian, #f7d27a, 15, 0.5, 0, 0);
+}
+
+/* ==========================================================
+   5. PANEL DE AJUSTES (ESTILO CRISTAL RÚNICO)
+   ========================================================== */
+.settings-pane {
+    -fx-background-color: rgba(20, 15, 30, 0.95); 
+    -fx-background-radius: 40;
+    -fx-border-color: linear-gradient(to bottom, #f7d27a, rgba(247, 210, 122, 0.1));
+    -fx-border-width: 2.5;
+    -fx-border-radius: 40;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 50, 0, 0, 0);
+}
+
+.settings-title {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 26px;
+    -fx-text-fill: #f7d27a;
+}
+
+.settings-label {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 16px;
+    -fx-text-fill: #ffffff;
+}
+
+.settings-sublabel {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 12px;
+    -fx-text-fill: #b5a7c6;
+}
+
+.settings-divider {
+    -fx-stroke: linear-gradient(to right, transparent, #f7d27a, transparent);
+    -fx-stroke-width: 2;
+    -fx-opacity: 0.5;
+}
+
+/* CHECKBOX */
+.pixel-checkbox .box {
+    -fx-background-color: #0d0915;
+    -fx-border-color: #f7d27a;
+    -fx-border-radius: 4;
+}
+
+.pixel-checkbox:selected .mark {
+    -fx-background-color: #f7d27a;
+    -fx-shape: "M 0 5 L 4 9 L 10 0 L 10 2 L 4 11 L 0 7 Z";
+}

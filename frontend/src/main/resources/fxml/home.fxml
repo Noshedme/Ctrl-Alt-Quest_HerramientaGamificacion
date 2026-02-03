@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.media.MediaView?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.geometry.Insets?>
+<?import java.net.URL?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.ctrlaltquest.ui.controllers.HomeController"
+           styleClass="root" prefWidth="1280" prefHeight="720">
+
+    <stylesheets>
+        <URL value="@/styles/home.css" />
+    </stylesheets>
+
+    <MediaView fx:id="backgroundVideo" fitWidth="1280" fitHeight="720" preserveRatio="false" />
+    <Region style="-fx-background-color: rgba(13, 9, 21, 0.85);" /> <BorderPane fx:id="mainLayout">
+        
+        <top>
+            <HBox spacing="20" styleClass="status-header" alignment="CENTER_LEFT">
+                <padding><Insets top="15" right="30" bottom="15" left="30"/></padding>
+                
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <StackPane style="-fx-border-color: #f7d27a; -fx-border-radius: 50%; -fx-padding: 3;">
+                        <ImageView fx:id="imgAvatarSmall" fitHeight="45" fitWidth="45" preserveRatio="true"/>
+                    </StackPane>
+                    <VBox alignment="CENTER_LEFT">
+                        <Label fx:id="lblUsername" text="CARGANDO..." styleClass="hero-name" style="-fx-font-size: 18px;"/>
+                        <Label fx:id="lblClass" text="CLASE" styleClass="hero-class"/>
+                    </VBox>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <VBox alignment="CENTER" spacing="5" maxWidth="500" HBox.hgrow="ALWAYS">
+                    <HBox spacing="10" alignment="CENTER">
+                        <Label text="NIVEL" styleClass="text-lvl" style="-fx-font-size: 12px;"/>
+                        <Label fx:id="lblLevel" text="1" styleClass="text-lvl-value"/>
+                    </HBox>
+                    <ProgressBar fx:id="xpBar" progress="0.0" maxWidth="Infinity" styleClass="custom-xp-bar" prefHeight="10"/>
+                    <Label fx:id="lblXPText" text="0 / 1000 XP" styleClass="text-tiny-bright" style="-fx-font-size: 10px;"/>
+                </VBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox spacing="25" alignment="CENTER_RIGHT">
+                    <VBox alignment="CENTER_RIGHT">
+                        <Label text="TESORO" styleClass="text-label-gold"/>
+                        <Label fx:id="lblCoins" text="0" styleClass="text-value-gold"/>
+                    </VBox>
+                    <Separator orientation="VERTICAL" />
+                    <Button text="⚙" onAction="#showSettings" styleClass="icon-button" style="-fx-font-size: 22px;" focusTraversable="false"/>
+                </HBox>
+            </HBox>
+        </top>
+
+        <left>
+            <VBox spacing="0" styleClass="side-menu" prefWidth="240">
+                <padding><Insets top="30" right="0" bottom="30" left="0"/></padding>
+                
+                <Label text="NAVEGACIÓN" styleClass="section-title-small" style="-fx-padding: 0 0 10 20;"/>
+                
+                <VBox spacing="5">
+                    <Button text="INICIO" onAction="#showDashboard" styleClass="btn-nav" maxWidth="Infinity"/>
+                    <Button text="MISIONES" onAction="#showMissions" styleClass="btn-nav" maxWidth="Infinity"/>
+                    <Button text="ACTIVIDAD" onAction="#showActivity" styleClass="btn-nav" maxWidth="Infinity"/>
+                    <Button text="TIENDA" onAction="#showStore" styleClass="btn-nav" maxWidth="Infinity"/>
+                    <Button text="INVENTARIO" onAction="#showInventory" styleClass="btn-nav" maxWidth="Infinity"/>
+                    <Button text="LOGROS" onAction="#showStats" styleClass="btn-nav" maxWidth="Infinity"/>
+                </VBox>
+                
+                <Region VBox.vgrow="ALWAYS"/>
+                
+                <VBox spacing="5" style="-fx-padding: 0 20;">
+                    <Separator styleClass="menu-separator"/>
+                    <Button text="PERFIL" onAction="#showSettings" styleClass="btn-nav" maxWidth="Infinity"/>
+                    <Button text="CERRAR SESIÓN" onAction="#handleLogout" styleClass="btn-nav-danger" maxWidth="Infinity"/>
+                </VBox>
+            </VBox>
+        </left>
+
+        <center>
+            <StackPane fx:id="contentArea" style="-fx-padding: 20;">
+                <ProgressIndicator /> 
+            </StackPane>
+        </center>
+
+        <right>
+            <VBox spacing="20" prefWidth="260" styleClass="activity-panel">
+                <padding><Insets top="30" right="20" bottom="30" left="20"/></padding>
+                
+                <Label text="SISTEMA" styleClass="section-title-small"/>
+                
+                <VBox styleClass="activity-card" spacing="8">
+                    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+                    <Label text="EN FOCO" styleClass="text-tiny-bright" style="-fx-text-fill: #888;"/>
+                    <Label fx:id="lblCurrentApp" text="Detectando..." styleClass="text-app-name" wrapText="true"/>
+                    <Label fx:id="lblAppStatus" text="DESCONOCIDO" styleClass="status-tag"/>
+                </VBox>
+
+                <VBox styleClass="health-card" spacing="8">
+                    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="❤" style="-fx-text-fill: #ff6b6b; -fx-font-size: 16px;"/>
+                        <Label text="SALUD" styleClass="text-tiny-bright"/>
+                    </HBox>
+                    <Label fx:id="lblHealthStreak" text="0 DÍAS" styleClass="text-health-value"/>
+                    <ProgressBar fx:id="healthBar" progress="1.0" styleClass="health-progress" maxWidth="Infinity"/>
+                </VBox>
+            </VBox>
+        </right>
+
+    </BorderPane>
+
+    <VBox fx:id="loadingLayer" visible="false" styleClass="loading-overlay" alignment="CENTER" 
+          style="-fx-background-color: rgba(13, 9, 21, 0.95);">
+        <ProgressIndicator />
+        <Label text="Guardando progreso..." styleClass="text-tiny-bright" style="-fx-padding: 15 0 0 0; -fx-font-size: 14px;"/>
+    </VBox>
+</StackPane>

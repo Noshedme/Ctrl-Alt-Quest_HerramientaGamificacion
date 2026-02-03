@@ -1,0 +1,345 @@
+/* ==========================================================
+   HOME.CSS - INTERFAZ PRINCIPAL "CÓDICE OSCURO"
+   Basado en auth.css y alerts.css para consistencia visual.
+   ========================================================== */
+
+/* 1. CONFIGURACIÓN ROOT Y BASE */
+.root {
+    -fx-background-color: #0d0915;
+    -fx-font-family: "Georgia", serif; /* Fuente RPG */
+}
+
+/* ==========================================================
+   2. HEADER SUPERIOR (TOP BAR)
+   ========================================================== */
+.status-header {
+    -fx-background-color: linear-gradient(to bottom, rgba(20, 15, 35, 0.95), rgba(13, 9, 21, 0.8));
+    -fx-border-color: transparent transparent rgba(247, 210, 122, 0.15) transparent;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 2);
+}
+
+.hero-name {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 22px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 2, 0, 0, 1);
+}
+
+.hero-class {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 11px;
+    -fx-text-fill: #b5a7c6;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 0 2;
+}
+
+.text-lvl {
+    -fx-text-fill: #f7d27a;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.text-lvl-value {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-font-family: "Verdana";
+}
+
+/* Barra de XP personalizada */
+.custom-xp-bar .track {
+    -fx-background-color: rgba(0, 0, 0, 0.6);
+    -fx-background-radius: 10;
+    -fx-border-color: #444;
+    -fx-border-radius: 10;
+}
+
+.custom-xp-bar .bar {
+    -fx-background-color: linear-gradient(to right, #2d5a27, #4ade80); /* Verde RPG */
+    -fx-background-radius: 10;
+    -fx-effect: innershadow(gaussian, rgba(255,255,255,0.3), 5, 0, 0, 1);
+}
+
+.text-label-gold {
+    -fx-text-fill: #ffd700;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.text-value-gold {
+    -fx-text-fill: #ffd700;
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 215, 0, 0.4), 8, 0, 0, 0);
+}
+
+/* ==========================================================
+   3. MENÚ LATERAL (SIDEBAR)
+   ========================================================== */
+.side-menu {
+    -fx-background-color: linear-gradient(to right, rgba(20, 15, 35, 0.95), transparent);
+    -fx-min-width: 220;
+    -fx-pref-width: 220;
+    -fx-padding: 20;
+}
+
+.btn-nav {
+    -fx-background-color: transparent;
+    -fx-text-fill: #cccccc;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 15;
+    -fx-cursor: hand;
+    -fx-border-width: 0 0 0 3; /* Borde izquierdo invisible */
+    -fx-border-color: transparent;
+    -fx-transition: all 0.3s;
+}
+
+.btn-nav:hover {
+    -fx-background-color: rgba(247, 210, 122, 0.1);
+    -fx-text-fill: #f7d27a;
+    -fx-border-color: #f7d27a; /* Borde izquierdo dorado al hover */
+    -fx-padding: 10 15 10 25; /* Efecto de desplazamiento a la derecha */
+}
+
+/* Botón activo (para lógica futura si implementas "selected state") */
+.btn-nav:selected { 
+    -fx-text-fill: #f7d27a;
+    -fx-font-weight: bold;
+    -fx-background-color: rgba(247, 210, 122, 0.15);
+}
+
+.btn-nav-danger {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff6b6b;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 15;
+    -fx-cursor: hand;
+    -fx-opacity: 0.8;
+}
+
+.btn-nav-danger:hover {
+    -fx-background-color: rgba(255, 107, 107, 0.1);
+    -fx-text-fill: #ff4444;
+    -fx-opacity: 1;
+}
+
+.menu-separator {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-pref-height: 1;
+}
+
+/* ==========================================================
+   4. PANELES Y TARJETAS (DASHBOARD, ACTIVITY)
+   ========================================================== */
+.view-container {
+    -fx-background-color: transparent;
+}
+
+.section-title {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 26px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 2, 0, 0, 1);
+}
+
+.section-title-small {
+    -fx-font-family: "Verdana";
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-text-fill: #b5a7c6;
+    -fx-opacity: 0.8;
+}
+
+.activity-card {
+    -fx-background-color: rgba(20, 15, 35, 0.85);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(247, 210, 122, 0.15);
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 4);
+}
+
+/* PANEL LATERAL DERECHO (Monitor) */
+.activity-panel {
+    -fx-background-color: rgba(10, 5, 15, 0.6);
+    -fx-border-color: transparent transparent transparent rgba(255, 255, 255, 0.05);
+}
+
+.text-tiny-bright {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 11px;
+    -fx-text-fill: #dddddd;
+    -fx-font-weight: bold;
+}
+
+.text-app-name {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 16px;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+}
+
+.status-tag {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 8;
+    -fx-background-radius: 4;
+}
+
+/* Tarjeta de Salud/Racha */
+.health-card {
+    -fx-background-color: rgba(45, 15, 15, 0.4); /* Rojizo muy sutil */
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(255, 80, 80, 0.2);
+    -fx-border-radius: 12;
+}
+
+.text-health-value {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ff6b6b;
+}
+
+.health-progress .bar {
+    -fx-background-color: #ff4444;
+    -fx-effect: dropshadow(gaussian, rgba(255, 68, 68, 0.5), 8, 0, 0, 0);
+}
+
+/* ==========================================================
+   5. BOTONES DE ACCIÓN PRINCIPAL
+   ========================================================== */
+.btn-action-primary {
+    -fx-background-color: linear-gradient(to bottom, #f7d27a, #d4a017);
+    -fx-background-radius: 6;
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1a0f26;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(212, 160, 23, 0.4), 8, 0, 0, 0);
+}
+
+.btn-action-primary:hover {
+    -fx-background-color: #fff4cc;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.btn-action-primary:pressed {
+    -fx-background-color: #a67c00;
+    -fx-translate-y: 1;
+}
+
+.input-field {
+    -fx-background-color: rgba(0, 0, 0, 0.4);
+    -fx-border-color: #444;
+    -fx-border-radius: 4;
+    -fx-text-fill: white;
+    -fx-padding: 8;
+}
+
+/* ==========================================================
+   6. TABLAS Y LISTAS (JavaFX Customization)
+   ========================================================== */
+.transparent-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.transparent-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+
+.transparent-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #444;
+    -fx-background-radius: 4;
+}
+
+/* TableView Estilo Oscuro */
+.custom-table {
+    -fx-background-color: transparent;
+    -fx-border-color: rgba(255,255,255,0.1);
+}
+.custom-table .column-header-background {
+    -fx-background-color: rgba(20, 15, 35, 0.9);
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #f7d27a;
+}
+.custom-table .column-header .label {
+    -fx-text-fill: #f7d27a;
+    -fx-font-weight: bold;
+}
+.custom-table .table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent rgba(255,255,255,0.05) transparent;
+}
+.custom-table .table-row-cell:odd {
+    -fx-background-color: rgba(255,255,255,0.02);
+}
+.custom-table .table-row-cell:selected {
+    -fx-background-color: rgba(247, 210, 122, 0.15);
+}
+.custom-table .text {
+    -fx-fill: #dddddd;
+}
+
+/* ==========================================================
+   7. PESTAÑAS (TABPANE)
+   ========================================================== */
+.custom-tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.custom-tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 10 20;
+}
+
+.custom-tab-pane .tab:selected {
+    -fx-border-color: transparent transparent #f7d27a transparent;
+    -fx-border-width: 3;
+}
+
+.custom-tab-pane .tab .tab-label {
+    -fx-text-fill: #888;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.custom-tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.6), 5, 0, 0, 0);
+}
+
+/* ==========================================================
+   8. COMPONENTES ESPECÍFICOS (Inventario, Logros)
+   ========================================================== */
+.item-slot {
+    -fx-background-color: rgba(0,0,0,0.5);
+    -fx-border-color: #444;
+    -fx-border-radius: 6;
+    -fx-text-fill: #888;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+}
+.item-slot:hover {
+    -fx-border-color: #f7d27a;
+    -fx-text-fill: #f7d27a;
+}
+
+.achievement-card:hover {
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.3), 15, 0, 0, 0);
+    -fx-cursor: hand;
+}
