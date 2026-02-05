@@ -1,9 +1,10 @@
 package com.ctrlaltquest.ui.app;
 
-import com.ctrlaltquest.ui.utils.SoundManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
+import com.ctrlaltquest.ui.utils.SoundManager;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -16,11 +17,11 @@ public class AppLauncher extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        // 1. Cargar fuentes al inicio para que estén disponibles en el Splash y Login
+        // 1. Cargar fuentes al inicio
         loadCustomFont("/assets/fonts/pixelcastle/Pixelcastle-Regular.otf");
         loadCustomFont("/assets/fonts/runewood/Runewood.ttf");
 
-        // 2. Cargar el FXML inicial
+        // 2. Cargar el FXML inicial (Splash o Login)
         URL fxmlUrl = getClass().getResource("/fxml/splash.fxml");
         if (fxmlUrl == null) {
             System.err.println("ERROR CRÍTICO: No se encontró /fxml/splash.fxml");
@@ -29,10 +30,12 @@ public class AppLauncher extends Application {
 
         try {
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
-            Scene scene = new Scene(loader.load(), 960, 540);
+            
+            // Creamos la escena. Puedes quitar las dimensiones (960, 540) si quieres
+            // que se adapte al contenido, pero dejarlas está bien como tamaño "restaurado".
+            Scene scene = new Scene(loader.load()); 
             
             // --- SONIDO DE TECLADO GLOBAL ---
-            // Este filtro captura cualquier tecla presionada en la ventana y reproduce el sonido
             scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 SoundManager.playKeyClick();
             });
@@ -40,10 +43,14 @@ public class AppLauncher extends Application {
             stage.setTitle("Ctrl + Alt + Quest");
             stage.setScene(scene);
             
-            // Estética de Splash: Sin redimensión y centrado
+            // Permitir redimensión es obligatorio para que funcione el maximizado
             stage.setResizable(true);
-            stage.centerOnScreen();
+            
+            // 3. MOSTRAR Y MAXIMIZAR
+            // Importante: show() debe ir ANTES de setMaximized(true) para asegurar
+            // que el sistema operativo calcule bien los bordes de la pantalla.
             stage.show();
+            stage.setMaximized(true); 
             
         } catch (IOException e) {
             System.err.println("Error al cargar la interfaz inicial: " + e.getMessage());

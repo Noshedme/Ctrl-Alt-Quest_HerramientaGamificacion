@@ -45,13 +45,13 @@
 
                 <Region HBox.hgrow="ALWAYS"/>
 
-                <HBox spacing="25" alignment="CENTER_RIGHT">
+                    <HBox spacing="25" alignment="CENTER_RIGHT">
                     <VBox alignment="CENTER_RIGHT">
                         <Label text="TESORO" styleClass="text-label-gold"/>
                         <Label fx:id="lblCoins" text="0" styleClass="text-value-gold"/>
                     </VBox>
                     <Separator orientation="VERTICAL" />
-                    <Button text="⚙" onAction="#showSettings" styleClass="icon-button" style="-fx-font-size: 22px;" focusTraversable="false"/>
+                    <Button text="⚙" onAction="#showSettingsModal" styleClass="icon-button" style="-fx-font-size: 22px;" focusTraversable="false"/>
                 </HBox>
             </HBox>
         </top>
@@ -73,9 +73,9 @@
                 
                 <Region VBox.vgrow="ALWAYS"/>
                 
-                <VBox spacing="5" style="-fx-padding: 0 20;">
+                    <VBox spacing="5" style="-fx-padding: 0 20;">
                     <Separator styleClass="menu-separator"/>
-                    <Button text="PERFIL" onAction="#showSettings" styleClass="btn-nav" maxWidth="Infinity"/>
+                    <Button text="PERFIL" onAction="#showSettingsModal" styleClass="btn-nav" maxWidth="Infinity"/>
                     <Button text="CERRAR SESIÓN" onAction="#handleLogout" styleClass="btn-nav-danger" maxWidth="Infinity"/>
                 </VBox>
             </VBox>

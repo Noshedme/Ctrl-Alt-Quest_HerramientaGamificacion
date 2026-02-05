@@ -1,5 +1,6 @@
 com\ctrlaltquest\models\StoreOffer.class
 com\ctrlaltquest\models\InventoryItem.class
+com\ctrlaltquest\ui\controllers\views\StoreViewController$1.class
 com\ctrlaltquest\models\Event.class
 com\ctrlaltquest\models\Achievement.class
 com\ctrlaltquest\services\ActivityMonitorService.class
@@ -19,6 +20,7 @@ com\ctrlaltquest\ui\controllers\views\StoreViewController.class
 com\ctrlaltquest\ui\controllers\RegisterController$1.class
 com\ctrlaltquest\services\BoostService.class
 com\ctrlaltquest\models\Mission.class
+com\ctrlaltquest\ui\controllers\views\StoreViewController$2.class
 com\ctrlaltquest\ui\controllers\views\CharacterPanelController.class
 com\ctrlaltquest\ui\controllers\views\AchievementsViewController.class
 com\ctrlaltquest\ui\controllers\ForgotPasswordController.class
@@ -70,5 +72,4 @@ com\ctrlaltquest\ui\controllers\views\DashboardViewController.class
 com\ctrlaltquest\ui\controllers\LoginController$1.class
 com\ctrlaltquest\services\EmailService.class
 com\ctrlaltquest\ui\controllers\SplashController.class
-com\ctrlaltquest\ui\PaymentFormController$1.class
 com\ctrlaltquest\ui\controllers\views\DashboardViewController$1.class

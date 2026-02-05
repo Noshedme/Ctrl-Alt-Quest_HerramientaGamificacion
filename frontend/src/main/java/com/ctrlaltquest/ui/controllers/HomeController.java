@@ -1,18 +1,26 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.ctrlaltquest.dao.ActivityDAO;
 import com.ctrlaltquest.dao.MissionsDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.services.ActivityMonitorService;
 import com.ctrlaltquest.services.SessionManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
+
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.*;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -22,13 +30,11 @@ import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.scene.paint.Color;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 public class HomeController {
 
@@ -70,6 +76,20 @@ public class HomeController {
 
         // Cargar Dashboard inicial
         Platform.runLater(() -> loadView("dashboard_view"));
+
+        // Inyectar las hojas de estilo de auth para que las vistas internas usen el mismo tema
+        mainLayout.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                try {
+                    String authCss = getClass().getResource("/styles/auth.css").toExternalForm();
+                    String homeCss = getClass().getResource("/styles/home.css").toExternalForm();
+                    if (!newScene.getStylesheets().contains(authCss)) newScene.getStylesheets().add(authCss);
+                    if (!newScene.getStylesheets().contains(homeCss)) newScene.getStylesheets().add(homeCss);
+                } catch (Exception e) {
+                    System.err.println("⚠️ No se pudieron cargar hojas de estilo: " + e.getMessage());
+                }
+            }
+        });
     }
 
     public void initPlayerData(Character character) {
@@ -82,9 +102,9 @@ public class HomeController {
             this.dbSessionId = ActivityDAO.iniciarSesion(userId);
             System.out.println("✅ Sesión BD iniciada: ID " + dbSessionId);
             
-            // Inicializar mission_progress para todas las misiones del usuario
-            System.out.println("🔄 Inicializando mission_progress para misiones activas...");
-            MissionsDAO.inicializarTodasMisiones(userId);
+            // Inicializar mission_progress para todas las misiones GLOBALES del usuario
+            System.out.println("🔄 Inicializando mission_progress para misiones globales...");
+            MissionsDAO.inicializarMisionesGlobalesParaUsuario(userId);
             
             // Iniciar monitoreo lógico
             monitorService.startMonitoring(userId);
@@ -221,7 +241,45 @@ public class HomeController {
     @FXML private void showStore()    { SoundManager.playClickSound(); loadView("store_view"); }
     @FXML private void showInventory(){ SoundManager.playClickSound(); loadView("character_panel"); }
     @FXML private void showStats()    { SoundManager.playClickSound(); loadView("achievements_view"); }
-    @FXML private void showSettings() { SoundManager.playClickSound(); loadView("profile_view"); } 
+    @FXML private void showSettings() { SoundManager.playClickSound(); loadView("profile_view"); }
+
+    /**
+     * Abre la ventana de ajustes como modal y enlaza este controlador
+     * para que los cambios (p.ej. pausar video) se reflejen en tiempo real.
+     */
+    @FXML
+    private void showSettingsModal() {
+        try {
+            SoundManager.playClickSound();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
+            Parent root = loader.load();
+            SettingsController settingsCtrl = loader.getController();
+            settingsCtrl.setHomeController(this);
+
+            Stage settingsStage = new Stage();
+            settingsStage.initModality(Modality.APPLICATION_MODAL);
+            settingsStage.initOwner(mainLayout.getScene().getWindow());
+            settingsStage.initStyle(StageStyle.TRANSPARENT);
+
+            Scene scene = new Scene(root);
+            scene.setFill(Color.TRANSPARENT);
+            settingsStage.setScene(scene);
+            settingsStage.show();
+        } catch (IOException e) {
+            System.err.println("❌ Error al abrir ajustes: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Permite a SettingsController controlar la reproducción del video.
+     */
+    public void setVideoPlaying(boolean shouldPlay) {
+        if (videoPlayer == null) return;
+        Platform.runLater(() -> {
+            if (shouldPlay) videoPlayer.play();
+            else videoPlayer.pause();
+        });
+    }
 
     // --- MONITOREO VISUAL (UI) ---
     private void iniciarMonitoreoActividad() {

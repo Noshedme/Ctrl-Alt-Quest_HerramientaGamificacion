@@ -71,7 +71,7 @@
                 <VBox alignment="CENTER" spacing="30" maxWidth="550" maxHeight="580" styleClass="auth-panel">
                     
                     <VBox alignment="CENTER" spacing="10">
-                        <Label text="BIENVENIDO DESARROLLADOR" styleClass="auth-title-hero" 
+                        <Label text="BIENVENIDO USUARIO" styleClass="auth-title-hero" 
                                wrapText="true" textAlignment="CENTER" maxWidth="Infinity" />
                         <Region prefHeight="5" />
                     </VBox>
@@ -84,14 +84,23 @@
                         
                         <VBox spacing="8">
                             <Label text="CONTRASEÑA" styleClass="input-label-runic-gold"/>
-                            <StackPane alignment="CENTER_RIGHT">
-                                <PasswordField fx:id="passwordHidden" promptText="Contraseña" styleClass="custom-field" />
-                                <TextField fx:id="passwordShown" promptText="Contraseña" styleClass="custom-field" visible="false" />
+                            
+                            <StackPane>
+                                <PasswordField fx:id="passwordHidden" promptText="Contraseña" 
+                                               styleClass="custom-field"
+                                               style="-fx-padding: 10 45 10 15;" 
+                                               maxWidth="Infinity" />
+                                
+                                <TextField fx:id="passwordShown" promptText="Contraseña" 
+                                           styleClass="custom-field" 
+                                           style="-fx-padding: 10 45 10 15;"
+                                           maxWidth="Infinity" visible="false" />
                                 
                                 <Button fx:id="btnTogglePassword" 
                                         onAction="#togglePassword" 
                                         text="👁" 
-                                        styleClass="btn-eye" 
+                                        StackPane.alignment="CENTER_RIGHT"
+                                        style="-fx-background-color: transparent; -fx-text-fill: #f7d27a; -fx-cursor: hand; -fx-font-size: 16px; -fx-padding: 0 15 0 0;"
                                         focusTraversable="false" />
                             </StackPane>
                         </VBox>

@@ -25,6 +25,7 @@ public class SettingsController {
     private RegisterController registerController;
     private CharacterSelectionController selectionController;
     private CharacterEditorController editorController; // Preparado para el siguiente paso
+    private HomeController homeController;
 
     @FXML
     public void initialize() {
@@ -49,6 +50,10 @@ public class SettingsController {
     
     public void setRegisterController(RegisterController ctrl) { 
         this.registerController = ctrl; 
+    }
+
+    public void setHomeController(HomeController ctrl) {
+        this.homeController = ctrl;
     }
 
     /**
@@ -77,6 +82,7 @@ public class SettingsController {
         if (registerController != null) registerController.setVideoPlaying(shouldPlay);
         if (selectionController != null) selectionController.setVideoPlaying(shouldPlay);
         if (editorController != null) editorController.setVideoPlaying(shouldPlay);
+        if (homeController != null) homeController.setVideoPlaying(shouldPlay);
     }
 
     @FXML

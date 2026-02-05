@@ -1,10 +1,11 @@
 package com.ctrlaltquest.dao;
 
-import com.ctrlaltquest.db.DatabaseConnection; // Import corregido
-import java.sql.Connection;
+import java.sql.Connection; // Import corregido
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import com.ctrlaltquest.db.DatabaseConnection;
 
 public class ActivityDAO {
 
@@ -40,7 +41,22 @@ public class ActivityDAO {
             
             pstmt.setInt(1, sessionId);
             pstmt.executeUpdate();
-            
+            // Actualizar el total de tiempo de juego acumulado en users y la racha de salud
+            String updateUserSql = "UPDATE public.users u SET " +
+                    "total_play_time = COALESCE(u.total_play_time, INTERVAL '0') + (a.session_end - a.session_start), " +
+                    "health_streak = CASE " +
+                    "WHEN (u.last_sync::date = CURRENT_DATE) THEN u.health_streak " +
+                    "WHEN (u.last_sync::date = (CURRENT_DATE - INTERVAL '1 day')) THEN COALESCE(u.health_streak,0) + 1 " +
+                    "ELSE 1 END, " +
+                    "last_sync = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP " +
+                    "FROM public.activity_sessions a WHERE a.id = ? AND u.id = a.user_id";
+
+            try (PreparedStatement updateUserStmt = conn.prepareStatement(updateUserSql)) {
+                updateUserStmt.setInt(1, sessionId);
+                updateUserStmt.executeUpdate();
+            } catch (SQLException e) {
+                System.err.println("Error actualizando usuario al cerrar sesión: " + e.getMessage());
+            }
         } catch (SQLException e) {
             System.err.println("Error al cerrar sesión en BD: " + e.getMessage());
             e.printStackTrace();
@@ -107,6 +123,17 @@ public class ActivityDAO {
                         logStmt.setNull(2, java.sql.Types.INTEGER);
                     }
                     logStmt.executeUpdate();
+                }
+                // Acumular 1 segundo al total_play_time del usuario (actualiza last_sync y updated_at)
+                String updateUserTimeSql = "UPDATE public.users SET " +
+                        "total_play_time = COALESCE(total_play_time, INTERVAL '0') + INTERVAL '1 second', " +
+                        "last_sync = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+
+                try (PreparedStatement updateUserTimeStmt = conn.prepareStatement(updateUserTimeSql)) {
+                    updateUserTimeStmt.setInt(1, userId);
+                    updateUserTimeStmt.executeUpdate();
+                } catch (SQLException e) {
+                    // No crítico; evitar spam en consola
                 }
             }
             

@@ -4,7 +4,6 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.shape.Line?>
-<?import javafx.scene.effect.DropShadow?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.ctrlaltquest.ui.controllers.views.StoreViewController"
@@ -17,7 +16,7 @@
             <Label text="MERCADO NEGRO" styleClass="section-title" style="-fx-font-size: 28px;"/>
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Line endX="50" style="-fx-stroke: #f7d27a; -fx-stroke-width: 2;"/>
-                <Label text="Adquisiciones para potenciar tu entorno" styleClass="text-tiny-bright"/>
+                <Label text="Intercambia tu oro por mejoras y equipo" styleClass="text-tiny-bright"/>
             </HBox>
         </VBox>
         
@@ -31,45 +30,14 @@
         </HBox>
     </HBox>
 
-    <TabPane fx:id="storeTabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" styleClass="custom-tab-pane">
+    <VBox VBox.vgrow="ALWAYS" spacing="10">
+        <Label text="CATÁLOGO DISPONIBLE" styleClass="section-title-small" style="-fx-text-fill: #f7d27a; -fx-opacity: 0.8;"/>
         
-        <Tab text="CONSUMIBLES &amp; EQUIPO">
-            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
-                <VBox fx:id="goldStoreContainer" spacing="15" style="-fx-padding: 20 5;"/>
-            </ScrollPane>
-        </Tab>
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" 
+                    styleClass="transparent-scroll" 
+                    style="-fx-background: transparent; -fx-background-color: transparent;">
+            <VBox fx:id="goldStoreContainer" spacing="15" style="-fx-padding: 10 5 20 5;"/>
+        </ScrollPane>
+    </VBox>
 
-        <Tab text="ACCESO PREMIUM">
-            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
-                <VBox spacing="30" style="-fx-padding: 20 5;">
-                    
-                    <StackPane fx:id="battlePassBanner" style="-fx-background-color: linear-gradient(to right, #2c1a4d, #4b2d85); -fx-background-radius: 12; -fx-padding: 30; -fx-cursor: hand;">
-                        <effect>
-                            <DropShadow color="rgba(163, 53, 238, 0.4)" radius="25" spread="0.1"/>
-                        </effect>
-                        <HBox alignment="CENTER_LEFT" spacing="30">
-                            <StackPane style="-fx-background-color: rgba(0,0,0,0.3); -fx-background-radius: 50%; -fx-padding: 15;">
-                                <Label text="👑" style="-fx-font-size: 40px;"/>
-                            </StackPane>
-                            
-                            <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                <Label text="PASE DE BATALLA: 'FULL STACK'" styleClass="card-category-runic" style="-fx-font-size: 22px; -fx-text-fill: #e0bdff;"/>
-                                <Label text="Desbloquea la rama de misiones 'Arquitecto', skins legendarias y compilación x2." styleClass="text-tiny-bright" wrapText="true"/>
-                            </VBox>
-                            
-                            <Button text="DESBLOQUEAR $4.99" styleClass="btn-action-primary" style="-fx-background-color: linear-gradient(to bottom, #a335ee, #6a0dad); -fx-text-fill: white; -fx-font-size: 14px;"/>
-                        </HBox>
-                    </StackPane>
-
-                    <Separator styleClass="menu-separator"/>
-
-                    <VBox spacing="15">
-                        <Label text="COLECCIÓN EXCLUSIVA" styleClass="section-title-small" style="-fx-text-fill: #a335ee;"/>
-                        <VBox fx:id="premiumStoreContainer" spacing="15"/>
-                    </VBox>
-                </VBox>
-            </ScrollPane>
-        </Tab>
-
-    </TabPane>
 </VBox>

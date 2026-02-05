@@ -25,7 +25,7 @@
         
         <VBox alignment="CENTER_RIGHT" style="-fx-opacity: 0.7;">
             <Label text="OBJETIVOS ACTIVOS" styleClass="text-tiny"/>
-            <Label text="---" styleClass="text-lvl-value" style="-fx-text-fill: #4ade80;">
+            <Label fx:id="lblActiveMissions" text="---" styleClass="text-lvl-value" style="-fx-text-fill: #4ade80;">
                 <effect><Glow level="0.5"/></effect>
             </Label>
         </VBox>

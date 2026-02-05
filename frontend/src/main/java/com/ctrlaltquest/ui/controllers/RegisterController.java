@@ -1,16 +1,26 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.regex.Pattern;
+
 import com.ctrlaltquest.dao.AuthDAO;
-import com.ctrlaltquest.services.EmailService;
 import com.ctrlaltquest.services.AuditService;
+import com.ctrlaltquest.services.EmailService;
 import com.ctrlaltquest.ui.utils.SoundManager;
+
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -21,17 +31,22 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.regex.Pattern;
-
 public class RegisterController {
 
     // --- Campos FXML ---
     @FXML private TextField usernameField;
     @FXML private TextField emailField;
+    
+    // Contraseña Principal
     @FXML private PasswordField passwordField;
+    @FXML private TextField passwordShown;
+    @FXML private Button btnTogglePass;
+
+    // Confirmar Contraseña
     @FXML private PasswordField confirmPasswordField;
+    @FXML private TextField confirmPasswordShown;
+    @FXML private Button btnToggleConfirm;
+
     @FXML private MediaView backgroundVideo;
     @FXML private Button btnRegister; 
     @FXML private VBox loadingLayer;  
@@ -40,6 +55,9 @@ public class RegisterController {
     private MediaPlayer videoPlayer;
     private final AuthDAO authDAO = new AuthDAO();
     private final EmailService emailService = new EmailService();
+    
+    private boolean isPassVisible = false;
+    private boolean isConfirmVisible = false;
 
     @FXML
     public void initialize() {
@@ -50,6 +68,10 @@ public class RegisterController {
         
         SoundManager.getInstance().synchronizeMusic(); 
         setupTypingSounds(); 
+        
+        // Sincronización de campos ocultos/visibles
+        passwordShown.textProperty().bindBidirectional(passwordField.textProperty());
+        confirmPasswordShown.textProperty().bindBidirectional(confirmPasswordField.textProperty());
     }
 
     private void configurarVideo() {
@@ -82,11 +104,53 @@ public class RegisterController {
     }
 
     private void setupTypingSounds() {
-        TextField[] fields = {usernameField, emailField, passwordField, confirmPasswordField};
+        TextField[] fields = {usernameField, emailField, passwordField, passwordShown, confirmPasswordField, confirmPasswordShown};
         for (TextField field : fields) {
             field.setOnKeyTyped(e -> {
                 SoundManager.playKeyClick(); 
             });
+        }
+    }
+
+    // --- Lógica de visibilidad de contraseñas ---
+
+    @FXML
+    private void togglePassword() {
+        isPassVisible = !isPassVisible;
+        int caret = isPassVisible ? passwordField.getCaretPosition() : passwordShown.getCaretPosition();
+
+        if (isPassVisible) {
+            passwordShown.setVisible(true);
+            passwordField.setVisible(false);
+            btnTogglePass.setText("🙈");
+            passwordShown.requestFocus();
+            passwordShown.positionCaret(caret);
+        } else {
+            passwordField.setVisible(true);
+            passwordShown.setVisible(false);
+            btnTogglePass.setText("👁");
+            passwordField.requestFocus();
+            passwordField.positionCaret(caret);
+        }
+    }
+
+    @FXML
+    private void toggleConfirmPassword() {
+        isConfirmVisible = !isConfirmVisible;
+        int caret = isConfirmVisible ? confirmPasswordField.getCaretPosition() : confirmPasswordShown.getCaretPosition();
+
+        if (isConfirmVisible) {
+            confirmPasswordShown.setVisible(true);
+            confirmPasswordField.setVisible(false);
+            btnToggleConfirm.setText("🙈");
+            confirmPasswordShown.requestFocus();
+            confirmPasswordShown.positionCaret(caret);
+        } else {
+            confirmPasswordField.setVisible(true);
+            confirmPasswordShown.setVisible(false);
+            btnToggleConfirm.setText("👁");
+            confirmPasswordField.requestFocus();
+            confirmPasswordField.positionCaret(caret);
         }
     }
 
@@ -146,19 +210,34 @@ public class RegisterController {
     public void handleRegister() {
         String user = usernameField.getText().trim();
         String email = emailField.getText().trim();
+        // Obtenemos el texto del campo oculto (que está sincronizado con el visible)
         String pass = passwordField.getText();
         String confirm = confirmPasswordField.getText();
 
+        // 1. Validación de campos vacíos
         if (user.isEmpty() || pass.isEmpty() || email.isEmpty()) {
             showAlert("Campos Incompletos", "Debes llenar todos los datos del formulario.");
             return;
         }
 
+        // 2. Validación de formato de email
         if (!isValidEmail(email)) {
             showAlert("Correo Inválido", "El correo no tiene un formato válido.");
             return;
         }
 
+        // 3. SEGURIDAD: Validación de robustez de contraseña
+        if (!isValidPassword(pass)) {
+            showAlert("Contraseña Insegura", 
+                "Por seguridad, tu contraseña debe tener:\n" +
+                "• Entre 8 y 16 caracteres.\n" +
+                "• Al menos una letra mayúscula.\n" +
+                "• Al menos un número.\n" +
+                "• Al menos un carácter especial (@, #, $, %, etc.).");
+            return;
+        }
+
+        // 4. Validación de coincidencia de contraseñas
         if (!pass.equals(confirm)) {
             showAlert("Error de Contraseña", "Las contraseñas no coinciden.");
             return;
@@ -175,6 +254,7 @@ public class RegisterController {
                 if (authDAO.userExists(user, email)) {
                     throw new Exception("El usuario o correo ya están registrados.");
                 }
+                // Aquí se asume que authDAO encripta la contraseña antes de guardar
                 String token = authDAO.registerUser(user, email, pass);
                 emailService.sendVerificationCode(email, token);
                 return email; 
@@ -231,26 +311,35 @@ public class RegisterController {
         return Pattern.compile(emailRegex).matcher(email).matches();
     }
 
+    private boolean isValidPassword(String password) {
+        String passwordRegex = "^(?=.*[0-9])(?=.*[A-Z])(?=.*[@#$%^&+=!._-])(?=\\S+$).{8,16}$";
+        return Pattern.compile(passwordRegex).matcher(password).matches();
+    }
+
     private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Ctrl + Alt + Quest");
-        alert.setHeaderText(title);
-        alert.setContentText(content);
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Ctrl + Alt + Quest");
+            alert.setHeaderText(title);
+            alert.setContentText(content);
 
-        // Vincular el CSS al DialogPane
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/styles/alerts.css").toExternalForm());
-        dialogPane.getStyleClass().add("custom-alert");
+            DialogPane dialogPane = alert.getDialogPane();
+            try {
+                dialogPane.getStylesheets().add(getClass().getResource("/styles/alerts.css").toExternalForm());
+                dialogPane.getStyleClass().add("custom-alert");
+                
+                Stage stage = (Stage) dialogPane.getScene().getWindow();
+                stage.initStyle(StageStyle.TRANSPARENT);
+                dialogPane.getScene().setFill(Color.TRANSPARENT);
+            } catch (Exception e) {
+                System.err.println("⚠️ Estilo de alerta fallido.");
+            }
 
-        // Configurar el Stage de la alerta para ser transparente y sin bordes de Windows
-        Stage stage = (Stage) dialogPane.getScene().getWindow();
-        stage.initStyle(StageStyle.TRANSPARENT);
-        dialogPane.getScene().setFill(Color.TRANSPARENT);
+            if (usernameField.getScene() != null) {
+                alert.initOwner(usernameField.getScene().getWindow());
+            }
 
-        if (usernameField.getScene() != null) {
-            alert.initOwner(usernameField.getScene().getWindow());
-        }
-
-        alert.showAndWait();
+            alert.showAndWait();
+        });
     }
 }
