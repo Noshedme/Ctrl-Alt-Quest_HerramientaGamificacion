@@ -1,16 +1,20 @@
 package com.ctrlaltquest.dao;
 
-import com.ctrlaltquest.models.Character;
-import com.ctrlaltquest.db.DatabaseConnection;
-import com.ctrlaltquest.services.SessionManager;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.ctrlaltquest.db.DatabaseConnection;
+import com.ctrlaltquest.models.Character;
+import com.ctrlaltquest.services.SessionManager;
 
 public class CharacterDAO {
 
     /**
-     * Recupera todos los personajes de un usuario específico incluyendo XP, Monedas y Racha.
+     * Recupera todos los personajes de un usuario específico.
      */
     public static Map<Integer, Character> getCharactersByUser(int userId) {
         Map<Integer, Character> map = new HashMap<>();
@@ -21,7 +25,6 @@ public class CharacterDAO {
         
         if (userId <= 0) return map;
 
-        // SELECT actualizado con los campos de gamificación
         String query = "SELECT id, name, class_id, user_id, level, slot_index, current_xp, coins, health_streak " +
                        "FROM characters WHERE user_id = ? ORDER BY slot_index";
 
@@ -40,8 +43,6 @@ public class CharacterDAO {
                     c.setUserId(rs.getInt("user_id"));
                     c.setLevel(rs.getInt("level"));
                     c.setSlotIndex(rs.getInt("slot_index"));
-                    
-                    // Mapeo de nuevos campos requeridos por el HomeController
                     c.setCurrentXp(rs.getInt("current_xp"));
                     c.setCoins(rs.getInt("coins"));
                     c.setHealthStreak(rs.getInt("health_streak"));
@@ -62,7 +63,6 @@ public class CharacterDAO {
         int userId = c.getUserId();
         if (userId <= 0) userId = SessionManager.getInstance().getUserId();
 
-        // SQL actualizado para incluir persistencia de progreso
         String query = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak) " +
                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
                        "ON CONFLICT (user_id, slot_index) DO UPDATE SET " +
@@ -95,7 +95,8 @@ public class CharacterDAO {
     }
 
     /**
-     * Crea un personaje nuevo inicializando valores por defecto (XP 0, Monedas 0).
+     * Crea un personaje nuevo inicializando valores por defecto.
+     * NECESARIO PARA CharacterSelectionController
      */
     public static boolean createCharacter(int userId, String name, int classId, int slotIndex) {
         Connection conn = null;
@@ -104,7 +105,6 @@ public class CharacterDAO {
             if (conn == null) return false;
             conn.setAutoCommit(false); 
 
-            // Insertamos con valores iniciales de nivel 1 y 0 progreso
             String sqlChar = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak) " +
                              "VALUES (?, ?, ?, ?, 1, 0, 0, 0) RETURNING id";
             
@@ -119,7 +119,7 @@ public class CharacterDAO {
             }
 
             if (characterId != -1) {
-                // Sincronizamos la clase en la tabla de usuarios para preferencias globales
+                // Sincronizamos la clase en la tabla de usuarios
                 String sqlUpdateUser = "UPDATE users SET selected_class_id = ? WHERE id = ?";
                 try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateUser)) {
                     psUp.setInt(1, classId);
@@ -128,7 +128,7 @@ public class CharacterDAO {
                 }
 
                 conn.commit();
-                System.out.println("✨ Personaje '" + name + "' creado exitosamente con stats base.");
+                System.out.println("✨ Personaje '" + name + "' creado exitosamente.");
                 return true;
             }
             
@@ -146,6 +146,7 @@ public class CharacterDAO {
 
     /**
      * Elimina un personaje por su ID único.
+     * ESTE ES EL MÉTODO QUE FALTABA Y CAUSABA EL ERROR DE COMPILACIÓN.
      */
     public static boolean deleteCharacter(int characterId) {
         String query = "DELETE FROM characters WHERE id = ?";
@@ -155,9 +156,53 @@ public class CharacterDAO {
             if (conn == null) return false;
             
             ps.setInt(1, characterId);
-            return ps.executeUpdate() > 0;
+            boolean deleted = ps.executeUpdate() > 0;
+            if (deleted) {
+                System.out.println("🗑️ Personaje eliminado: ID " + characterId);
+            }
+            return deleted;
         } catch (SQLException e) {
             System.err.println("❌ Error al eliminar personaje: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // --- MÉTODOS DE ACTUALIZACIÓN PARCIAL ---
+
+    /**
+     * Actualiza solo el nombre.
+     */
+    public static boolean updateCharacterName(int characterId, String newName) {
+        String sql = "UPDATE public.characters SET name = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, newName);
+            pstmt.setInt(2, characterId);
+            
+            return pstmt.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Error actualizando nombre personaje: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Actualiza la clase (Avatar) del personaje.
+     */
+    public static boolean updateCharacterClass(int characterId, int newClassId) {
+        String sql = "UPDATE public.characters SET class_id = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, newClassId);
+            pstmt.setInt(2, characterId);
+            
+            return pstmt.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Error actualizando clase personaje: " + e.getMessage());
             return false;
         }
     }

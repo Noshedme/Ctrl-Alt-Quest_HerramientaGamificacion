@@ -33,7 +33,6 @@ C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\services\PlayerService.java
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\services\RewardsService.java
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\services\SessionManager.java
-C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\services\StripePaymentService.java
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\ui\app\AppLauncher.java
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\ui\controllers\CharacterEditorController.java
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\ui\controllers\CharacterSelectionController.java
@@ -54,5 +53,4 @@ C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\ui\controllers\views\ProfileViewController.java
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\ui\controllers\views\StoreViewController.java
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\ui\navigation\SceneRouter.java
-C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\ui\PaymentFormController.java
 C:\Users\Alumno\Documents\ANDRES\Ctrl-Alt-Quest_HerramientaGamificacion\Ctrl-Alt-Quest_HerramientaGamificacion-2\frontend\src\main\java\com\ctrlaltquest\ui\utils\SoundManager.java

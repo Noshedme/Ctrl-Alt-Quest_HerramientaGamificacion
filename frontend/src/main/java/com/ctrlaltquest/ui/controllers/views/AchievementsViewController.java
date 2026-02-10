@@ -1,22 +1,24 @@
 package com.ctrlaltquest.ui.controllers.views;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import com.ctrlaltquest.dao.AchievementsDAO;
 import com.ctrlaltquest.models.Achievement;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.Glow;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -27,182 +29,172 @@ public class AchievementsViewController {
 
     @FXML private Label lblTotalUnlocked;
     @FXML private Label lblCompletionPct;
-    @FXML private VBox listGeneral; // Antes grid, ahora lista vertical
+    @FXML private ProgressBar barCompletion; // Nueva barra de progreso global
+    @FXML private VBox listGeneral;
     @FXML private VBox listSecrets;
+
+    private int userId = -1;
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+        cargarLogrosReales();
+    }
 
     @FXML
     public void initialize() {
-        cargarLogros();
+        if(lblTotalUnlocked != null) lblTotalUnlocked.setText("...");
     }
 
-    private void cargarLogros() {
-        List<Achievement> logros = new ArrayList<>();
-        
-        // Datos de Ejemplo
-        logros.add(new Achievement(1, "Hola Mundo", "Inicia sesión por primera vez en el sistema.", true, false, "H"));
-        logros.add(new Achievement(2, "Maratón de Código", "Programa 4 horas seguidas sin abrir YouTube o redes sociales.", false, false, "M"));
-        logros.add(new Achievement(3, "Ratón de Biblioteca", "Lee documentación técnica durante 50 minutos acumulados.", true, false, "R"));
-        logros.add(new Achievement(4, "Limpieza Digital", "Elimina 100 archivos innecesarios de tu escritorio.", false, false, "L"));
+    private void cargarLogrosReales() {
+        if (userId == -1) return;
 
-        // Easter Eggs
-        logros.add(new Achievement(99, "Konami Code", "Ingresa el código secreto en el menú principal.", false, true, "?"));
-        logros.add(new Achievement(100, "Viajero del Tiempo", "Logueate a las 3:33 AM exactamente.", true, true, "T")); 
-
-        // Cálculos
-        int total = logros.size();
-        int unlocked = (int) logros.stream().filter(Achievement::isUnlocked).count();
-
-        // Limpieza de UI
         listGeneral.getChildren().clear();
         listSecrets.getChildren().clear();
 
-        // Renderizado
-        int delayIndex = 0;
-        for (Achievement a : logros) {
-            HBox row = crearFilaLogro(a);
-            
-            // Lógica de separación (General vs Secretos)
-            if (a.isHidden() && !a.isUnlocked()) {
-                listSecrets.getChildren().add(row);
-            } else if (a.isHidden() && a.isUnlocked()) {
-                listSecrets.getChildren().add(row); // Secreto revelado
-            } else {
-                listGeneral.getChildren().add(row);
+        Task<List<Achievement>> task = new Task<>() {
+            @Override
+            protected List<Achievement> call() {
+                return AchievementsDAO.getAllAvailableAchievements(userId);
             }
-            
-            // Animación de entrada
-            animarEntrada(row, delayIndex * 80); // 80ms de diferencia
-            delayIndex++;
-        }
+        };
 
-        // Actualizar Stats Header
-        lblTotalUnlocked.setText(unlocked + " / " + total);
-        int pct = total > 0 ? (int) (((double) unlocked / total) * 100) : 0;
-        lblCompletionPct.setText(pct + "%");
+        task.setOnSucceeded(e -> {
+            List<Achievement> logros = task.getValue();
+            if (logros == null || logros.isEmpty()) return;
+
+            int total = logros.size();
+            int unlockedCount = (int) logros.stream().filter(Achievement::isUnlocked).count();
+
+            // Actualizar header
+            lblTotalUnlocked.setText(unlockedCount + " / " + total);
+            double pct = total > 0 ? (double) unlockedCount / total : 0;
+            lblCompletionPct.setText((int)(pct * 100) + "%");
+            if(barCompletion != null) barCompletion.setProgress(pct);
+
+            int delayIndex = 0;
+            for (Achievement a : logros) {
+                HBox row = crearFilaLogro(a);
+                
+                if (a.isHidden()) {
+                    listSecrets.getChildren().add(row);
+                } else {
+                    listGeneral.getChildren().add(row);
+                }
+                
+                animarEntrada(row, delayIndex * 60);
+                delayIndex++;
+            }
+        });
+
+        new Thread(task).start();
     }
 
-    /**
-     * FABRICA DE FILAS: Crea una barra horizontal elegante para cada logro.
-     */
     private HBox crearFilaLogro(Achievement a) {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(15, 25, 15, 25));
         
-        // --- 1. ESTILOS BASE SEGÚN ESTADO ---
         boolean isUnlocked = a.isUnlocked();
-        boolean isSecret = a.isHidden();
+        boolean isSecret = a.isHidden(); 
         
-        String bgColor = isUnlocked ? "rgba(45, 90, 39, 0.2)" : "rgba(0,0,0,0.4)";
-        String borderColor = isUnlocked ? "#f7d27a" : (isSecret ? "#a335ee" : "#444");
-        double opacity = isUnlocked ? 1.0 : 0.6;
+        // Colores temáticos
+        String themeColor = isSecret ? "#a335ee" : "#f7d27a"; // Morado para secretos, Dorado para normales
+        String borderColor = isUnlocked ? themeColor : "#444";
+        String bgColor = isUnlocked ? "rgba(30, 40, 30, 0.6)" : "rgba(20, 20, 25, 0.4)";
 
         row.setStyle(
             "-fx-background-color: " + bgColor + ";" +
-            "-fx-border-color: transparent transparent " + borderColor + " transparent;" + // Solo borde inferior sutil
-            "-fx-border-width: 0 0 1 0;" +
-            "-fx-background-radius: 5;"
+            "-fx-border-color: " + borderColor + ";" +
+            "-fx-border-width: 0 0 0 4;" + // Borde izquierdo indicador
+            "-fx-background-radius: 4;" +
+            "-fx-border-radius: 4;"
         );
-        row.setOpacity(0); // Para animar entrada
+        row.setOpacity(0); 
 
-        // --- 2. ICONO IZQUIERDO ---
+        // 1. Icono / Medalla
         StackPane iconStack = new StackPane();
-        Circle circle = new Circle(22);
-        circle.setFill(Color.TRANSPARENT);
-        circle.setStroke(Color.web(borderColor));
-        circle.setStrokeWidth(2);
+        
+        // Fondo del icono
+        Circle bgCircle = new Circle(24);
+        bgCircle.setFill(Color.web(isUnlocked ? themeColor : "#333"));
+        bgCircle.setOpacity(isUnlocked ? 0.2 : 1.0);
+        bgCircle.setStroke(Color.web(borderColor));
+        
+        // Símbolo
+        String symbol = isSecret && !isUnlocked ? "?" : (a.getTitle().substring(0, 1).toUpperCase());
+        Label iconLabel = new Label(isUnlocked ? "🏆" : symbol);
+        iconLabel.setStyle("-fx-text-fill: " + (isUnlocked ? themeColor : "#666") + "; -fx-font-size: 18px; -fx-font-weight: bold;");
         
         if (isUnlocked) {
-            circle.setFill(Color.web(isSecret ? "#a335ee" : "#d4af37"));
-            circle.setStroke(Color.web("#ffffff"));
+            bgCircle.setEffect(new DropShadow(15, Color.web(themeColor)));
         }
 
-        Label iconLetter = new Label(isSecret && !isUnlocked ? "?" : a.getTitle().substring(0, 1));
-        iconLetter.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-font-size: 16px;");
-        
-        iconStack.getChildren().addAll(circle, iconLetter);
+        iconStack.getChildren().addAll(bgCircle, iconLabel);
 
-        // --- 3. TEXTOS (TÍTULO Y DESCRIPCIÓN) ---
-        VBox textBox = new VBox(5);
+        // 2. Info Textual
+        VBox textBox = new VBox(4);
         textBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
         
-        String titleStr = (isSecret && !isUnlocked) ? "LOGRO SECRETO" : a.getTitle();
-        String descStr = (isSecret && !isUnlocked) ? "Sigue jugando para descubrir este misterio..." : a.getDescription();
+        String titleText = (isSecret && !isUnlocked) ? "LOGRO OCULTO" : a.getTitle();
+        String descText = (isSecret && !isUnlocked) ? "Sigue jugando para descubrir este secreto." : a.getDescription();
 
-        Label lblTitle = new Label(titleStr);
-        lblTitle.setStyle("-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: " + (isUnlocked ? "#ffffff" : "#888") + ";");
+        Label lblTitle = new Label(titleText);
+        lblTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: " + (isUnlocked ? "white" : "#888") + ";");
         
-        Label lblDesc = new Label(descStr);
+        Label lblDesc = new Label(descText);
         lblDesc.setWrapText(true);
-        lblDesc.setStyle("-fx-font-family: 'Verdana'; -fx-font-size: 12px; -fx-text-fill: #aaa;");
+        lblDesc.setStyle("-fx-font-size: 11px; -fx-text-fill: #aaa; -fx-font-style: " + ((isSecret && !isUnlocked) ? "italic" : "normal") + ";");
 
         textBox.getChildren().addAll(lblTitle, lblDesc);
 
-        // --- 4. RECOMPENSA/ESTADO (DERECHA) ---
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
+        // 3. Estado / Fecha (Simulado)
         VBox statusBox = new VBox(5);
         statusBox.setAlignment(Pos.CENTER_RIGHT);
         
-        Label lblStatus = new Label(isUnlocked ? "COMPLETADO" : "BLOQUEADO");
-        lblStatus.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: " + (isUnlocked ? "#4ade80" : "#666") + ";");
+        if (isUnlocked) {
+            Label badge = new Label("DESBLOQUEADO");
+            badge.setStyle("-fx-background-color: " + themeColor + "; -fx-text-fill: #1a1a1a; -fx-font-size: 9px; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 10;");
+            statusBox.getChildren().add(badge);
+        } else {
+            Label badge = new Label("BLOQUEADO");
+            badge.setStyle("-fx-background-color: #444; -fx-text-fill: #aaa; -fx-font-size: 9px; -fx-padding: 3 8; -fx-background-radius: 10;");
+            statusBox.getChildren().add(badge);
+        }
+
+        row.getChildren().addAll(iconStack, textBox, statusBox);
         
-        // Etiqueta de XP (Simulada)
-        Label lblXp = new Label(isSecret ? "?? XP" : "+100 XP"); 
-        lblXp.setStyle("-fx-background-color: rgba(255,255,255,0.1); -fx-background-radius: 4; -fx-padding: 2 6; -fx-text-fill: #f7d27a; -fx-font-size: 10px;");
-
-        statusBox.getChildren().addAll(lblStatus, lblXp);
-
-        // --- ENSAMBLAJE ---
-        row.getChildren().addAll(iconStack, textBox, spacer, statusBox);
-
-        // --- INTERACTIVIDAD ---
-        configurarHover(row, borderColor, isUnlocked);
+        // Efectos Hover
+        configurarHover(row, isUnlocked);
 
         return row;
     }
 
-    private void configurarHover(HBox row, String accentColor, boolean isUnlocked) {
+    private void configurarHover(HBox row, boolean isUnlocked) {
         ScaleTransition st = new ScaleTransition(Duration.millis(150), row);
         
         row.setOnMouseEntered(e -> {
-            // Efecto sutil de elevación
-            st.setToX(1.01);
-            st.setToY(1.01);
-            st.playFromStart();
-            
-            // Cambiar fondo a algo más claro
-            row.setStyle(row.getStyle().replace("-fx-background-color: rgba(0,0,0,0.4);", "-fx-background-color: rgba(255,255,255,0.05);"));
-            
-            // Añadir borde brillante completo
-            if (isUnlocked) {
-                row.setEffect(new DropShadow(15, Color.web(accentColor)));
-            }
+            st.setToX(1.02); st.setToY(1.02); st.playFromStart();
+            row.setEffect(new Glow(0.3));
+            row.setStyle(row.getStyle().replace("rgba(20, 20, 25, 0.4)", "rgba(40, 40, 50, 0.6)"));
         });
 
         row.setOnMouseExited(e -> {
-            st.setToX(1.0);
-            st.setToY(1.0);
-            st.playFromStart();
-            row.setStyle(row.getStyle().replace("-fx-background-color: rgba(255,255,255,0.05);", "-fx-background-color: rgba(0,0,0,0.4);"));
+            st.setToX(1.0); st.setToY(1.0); st.playFromStart();
             row.setEffect(null);
+            row.setStyle(row.getStyle().replace("rgba(40, 40, 50, 0.6)", "rgba(20, 20, 25, 0.4)"));
         });
     }
 
     private void animarEntrada(Node node, int delayMillis) {
-        // Deslizar desde la izquierda
         TranslateTransition tt = new TranslateTransition(Duration.millis(500), node);
-        tt.setFromX(-50);
-        tt.setToX(0);
+        tt.setFromY(20); tt.setToY(0);
         tt.setDelay(Duration.millis(delayMillis));
 
         FadeTransition ft = new FadeTransition(Duration.millis(500), node);
-        ft.setFromValue(0);
-        ft.setToValue(1);
+        ft.setFromValue(0); ft.setToValue(1);
         ft.setDelay(Duration.millis(delayMillis));
 
-        tt.play();
-        ft.play();
+        tt.play(); ft.play();
     }
 }

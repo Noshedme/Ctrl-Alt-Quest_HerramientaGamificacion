@@ -4,39 +4,61 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.shape.Line?>
+<?import javafx.scene.effect.Glow?>
+<?import javafx.scene.effect.DropShadow?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.ctrlaltquest.ui.controllers.views.StoreViewController"
-      spacing="25" styleClass="view-container" stylesheets="@/styles/home.css">
+      spacing="20" styleClass="view-container" 
+      stylesheets="@/styles/home.css"
+      style="-fx-background-color: transparent;">
 
     <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
 
     <HBox alignment="CENTER_LEFT" spacing="20">
         <VBox spacing="5">
-            <Label text="MERCADO NEGRO" styleClass="section-title" style="-fx-font-size: 28px;"/>
+            <Label text="MERCADO NEGRO" styleClass="section-title" style="-fx-font-size: 28px; -fx-text-fill: #f7d27a;">
+                <effect><Glow level="0.6"/></effect>
+            </Label>
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Line endX="50" style="-fx-stroke: #f7d27a; -fx-stroke-width: 2;"/>
-                <Label text="Intercambia tu oro por mejoras y equipo" styleClass="text-tiny-bright"/>
+                <Line endX="40" style="-fx-stroke: #f7d27a; -fx-stroke-width: 2;"/>
+                <Label text="Equipo raro para desarrolladores legendarios" styleClass="text-tiny-bright" style="-fx-opacity: 0.7;"/>
             </HBox>
         </VBox>
         
         <Region HBox.hgrow="ALWAYS"/>
         
-        <HBox alignment="CENTER" spacing="15" styleClass="activity-card" style="-fx-padding: 10 25; -fx-background-color: rgba(20, 15, 35, 0.9);">
+        <HBox alignment="CENTER" spacing="15" 
+              style="-fx-padding: 10 25; -fx-background-color: rgba(20, 15, 35, 0.9); -fx-background-radius: 20; -fx-border-color: rgba(247, 210, 122, 0.3); -fx-border-radius: 20;">
+            <effect><DropShadow color="rgba(0,0,0,0.5)" radius="10"/></effect>
+            
             <VBox alignment="CENTER_RIGHT">
-                <Label text="SALDO ACTUAL" styleClass="text-tiny"/>
-                <Label fx:id="lblUserBalance" text="0 💰" styleClass="text-value-gold" style="-fx-font-size: 24px;"/>
+                <Label text="TU FORTUNA" styleClass="text-tiny" style="-fx-text-fill: #888;"/>
+                <Label fx:id="lblUserBalance" text="--- 💰" styleClass="text-value-gold" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ffd700;">
+                    <effect><Glow level="0.3"/></effect>
+                </Label>
             </VBox>
         </HBox>
     </HBox>
 
-    <VBox VBox.vgrow="ALWAYS" spacing="10">
-        <Label text="CATÁLOGO DISPONIBLE" styleClass="section-title-small" style="-fx-text-fill: #f7d27a; -fx-opacity: 0.8;"/>
+    <VBox VBox.vgrow="ALWAYS" spacing="15">
+        <HBox alignment="CENTER_LEFT">
+            <Label text="DESTACADOS" styleClass="section-title-small" style="-fx-text-fill: #f7d27a; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Nuevos ítems cada semana" styleClass="text-tiny" style="-fx-opacity: 0.5;"/>
+        </HBox>
         
-        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" 
+        <ScrollPane fx:id="scrollContainer" fitToWidth="true" VBox.vgrow="ALWAYS" 
                     styleClass="transparent-scroll" 
                     style="-fx-background: transparent; -fx-background-color: transparent;">
-            <VBox fx:id="goldStoreContainer" spacing="15" style="-fx-padding: 10 5 20 5;"/>
+            
+            <GridPane fx:id="itemsGrid" hgap="20" vgap="20" alignment="TOP_CENTER" style="-fx-padding: 10;">
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="33" halignment="CENTER"/>
+                    <ColumnConstraints percentWidth="33" halignment="CENTER"/>
+                    <ColumnConstraints percentWidth="33" halignment="CENTER"/>
+                </columnConstraints>
+                </GridPane>
         </ScrollPane>
     </VBox>
 

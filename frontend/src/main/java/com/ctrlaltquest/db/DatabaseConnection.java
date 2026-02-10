@@ -5,8 +5,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Gestión de conexión centralizada con PostgreSQL.
- * Implementa el patrón Singleton para reutilizar la conexión.
+ * Gestión de conexión con PostgreSQL.
+ * MODIFICADO: Genera una nueva conexión por solicitud para evitar conflictos de hilos.
  */
 public class DatabaseConnection {
     
@@ -15,42 +15,24 @@ public class DatabaseConnection {
     private static final String USER = "postgres"; 
     private static final String PASSWORD = "intesud"; 
 
-    private static Connection connection = null;
-
     /**
-     * Obtiene la instancia activa de la conexión.
-     * Si no existe o está cerrada, intenta abrir una nueva.
+     * Obtiene una NUEVA instancia de conexión a la base de datos.
+     * Es vital que el método que llame a esto cierre la conexión (usando try-with-resources).
+     * * @return Connection objeto de conexión activo.
+     * @throws SQLException Si falla la conexión.
      */
-    public static Connection getConnection() {
+    public static Connection getConnection() throws SQLException {
         try {
-            if (connection == null || connection.isClosed()) {
-                // Registrar el driver de PostgreSQL
-                Class.forName("org.postgresql.Driver");
-                
-                // Establecer conexión
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                System.out.println("✅ Portal de datos abierto: Conexión establecida.");
-            }
+            // Registrar el driver de PostgreSQL (necesario en algunas versiones de Java/JDBC)
+            Class.forName("org.postgresql.Driver");
+            
+            // Establecer y devolver una NUEVA conexión
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+            
         } catch (ClassNotFoundException e) {
-            System.err.println("❌ Error: No se encontró el Driver de PostgreSQL en el classpath.");
-        } catch (SQLException e) {
-            System.err.println("❌ Error de SQL: No se pudo conectar a la base de datos.");
-            System.err.println("   Mensaje: " + e.getMessage());
+            System.err.println("❌ Error crítico: No se encontró el Driver de PostgreSQL en el classpath.");
+            throw new SQLException("Driver PostgreSQL no encontrado", e);
         }
-        return connection;
-    }
-
-    /**
-     * Cierra la conexión de forma segura cuando la app termina.
-     */
-    public static void closeConnection() {
-        if (connection != null) {
-            try {
-                connection.close();
-                System.out.println("🔌 Conexión con la base de datos cerrada.");
-            } catch (SQLException e) {
-                System.err.println("⚠️ Error al cerrar la conexión: " + e.getMessage());
-            }
-        }
+        // Nota: No capturamos SQLException aquí para que el DAO que llama pueda manejar el error específico.
     }
 }

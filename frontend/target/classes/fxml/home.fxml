@@ -16,98 +16,168 @@
     </stylesheets>
 
     <MediaView fx:id="backgroundVideo" fitWidth="1280" fitHeight="720" preserveRatio="false" />
-    <Region style="-fx-background-color: rgba(13, 9, 21, 0.85);" /> <BorderPane fx:id="mainLayout">
+    
+    <Region style="-fx-background-color: rgba(13, 9, 21, 0.88);" />
+
+    <BorderPane fx:id="mainLayout">
         
         <top>
-            <HBox spacing="20" styleClass="status-header" alignment="CENTER_LEFT">
-                <padding><Insets top="15" right="30" bottom="15" left="30"/></padding>
+            <HBox spacing="25" styleClass="status-header" alignment="CENTER_LEFT">
+                <padding><Insets top="18" right="35" bottom="18" left="35"/></padding>
                 
                 <HBox spacing="15" alignment="CENTER_LEFT">
-                    <StackPane style="-fx-border-color: #f7d27a; -fx-border-radius: 50%; -fx-padding: 3;">
-                        <ImageView fx:id="imgAvatarSmall" fitHeight="45" fitWidth="45" preserveRatio="true"/>
+                    <StackPane style="-fx-border-color: #f7d27a; -fx-border-radius: 50%; -fx-border-width: 2; -fx-padding: 4;">
+                        <ImageView fx:id="imgAvatarSmall" fitHeight="48" fitWidth="48" preserveRatio="true" 
+                                   style="-fx-cursor: hand;"/>
                     </StackPane>
-                    <VBox alignment="CENTER_LEFT">
-                        <Label fx:id="lblUsername" text="CARGANDO..." styleClass="hero-name" style="-fx-font-size: 18px;"/>
-                        <Label fx:id="lblClass" text="CLASE" styleClass="hero-class"/>
+                    <VBox alignment="CENTER_LEFT" spacing="2">
+                        <Label fx:id="lblUsername" text="CARGANDO..." 
+                               styleClass="hero-name" style="-fx-font-size: 19px; -fx-font-weight: bold;"/>
+                        <Label fx:id="lblClass" text="CLASE" 
+                               styleClass="hero-class" style="-fx-font-size: 12px; -fx-text-fill: #a0a0a0;"/>
                     </VBox>
                 </HBox>
 
-                <Region HBox.hgrow="ALWAYS"/>
+                <Separator orientation="VERTICAL" style="-fx-opacity: 0.3;" />
 
-                <VBox alignment="CENTER" spacing="5" maxWidth="500" HBox.hgrow="ALWAYS">
-                    <HBox spacing="10" alignment="CENTER">
-                        <Label text="NIVEL" styleClass="text-lvl" style="-fx-font-size: 12px;"/>
-                        <Label fx:id="lblLevel" text="1" styleClass="text-lvl-value"/>
+                <VBox alignment="CENTER" spacing="6" maxWidth="520" HBox.hgrow="ALWAYS">
+                    <HBox spacing="12" alignment="CENTER">
+                        <Label text="⚔" style="-fx-font-size: 14px;"/>
+                        <Label text="NIVEL" styleClass="text-lvl" style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
+                        <Label fx:id="lblLevel" text="1" 
+                               styleClass="text-lvl-value" 
+                               style="-fx-font-size: 16px; -fx-text-fill: #f7d27a; -fx-font-weight: bold;"/>
                     </HBox>
-                    <ProgressBar fx:id="xpBar" progress="0.0" maxWidth="Infinity" styleClass="custom-xp-bar" prefHeight="10"/>
-                    <Label fx:id="lblXPText" text="0 / 1000 XP" styleClass="text-tiny-bright" style="-fx-font-size: 10px;"/>
+                    <ProgressBar fx:id="xpBar" progress="0.0" maxWidth="Infinity" 
+                                 styleClass="custom-xp-bar" prefHeight="12" minWidth="400"/>
+                    <Label fx:id="lblXPText" text="0 / 1000 XP" 
+                           styleClass="text-tiny-bright" style="-fx-font-size: 11px; -fx-text-fill: #888;"/>
                 </VBox>
 
-                <Region HBox.hgrow="ALWAYS"/>
+                <Separator orientation="VERTICAL" style="-fx-opacity: 0.3;" />
 
-                    <HBox spacing="25" alignment="CENTER_RIGHT">
-                    <VBox alignment="CENTER_RIGHT">
-                        <Label text="TESORO" styleClass="text-label-gold"/>
-                        <Label fx:id="lblCoins" text="0" styleClass="text-value-gold"/>
+                <HBox spacing="28" alignment="CENTER_RIGHT">
+                    <VBox alignment="CENTER_RIGHT" spacing="2">
+                        <Label text="💰 TESORO" styleClass="text-label-gold" style="-fx-font-size: 11px;"/>
+                        <Label fx:id="lblCoins" text="0" 
+                               styleClass="text-value-gold" 
+                               style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #FFD700;"/>
                     </VBox>
-                    <Separator orientation="VERTICAL" />
-                    <Button text="⚙" onAction="#showSettingsModal" styleClass="icon-button" style="-fx-font-size: 22px;" focusTraversable="false"/>
+                    
+                    <Separator orientation="VERTICAL" style="-fx-opacity: 0.3;" />
+                    
+                    <Button text="⚙" onAction="#showSettingsModal" styleClass="icon-button" 
+                            style="-fx-font-size: 24px; -fx-cursor: hand; -fx-background-radius: 50%;" 
+                            focusTraversable="false">
+                        <tooltip>
+                            <Tooltip text="Configuración"/>
+                        </tooltip>
+                    </Button>
                 </HBox>
             </HBox>
         </top>
 
         <left>
-            <VBox spacing="0" styleClass="side-menu" prefWidth="240">
-                <padding><Insets top="30" right="0" bottom="30" left="0"/></padding>
+            <VBox spacing="0" styleClass="side-menu" prefWidth="250">
+                <padding><Insets top="35" right="0" bottom="35" left="0"/></padding>
                 
-                <Label text="NAVEGACIÓN" styleClass="section-title-small" style="-fx-padding: 0 0 10 20;"/>
+                <Label text="⚡ NAVEGACIÓN" 
+                       styleClass="section-title-small" 
+                       style="-fx-padding: 0 0 15 25; -fx-font-size: 13px; -fx-font-weight: bold;"/>
                 
-                <VBox spacing="5">
-                    <Button text="INICIO" onAction="#showDashboard" styleClass="btn-nav" maxWidth="Infinity"/>
-                    <Button text="MISIONES" onAction="#showMissions" styleClass="btn-nav" maxWidth="Infinity"/>
-                    <Button text="ACTIVIDAD" onAction="#showActivity" styleClass="btn-nav" maxWidth="Infinity"/>
-                    <Button text="TIENDA" onAction="#showStore" styleClass="btn-nav" maxWidth="Infinity"/>
-                    <Button text="INVENTARIO" onAction="#showInventory" styleClass="btn-nav" maxWidth="Infinity"/>
-                    <Button text="LOGROS" onAction="#showStats" styleClass="btn-nav" maxWidth="Infinity"/>
+                <VBox spacing="6" style="-fx-padding: 0 10;">
+                    <Button text="🏠  INICIO" onAction="#showDashboard" 
+                            styleClass="btn-nav" maxWidth="Infinity">
+                        <tooltip><Tooltip text="Dashboard principal"/></tooltip>
+                    </Button>
+                    <Button text="⚔  MISIONES" onAction="#showMissions" 
+                            styleClass="btn-nav" maxWidth="Infinity">
+                        <tooltip><Tooltip text="Tus misiones activas"/></tooltip>
+                    </Button>
+                    <Button text="📊  ACTIVIDAD" onAction="#showActivity" 
+                            styleClass="btn-nav" maxWidth="Infinity">
+                        <tooltip><Tooltip text="Estadísticas de uso"/></tooltip>
+                    </Button>
+                    <Button text="🛒  TIENDA" onAction="#showStore" 
+                            styleClass="btn-nav" maxWidth="Infinity">
+                        <tooltip><Tooltip text="Compra mejoras"/></tooltip>
+                    </Button>
+                    <Button text="🎒  INVENTARIO" onAction="#showInventory" 
+                            styleClass="btn-nav" maxWidth="Infinity">
+                        <tooltip><Tooltip text="Tus objetos y equipo"/></tooltip>
+                    </Button>
+                    <Button text="🏆  LOGROS" onAction="#showStats" 
+                            styleClass="btn-nav" maxWidth="Infinity">
+                        <tooltip><Tooltip text="Achievements desbloqueados"/></tooltip>
+                    </Button>
                 </VBox>
                 
                 <Region VBox.vgrow="ALWAYS"/>
                 
-                    <VBox spacing="5" style="-fx-padding: 0 20;">
-                    <Separator styleClass="menu-separator"/>
-                    <Button text="PERFIL" onAction="#showSettingsModal" styleClass="btn-nav" maxWidth="Infinity"/>
-                    <Button text="CERRAR SESIÓN" onAction="#handleLogout" styleClass="btn-nav-danger" maxWidth="Infinity"/>
+                <VBox spacing="6" style="-fx-padding: 0 10;">
+                    <Separator styleClass="menu-separator" style="-fx-opacity: 0.2;"/>
+                    <Button text="👤  PERFIL" onAction="#showProfile" 
+                            styleClass="btn-nav" maxWidth="Infinity">
+                        <tooltip><Tooltip text="Tu información personal"/></tooltip>
+                    </Button>
+                    <Button text="🚪  CERRAR SESIÓN" onAction="#handleLogout" 
+                            styleClass="btn-nav-danger" maxWidth="Infinity">
+                        <tooltip><Tooltip text="Salir de la aplicación"/></tooltip>
+                    </Button>
                 </VBox>
             </VBox>
         </left>
 
         <center>
-            <StackPane fx:id="contentArea" style="-fx-padding: 20;">
-                <ProgressIndicator /> 
-            </StackPane>
+            <StackPane fx:id="contentArea" style="-fx-padding: 25;">
+                <ProgressIndicator /> </StackPane>
         </center>
 
         <right>
-            <VBox spacing="20" prefWidth="260" styleClass="activity-panel">
-                <padding><Insets top="30" right="20" bottom="30" left="20"/></padding>
+            <VBox spacing="22" prefWidth="275" styleClass="activity-panel">
+                <padding><Insets top="35" right="22" bottom="35" left="22"/></padding>
                 
-                <Label text="SISTEMA" styleClass="section-title-small"/>
+                <Label text="📡 SISTEMA EN VIVO" 
+                       styleClass="section-title-small" 
+                       style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
                 
-                <VBox styleClass="activity-card" spacing="8">
-                    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
-                    <Label text="EN FOCO" styleClass="text-tiny-bright" style="-fx-text-fill: #888;"/>
-                    <Label fx:id="lblCurrentApp" text="Detectando..." styleClass="text-app-name" wrapText="true"/>
-                    <Label fx:id="lblAppStatus" text="DESCONOCIDO" styleClass="status-tag"/>
+                <VBox styleClass="activity-card" spacing="10">
+                    <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+                    <Label text="💻 EN FOCO" 
+                           styleClass="text-tiny-bright" 
+                           style="-fx-text-fill: #888; -fx-font-size: 10px; -fx-font-weight: bold;"/>
+                    <Label fx:id="lblCurrentApp" text="Detectando..." 
+                           styleClass="text-app-name" 
+                           wrapText="true" 
+                           style="-fx-font-size: 13px; -fx-text-fill: white;"/>
+                    <Label fx:id="lblAppStatus" text="DESCONOCIDO" 
+                           styleClass="status-tag" 
+                           style="-fx-padding: 5 10; -fx-background-radius: 5;"/>
                 </VBox>
 
-                <VBox styleClass="health-card" spacing="8">
-                    <padding><Insets top="15" right="15" bottom="15" left="15"/></padding>
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Label text="❤" style="-fx-text-fill: #ff6b6b; -fx-font-size: 16px;"/>
-                        <Label text="SALUD" styleClass="text-tiny-bright"/>
+                <VBox styleClass="health-card" spacing="10">
+                    <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="❤" style="-fx-text-fill: #ff6b6b; -fx-font-size: 18px;"/>
+                        <Label text="SALUD &amp; RACHA" 
+                               styleClass="text-tiny-bright" 
+                               style="-fx-font-weight: bold; -fx-font-size: 11px;"/>
                     </HBox>
-                    <Label fx:id="lblHealthStreak" text="0 DÍAS" styleClass="text-health-value"/>
-                    <ProgressBar fx:id="healthBar" progress="1.0" styleClass="health-progress" maxWidth="Infinity"/>
+                    <Label fx:id="lblHealthStreak" text="0 DÍAS" 
+                           styleClass="text-health-value" 
+                           style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #90EE90;"/>
+                    <ProgressBar fx:id="healthBar" progress="1.0" 
+                                 styleClass="health-progress" 
+                                 maxWidth="Infinity" prefHeight="8"/>
+                    <Label text="Sigue trabajando para mantener tu racha" 
+                           style="-fx-font-size: 9px; -fx-text-fill: #666; -fx-wrap-text: true;"/>
+                </VBox>
+                
+                <VBox spacing="8" style="-fx-padding: 15; -fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 8;">
+                    <Label text="💡 CONSEJO" style="-fx-font-size: 10px; -fx-text-fill: #888; -fx-font-weight: bold;"/>
+                    <Label text="Presiona ↑↑↓↓←→←→BA para un secreto..." 
+                           wrapText="true" 
+                           style="-fx-font-size: 10px; -fx-text-fill: #aaa;"/>
                 </VBox>
             </VBox>
         </right>
@@ -115,8 +185,10 @@
     </BorderPane>
 
     <VBox fx:id="loadingLayer" visible="false" styleClass="loading-overlay" alignment="CENTER" 
-          style="-fx-background-color: rgba(13, 9, 21, 0.95);">
-        <ProgressIndicator />
-        <Label text="Guardando progreso..." styleClass="text-tiny-bright" style="-fx-padding: 15 0 0 0; -fx-font-size: 14px;"/>
+          style="-fx-background-color: rgba(13, 9, 21, 0.96);">
+        <ProgressIndicator style="-fx-progress-color: #f7d27a;" />
+        <Label text="Guardando progreso..." 
+               styleClass="text-tiny-bright" 
+               style="-fx-padding: 18 0 0 0; -fx-font-size: 15px; -fx-text-fill: white;"/>
     </VBox>
 </StackPane>

@@ -1,9 +1,13 @@
 package com.ctrlaltquest.dao;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,14 +24,12 @@ public class MissionsDAO {
         System.out.println("🔍 [MissionsDAO] Buscando misiones globales para userId=" + userId);
         List<Mission> lista = new ArrayList<>();
         
-        // MAGIA SQL: Traemos la definición (Missions) + El progreso personal (Mission_Progress)
-        // Usamos LEFT JOIN: "Trae todas las misiones globales, y si este usuario tiene progreso, pégalo. Si no, pon null/0".
         String sql = "SELECT m.id, m.title, m.category, m.difficulty, m.xp_reward, m.coin_reward, " +
                      "m.is_daily, m.is_weekly, " +
                      "COALESCE(mp.progress_percentage, 0) as user_progress " +
                      "FROM public.missions m " +
                      "LEFT JOIN public.mission_progress mp ON m.id = mp.mission_id AND mp.user_id = ? " +
-                     "WHERE m.user_id IS NULL " + // Solo misiones globales
+                     "WHERE m.user_id IS NULL " + 
                      "ORDER BY user_progress ASC, m.id DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -47,11 +49,7 @@ public class MissionsDAO {
                 boolean isDaily = rs.getBoolean("is_daily");
                 boolean isWeekly = rs.getBoolean("is_weekly");
                 
-                // El progreso viene de la tabla unida (mission_progress)
-                // COALESCE en SQL ya se encargó de que si es null sea 0
                 double progressPct = rs.getDouble("user_progress") / 100.0;
-                
-                // Calculamos 'completed' basado en el progreso, no en la tabla missions
                 boolean completed = (progressPct >= 1.0);
 
                 String type = isDaily ? "DIARIA" : (isWeekly ? "SEMANAL" : "CLASE");
@@ -73,18 +71,11 @@ public class MissionsDAO {
     // SECCIÓN 2: LÓGICA DEL MOTOR DE JUEGO
     // ==========================================
 
-    /**
-     * Actualiza el progreso en la tabla mission_progress y devuelve IDs de misiones completadas.
-     */
     public static List<Integer> actualizarProgreso(int userId, String metricKey, int amountToAdd) {
         List<Integer> completedMissions = new ArrayList<>();
         
-        // 1. Asegurarnos que existan filas en mission_progress para este usuario
-        // (Esto es una salvaguarda por si es un usuario nuevo y no se inicializó)
         inicializarMisionesGlobalesParaUsuario(userId);
 
-        // 2. Buscar en mission_progress las filas activas que coincidan con la métrica
-        // NOTA: Para que esto funcione, al inicializar debemos guardar el metric_key correcto
         String sqlSelect = "SELECT id, mission_id, current_value, target_value FROM public.mission_progress " +
                            "WHERE user_id = ? AND metric_key = ? AND progress_percentage < 100";
 
@@ -130,16 +121,10 @@ public class MissionsDAO {
     // SECCIÓN 3: ACCIONES DE ESTADO
     // ==========================================
 
-    /**
-     * Marca la misión como completada al 100% PARA UN USUARIO ESPECÍFICO.
-     * Crea la fila en mission_progress si no existe.
-     */
     public static void reclamarMision(int userId, int missionId) {
-        // Obtenemos info básica para saber la métrica (si no existe)
         Mission m = getMisionById(missionId);
         String metric = (m != null) ? mapearCategoriaAMetrica(m.getDescription()) : "manual_check";
         
-        // UPSERT: Insertar como completada O actualizar a completada
         String sql = "INSERT INTO public.mission_progress (user_id, mission_id, metric_key, current_value, target_value, progress_percentage) " +
                      "VALUES (?, ?, ?, 1, 1, 100) " +
                      "ON CONFLICT (user_id, mission_id, metric_key) " +
@@ -161,18 +146,63 @@ public class MissionsDAO {
         }
     }
     
-    // Método de compatibilidad (¡EVITAR USAR! Solo para que no rompa código viejo)
     public static void reclamarMision(int missionId) {
-        System.err.println("⚠️ ERROR CRÍTICO: Se llamó a reclamarMision sin userId. La acción fallará para misiones globales.");
+        System.err.println("⚠️ ERROR CRÍTICO: Se llamó a reclamarMision sin userId.");
     }
 
     // ==========================================
-    // SECCIÓN 4: UTILIDADES & INICIALIZACIÓN
+    // SECCIÓN 4: EXPORTACIÓN & REPORTES (CORREGIDO)
+    // ==========================================
+
+    public static boolean exportMissionHistoryToCSV(int userId, File file) {
+        // CORRECCIÓN CRÍTICA: Se eliminó mp.updated_at porque no existe en la BD.
+        String sql = "SELECT m.title, m.difficulty, m.xp_reward, m.coin_reward " +
+                     "FROM public.missions m " +
+                     "INNER JOIN public.mission_progress mp ON m.id = mp.mission_id " +
+                     "WHERE mp.user_id = ? AND mp.progress_percentage >= 100 " +
+                     "ORDER BY m.id DESC";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            // Cabecera
+            writer.write("Mision,Dificultad,XP Ganada,Oro Ganado,Fecha Reporte\n");
+            
+            int count = 0;
+            String fechaHoy = LocalDate.now().toString(); // Usamos fecha actual como fallback
+
+            while (rs.next()) {
+                String linea = String.format("%s,%s,%d,%d,%s\n", 
+                    rs.getString("title").replace(",", " "), 
+                    rs.getString("difficulty") != null ? rs.getString("difficulty") : "Normal",
+                    rs.getInt("xp_reward"),
+                    rs.getInt("coin_reward"),
+                    fechaHoy // Fecha del sistema
+                );
+                writer.write(linea);
+                count++;
+            }
+            
+            System.out.println("✅ Exportadas " + count + " misiones completadas al archivo CSV");
+            return true;
+            
+        } catch (Exception e) {
+            System.err.println("❌ Error exportando CSV: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // ==========================================
+    // SECCIÓN 5: UTILIDADES & INICIALIZACIÓN
     // ==========================================
 
     public static Mission getMisionById(int id) {
         Mission mision = null;
-        // Solo necesitamos los datos estáticos de la definición
         String sql = "SELECT id, title, category, difficulty, xp_reward, coin_reward, is_daily, is_weekly FROM public.missions WHERE id = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -193,7 +223,6 @@ public class MissionsDAO {
                 String type = isDaily ? "DIARIA" : (isWeekly ? "SEMANAL" : "CLASE");
                 String description = (category != null) ? category : "General";
                 
-                // Al obtener ID suelto, no sabemos el progreso del usuario, devolvemos 0
                 mision = new Mission(id, title, description, type, xp, coin, 0.0, false);
             }
         } catch (SQLException e) {
@@ -202,20 +231,10 @@ public class MissionsDAO {
         return mision; 
     }
 
-    /**
-     * Inicializa las filas en mission_progress para TODAS las misiones globales que el usuario
-     * aún no tenga registradas.
-     * ES VITAL llamar a esto en el login (HomeController).
-     */
     public static void inicializarMisionesGlobalesParaUsuario(int userId) {
-        // Insert masivo inteligente:
-        // Selecciona todas las misiones globales (user_id NULL)
-        // Y las inserta en mission_progress SOLO SI no existen ya para ese usuario
-        
-        // Nota: Asumimos target_value 3600 (1 hora) por defecto.
         String sql = "INSERT INTO public.mission_progress (user_id, mission_id, metric_key, current_value, target_value, progress_percentage) " +
                      "SELECT ?, m.id, " +
-                     "CASE " + // Lógica básica de mapeo de métricas en SQL
+                     "CASE " + 
                      "  WHEN m.category ILIKE '%program%' THEN 'time_coding' " +
                      "  WHEN m.category ILIKE '%product%' THEN 'time_productivity' " +
                      "  ELSE 'app_usage_generic' END, " +
@@ -228,7 +247,7 @@ public class MissionsDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, userId);
-            pstmt.setInt(2, userId); // Para el NOT EXISTS
+            pstmt.setInt(2, userId);
             int insertados = pstmt.executeUpdate();
             
             if (insertados > 0) {
@@ -248,7 +267,6 @@ public class MissionsDAO {
         return "app_usage_generic";
     }
     
-    // Métodos legacy para compatibilidad (puedes dejarlos vacíos o borrarlos si nadie los usa)
     public static void inicializarTodasMisiones(int userId) {
         inicializarMisionesGlobalesParaUsuario(userId);
     }

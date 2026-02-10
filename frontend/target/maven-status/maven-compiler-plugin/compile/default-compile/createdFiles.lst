@@ -2,12 +2,13 @@ com\ctrlaltquest\models\StoreOffer.class
 com\ctrlaltquest\models\InventoryItem.class
 com\ctrlaltquest\ui\controllers\views\StoreViewController$1.class
 com\ctrlaltquest\models\Event.class
+com\ctrlaltquest\ui\controllers\views\ProfileViewController$4.class
+com\ctrlaltquest\ui\controllers\views\ProfileViewController$1.class
 com\ctrlaltquest\models\Achievement.class
 com\ctrlaltquest\services\ActivityMonitorService.class
 com\ctrlaltquest\services\MissionProgressService.class
 com\ctrlaltquest\ui\controllers\SettingsController.class
 com\ctrlaltquest\ui\controllers\views\MissionsViewController.class
-com\ctrlaltquest\ui\PaymentFormController.class
 com\ctrlaltquest\services\EventGenerator.class
 com\ctrlaltquest\ui\controllers\CharacterSelectionController.class
 com\ctrlaltquest\ui\controllers\CharacterEditorController.class
@@ -16,6 +17,7 @@ com\ctrlaltquest\db\DatabaseConnection.class
 com\ctrlaltquest\dao\EventsDAO.class
 com\ctrlaltquest\dao\DashboardDAO.class
 com\ctrlaltquest\models\EventType.class
+com\ctrlaltquest\ui\controllers\views\DashboardViewController$3.class
 com\ctrlaltquest\ui\controllers\views\StoreViewController.class
 com\ctrlaltquest\ui\controllers\RegisterController$1.class
 com\ctrlaltquest\services\BoostService.class
@@ -25,10 +27,12 @@ com\ctrlaltquest\ui\controllers\views\CharacterPanelController.class
 com\ctrlaltquest\ui\controllers\views\AchievementsViewController.class
 com\ctrlaltquest\ui\controllers\ForgotPasswordController.class
 com\ctrlaltquest\dao\UserDAO.class
+com\ctrlaltquest\ui\controllers\views\ProfileViewController$5.class
 com\ctrlaltquest\ui\navigation\SceneRouter.class
 com\ctrlaltquest\dao\ActivityDAO.class
 com\ctrlaltquest\services\PlayerService.class
 com\ctrlaltquest\services\PaymentService.class
+com\ctrlaltquest\ui\controllers\views\AchievementsViewController$1.class
 com\ctrlaltquest\models\PaymentProduct.class
 com\ctrlaltquest\services\BoostService$BoostInfo.class
 com\ctrlaltquest\services\EventGenerator$1.class
@@ -67,9 +71,10 @@ com\ctrlaltquest\dao\InventoryDAO.class
 com\ctrlaltquest\services\RewardsService.class
 com\ctrlaltquest\ui\controllers\HomeController.class
 com\ctrlaltquest\dao\AuthDAO.class
-com\ctrlaltquest\services\StripePaymentService.class
+com\ctrlaltquest\ui\controllers\views\ProfileViewController$3.class
 com\ctrlaltquest\ui\controllers\views\DashboardViewController.class
 com\ctrlaltquest\ui\controllers\LoginController$1.class
 com\ctrlaltquest\services\EmailService.class
 com\ctrlaltquest\ui\controllers\SplashController.class
+com\ctrlaltquest\ui\controllers\views\ProfileViewController$2.class
 com\ctrlaltquest\ui\controllers\views\DashboardViewController$1.class

@@ -8,46 +8,54 @@
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.ctrlaltquest.ui.controllers.views.MissionsViewController"
-      spacing="25" styleClass="view-container" stylesheets="@/styles/home.css">
+      spacing="20" styleClass="view-container" 
+      stylesheets="@/styles/home.css"
+      style="-fx-background-color: transparent;">
 
     <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
 
     <HBox alignment="CENTER_LEFT" spacing="20">
         <VBox spacing="5">
-            <Label text="CRÓNICAS &amp; ENCARGOS" styleClass="section-title" style="-fx-font-size: 28px;"/>
+            <Label text="CRÓNICAS DE MISIÓN" styleClass="section-title" style="-fx-font-size: 28px; -fx-text-fill: white; -fx-font-weight: bold;">
+                <effect><Glow level="0.6"/></effect>
+            </Label>
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Line endX="50" style="-fx-stroke: #f7d27a; -fx-stroke-width: 2;"/>
-                <Label text="Completa objetivos para obtener gloria y fortuna" styleClass="text-tiny-bright"/>
+                <Line endX="40" style="-fx-stroke: #f7d27a; -fx-stroke-width: 3; -fx-stroke-linecap: round;"/>
+                <Label text="Completa encargos para ganar gloria y recursos." styleClass="text-tiny-bright" style="-fx-opacity: 0.7;"/>
             </HBox>
         </VBox>
         
         <Region HBox.hgrow="ALWAYS"/>
         
-        <VBox alignment="CENTER_RIGHT" style="-fx-opacity: 0.7;">
-            <Label text="OBJETIVOS ACTIVOS" styleClass="text-tiny"/>
-            <Label fx:id="lblActiveMissions" text="---" styleClass="text-lvl-value" style="-fx-text-fill: #4ade80;">
-                <effect><Glow level="0.5"/></effect>
+        <VBox alignment="CENTER_RIGHT" style="-fx-background-color: rgba(255,255,255,0.05); -fx-padding: 10 20; -fx-background-radius: 10;">
+            <Label text="OBJETIVOS ACTIVOS" styleClass="text-tiny" style="-fx-font-weight: bold; -fx-text-fill: #888;"/>
+            <Label fx:id="lblActiveMissions" text="--" style="-fx-font-size: 24px; -fx-text-fill: #4ade80; -fx-font-weight: bold;">
+                <effect><Glow level="0.4"/></effect>
             </Label>
         </VBox>
     </HBox>
 
-    <TabPane fx:id="missionTabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" styleClass="custom-tab-pane">
+    <TabPane fx:id="missionTabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS" 
+             style="-fx-background-color: transparent;" styleClass="custom-tab-pane">
         
         <Tab text="DIARIAS">
-            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
-                <VBox fx:id="dailyContainer" spacing="15" style="-fx-padding: 20 5;"/>
+            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" hbarPolicy="NEVER" 
+                        style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox fx:id="dailyContainer" spacing="12" style="-fx-padding: 15 5;"/>
             </ScrollPane>
         </Tab>
 
         <Tab text="SEMANALES">
-            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
-                <VBox fx:id="weeklyContainer" spacing="15" style="-fx-padding: 20 5;"/>
+            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" hbarPolicy="NEVER" 
+                        style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox fx:id="weeklyContainer" spacing="12" style="-fx-padding: 15 5;"/>
             </ScrollPane>
         </Tab>
 
-        <Tab text="HISTORIA DE CLASE">
-            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" style="-fx-background: transparent; -fx-background-color: transparent;">
-                <VBox fx:id="classContainer" spacing="15" style="-fx-padding: 20 5;"/>
+        <Tab text="CLASE &amp; HISTORIA">
+            <ScrollPane fitToWidth="true" styleClass="transparent-scroll" hbarPolicy="NEVER" 
+                        style="-fx-background: transparent; -fx-background-color: transparent;">
+                <VBox fx:id="classContainer" spacing="12" style="-fx-padding: 15 5;"/>
             </ScrollPane>
         </Tab>
 
