@@ -1,14 +1,26 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
+
 import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.ui.utils.SoundManager;
+
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
@@ -20,12 +32,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
 
 public class CharacterEditorController {
 
