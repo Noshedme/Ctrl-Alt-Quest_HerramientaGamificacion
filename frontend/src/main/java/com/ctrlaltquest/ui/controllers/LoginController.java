@@ -22,7 +22,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.DialogPane;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
@@ -47,7 +52,7 @@ public class LoginController {
     @FXML private MediaView backgroundVideo;
     @FXML private StackPane newsSlider; 
     @FXML private CheckBox rememberMeCheck;
-    @FXML private VBox loadingLayer; // Vinculado al nuevo FXML
+    @FXML private VBox loadingLayer; 
     
     private MediaPlayer videoPlayer;
     private boolean isPasswordVisible = false;
@@ -58,7 +63,6 @@ public class LoginController {
     @FXML
     public void initialize() {
         if (backgroundVideo != null) {
-            // Desenfoque sutil para que el texto resalte sobre el video
             backgroundVideo.setEffect(new javafx.scene.effect.GaussianBlur(15));
             configurarVideo();
         }
@@ -69,6 +73,9 @@ public class LoginController {
         cargarLogo();
         setupCarousel(); 
         verificarRecordatorios();
+        
+        // Sincronizar texto inicial por si acaso
+        passwordShown.textProperty().bindBidirectional(passwordHidden.textProperty());
     }
 
     private void configurarVideo() {
@@ -106,7 +113,7 @@ public class LoginController {
             String pass = prefs.get("saved_pass", "");
             usernameField.setText(user);
             passwordHidden.setText(pass);
-            passwordShown.setText(pass);
+            // El bind en initialize se encarga de passwordShown
             rememberMeCheck.setSelected(true);
         }
     }
@@ -155,24 +162,33 @@ public class LoginController {
 
     @FXML
     private void togglePassword() {
+        isPasswordVisible = !isPasswordVisible;
+        
+        // Guardamos la posición del cursor para que no salte al inicio
+        int caretPos = isPasswordVisible ? passwordHidden.getCaretPosition() : passwordShown.getCaretPosition();
+
         if (isPasswordVisible) {
-            passwordHidden.setText(passwordShown.getText());
-            passwordHidden.setVisible(true);
-            passwordShown.setVisible(false);
-            btnTogglePassword.setText("👁");
-        } else {
-            passwordShown.setText(passwordHidden.getText());
             passwordShown.setVisible(true);
             passwordHidden.setVisible(false);
-            btnTogglePassword.setText("🙈");
+            btnTogglePassword.setText("🙈"); // Icono de ocultar
+            
+            passwordShown.requestFocus();
+            passwordShown.positionCaret(caretPos);
+        } else {
+            passwordHidden.setVisible(true);
+            passwordShown.setVisible(false);
+            btnTogglePassword.setText("👁"); // Icono de ver
+            
+            passwordHidden.requestFocus();
+            passwordHidden.positionCaret(caretPos);
         }
-        isPasswordVisible = !isPasswordVisible;
     }
 
     @FXML 
     public void handleLogin() {
         String user = usernameField.getText().trim();
-        String pass = isPasswordVisible ? passwordShown.getText() : passwordHidden.getText();
+        // Al estar vinculados (bind), basta con obtener el texto de uno de los dos
+        String pass = passwordHidden.getText();
 
         if (user.isEmpty() || pass.isEmpty()) {
             SoundManager.playErrorSound();
@@ -180,7 +196,6 @@ public class LoginController {
             return;
         }
 
-        // Activamos feedback visual de carga
         if (loadingLayer != null) loadingLayer.setVisible(true);
 
         Task<Boolean> loginTask = new Task<>() {
@@ -223,21 +238,18 @@ public class LoginController {
     public void handleForgotPassword() { 
         try {
             SoundManager.playClickSound();
-            // Cargamos la nueva pantalla de recuperación
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/forgot_password.fxml"));
             Parent root = loader.load();
             
             Stage stage = (Stage) usernameField.getScene().getWindow();
             
-            // Transición suave de salida
             FadeTransition fadeOut = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
             fadeOut.setFromValue(1.0);
             fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
-                limpiarRecursos(); // Detiene el video del login
+                limpiarRecursos(); 
                 stage.getScene().setRoot(root);
                 
-                // Transición suave de entrada
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(400), root);
                 fadeIn.setFromValue(0.0);
                 fadeIn.setToValue(1.0);

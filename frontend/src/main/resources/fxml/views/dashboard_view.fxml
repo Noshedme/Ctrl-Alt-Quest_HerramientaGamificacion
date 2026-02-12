@@ -4,9 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.chart.*?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.shape.Line?>
 <?import javafx.scene.effect.DropShadow?>
-<?import javafx.scene.image.ImageView?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
             fx:controller="com.ctrlaltquest.ui.controllers.views.DashboardViewController"
@@ -14,69 +12,82 @@
             style="-fx-background: transparent; -fx-background-color: transparent;"
             stylesheets="@/styles/home.css">
 
-    <VBox spacing="35" style="-fx-background-color: transparent;">
+    <VBox spacing="30" style="-fx-background-color: transparent;">
         <padding><Insets top="30" right="40" bottom="40" left="40"/></padding>
 
         <HBox alignment="CENTER_LEFT" spacing="20">
             <VBox spacing="5">
-                <Label fx:id="lblWelcome" text="BIENVENIDO DE NUEVO, HÉROE" styleClass="hero-name" style="-fx-font-size: 32px;"/>
-                <Label text="El reino digital requiere tu atención hoy." styleClass="text-tiny-bright" style="-fx-font-size: 14px; -fx-opacity: 0.8;"/>
+                <Label fx:id="lblWelcome" text="" styleClass="hero-name" style="-fx-font-size: 32px; -fx-text-fill: #f7d27a;"/>
+                <Label fx:id="lblSubtitle" text="El gremio espera grandes cosas de ti hoy." 
+                       styleClass="text-tiny-bright" style="-fx-font-size: 14px; -fx-opacity: 0.7;"/>
             </VBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="INFORME DIARIO" styleClass="btn-nav" style="-fx-border-color: #f7d27a; -fx-text-fill: #f7d27a;"/>
+            <Button text="📜 REPORTE DIARIO" styleClass="btn-nav" 
+                    style="-fx-border-color: #f7d27a; -fx-text-fill: #f7d27a; -fx-background-radius: 20; -fx-border-radius: 20; -fx-font-size: 11px;"/>
         </HBox>
 
         <VBox spacing="15">
-            <Label text="EVENTOS DEL REINO" styleClass="section-title-small" style="-fx-text-fill: #f7d27a;"/>
+            <Label text="◆ EVENTOS DEL REINO" styleClass="section-title-small" style="-fx-text-fill: #f7d27a; -fx-font-weight: bold;"/>
             
             <HBox spacing="20" fx:id="newsContainer">
-                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" style="-fx-background-color: linear-gradient(to bottom right, #2c1a4d, #1a122b); -fx-padding: 20; -fx-cursor: hand;" onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
-                    <Label text="EVENTO ACTIVO" styleClass="text-tiny" style="-fx-text-fill: #a335ee;"/>
-                    <Label text="CÓDIGO LIMPIO" styleClass="card-category-runic" style="-fx-font-size: 20px;"/>
-                    <Region VBox.vgrow="ALWAYS" prefHeight="30"/>
-                    <Label text="+50% XP en refactorización" styleClass="text-tiny-bright"/>
+                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" 
+                      style="-fx-background-color: linear-gradient(to bottom right, #2c1a4d, #120c1f); -fx-padding: 20; -fx-cursor: hand; -fx-background-radius: 12;" 
+                      onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
+                    <Label text="EVENTO ACTIVO" styleClass="text-tiny" style="-fx-text-fill: #a335ee; -fx-font-weight: bold;"/>
+                    <Label text="CODE CLEANUP" styleClass="card-category-runic" style="-fx-font-size: 18px; -fx-text-fill: white;"/>
+                    <Region VBox.vgrow="ALWAYS" prefHeight="20"/>
+                    <Label text="+50% XP en limpieza" styleClass="text-tiny-bright" wrapText="true"/>
                 </VBox>
 
-                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" style="-fx-background-color: linear-gradient(to bottom right, #451a1a, #1a122b); -fx-padding: 20; -fx-cursor: hand;" onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
-                    <Label text="BOSS MUNDIAL" styleClass="text-tiny" style="-fx-text-fill: #ff6b6b;"/>
-                    <Label text="SPAGHETTI MONSTER" styleClass="card-category-runic" style="-fx-font-size: 20px;"/>
-                    <Region VBox.vgrow="ALWAYS" prefHeight="30"/>
-                    <Label text="Derrota la deuda técnica" styleClass="text-tiny-bright"/>
+                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" 
+                      style="-fx-background-color: linear-gradient(to bottom right, #451a1a, #1f0c0c); -fx-padding: 20; -fx-cursor: hand; -fx-background-radius: 12;" 
+                      onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
+                    <Label text="BOSS MUNDIAL" styleClass="text-tiny" style="-fx-text-fill: #ff6b6b; -fx-font-weight: bold;"/>
+                    <Label text="BUG ZAPPER" styleClass="card-category-runic" style="-fx-font-size: 18px; -fx-text-fill: white;"/>
+                    <Region VBox.vgrow="ALWAYS" prefHeight="20"/>
+                    <Label text="Aplasta bugs críticos" styleClass="text-tiny-bright" wrapText="true"/>
                 </VBox>
                 
-                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" style="-fx-background-color: linear-gradient(to bottom right, #1a3b45, #1a122b); -fx-padding: 20; -fx-cursor: hand;" onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
-                    <Label text="CONSEJO DEL DÍA" styleClass="text-tiny" style="-fx-text-fill: #4ade80;"/>
-                    <Label text="DESCANSOS" styleClass="card-category-runic" style="-fx-font-size: 20px;"/>
-                    <Region VBox.vgrow="ALWAYS" prefHeight="30"/>
-                    <Label text="Usa la técnica Pomodoro" styleClass="text-tiny-bright"/>
+                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" 
+                      style="-fx-background-color: linear-gradient(to bottom right, #1a3b45, #0c1a1f); -fx-padding: 20; -fx-cursor: hand; -fx-background-radius: 12;" 
+                      onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
+                    <Label text="SABIDURÍA" styleClass="text-tiny" style="-fx-text-fill: #4ade80; -fx-font-weight: bold;"/>
+                    <Label text="ENFOQUE" styleClass="card-category-runic" style="-fx-font-size: 18px; -fx-text-fill: white;"/>
+                    <Region VBox.vgrow="ALWAYS" prefHeight="20"/>
+                    <Label text="Evita el multitasking" styleClass="text-tiny-bright" wrapText="true"/>
                 </VBox>
             </HBox>
         </VBox>
 
         <HBox spacing="30" VBox.vgrow="ALWAYS">
             
-            <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="activity-card" style="-fx-padding: 25;">
+            <VBox fx:id="missionsCard" spacing="15" HBox.hgrow="ALWAYS" 
+                  styleClass="activity-card" style="-fx-padding: 25; -fx-background-radius: 15; -fx-min-height: 300;">
                 <HBox alignment="CENTER_LEFT">
-                    <Label text="PRIORIDADES DE HOY" styleClass="section-title-small"/>
+                    <Label text="⚔ MISIONES DIARIAS" styleClass="section-title-small" style="-fx-font-weight: bold;"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Label text="3 Activas" styleClass="status-tag" style="-fx-background-color: rgba(247, 210, 122, 0.2); -fx-text-fill: #f7d27a;"/>
+                    <Label text="PRIORIDAD" styleClass="status-tag" style="-fx-background-color: rgba(247, 210, 122, 0.15); -fx-text-fill: #f7d27a; -fx-border-radius: 5;"/>
                 </HBox>
                 
-                <VBox fx:id="activeMissionsContainer" spacing="10"/>
+                <VBox fx:id="activeMissionsContainer" spacing="12" VBox.vgrow="ALWAYS"/>
                 
-                <Region VBox.vgrow="ALWAYS"/>
-                <Button text="VER TODAS LAS MISIONES →" styleClass="btn-nav" style="-fx-font-size: 12px; -fx-padding: 5 0;"/>
+                <Button text="VER TODAS LAS MISIONES →" styleClass="btn-nav" style="-fx-font-size: 11px; -fx-padding: 5 0; -fx-alignment: CENTER_LEFT; -fx-background-color: transparent;"/>
             </VBox>
 
-            <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="activity-card" style="-fx-padding: 25;">
-                <Label text="RITMO DE BATALLA (XP)" styleClass="section-title-small"/>
+            <VBox fx:id="chartCard" spacing="15" HBox.hgrow="ALWAYS" 
+                  styleClass="activity-card" style="-fx-padding: 25; -fx-background-radius: 15; -fx-min-height: 300;">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="📊 TU PROGRESO (XP)" styleClass="section-title-small" style="-fx-font-weight: bold;"/>
+                </HBox>
                 
-                <BarChart fx:id="productivityChart" legendVisible="false" verticalGridLinesVisible="false" horizontalGridLinesVisible="true" animated="false" style="-fx-background-color: transparent;">
+                <BarChart fx:id="productivityChart" legendVisible="false" verticalGridLinesVisible="false" 
+                          horizontalGridLinesVisible="true" animated="false" 
+                          style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
                     <xAxis>
-                        <CategoryAxis label="Día" tickLabelFill="#aaaaaa" style="-fx-tick-label-fill: #aaaaaa;"/>
+                        <CategoryAxis label="" tickLabelFill="#888888" style="-fx-tick-label-fill: #888888; -fx-font-size: 10px;"/>
                     </xAxis>
                     <yAxis>
-                        <NumberAxis label="XP" tickLabelFill="#aaaaaa" style="-fx-tick-label-fill: #aaaaaa;"/>
+                        <NumberAxis label="" tickLabelFill="#888888" style="-fx-tick-label-fill: #888888; -fx-font-size: 10px;"/>
                     </yAxis>
                 </BarChart>
             </VBox>

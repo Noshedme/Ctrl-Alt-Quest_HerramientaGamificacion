@@ -1,10 +1,13 @@
 package com.ctrlaltquest.dao;
 
-import com.ctrlaltquest.db.DatabaseConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+import com.ctrlaltquest.db.DatabaseConnection;
 
 public class UserDAO {
 
@@ -182,5 +185,87 @@ public class UserDAO {
         }
         
         return -1;
+    }
+
+    /**
+     * Obtiene el email de un usuario por su ID.
+     * @param userId ID del usuario
+     * @return Email del usuario o "Desconocido" si no se encuentra
+     */
+    public static String getUserEmail(int userId) {
+        String sql = "SELECT email FROM public.users WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("email");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Error obteniendo email: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return "Desconocido";
+    }
+
+    /**
+     * Actualiza la contraseña del usuario (hasheada con BCrypt).
+     * @param userId ID del usuario
+     * @param newPassword Nueva contraseña en texto plano (se hasheará automáticamente)
+     * @return true si se actualizó correctamente
+     */
+    public static boolean updatePassword(int userId, String newPassword) {
+        // Hashear antes de guardar (BCrypt con factor de trabajo 12)
+        String passwordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
+        String sql = "UPDATE public.users SET password_hash = ? WHERE id = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, passwordHash); // Guardamos el hash, no texto plano
+            pstmt.setInt(2, userId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("✅ Contraseña actualizada para usuario ID: " + userId);
+                return true;
+            }
+            return false;
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Error actualizando password: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Elimina permanentemente un usuario y todos sus datos relacionados.
+     * ADVERTENCIA: Esta operación es irreversible. Asegúrate de tener CASCADE configurado
+     * en las foreign keys para eliminar automáticamente personajes, misiones, etc.
+     * @param userId ID del usuario a eliminar
+     * @return true si se eliminó correctamente
+     */
+    public static boolean deleteUser(int userId) {
+        String sql = "DELETE FROM public.users WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("✅ Usuario eliminado: ID " + userId);
+                return true;
+            }
+            return false;
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Error eliminando usuario: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 }

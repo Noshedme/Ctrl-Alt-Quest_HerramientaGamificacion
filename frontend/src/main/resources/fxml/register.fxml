@@ -44,12 +44,32 @@
 
                         <VBox spacing="6">
                             <Label text="CONTRASEÑA" styleClass="input-label-runic-gold"/>
-                            <PasswordField fx:id="passwordField" promptText="Crea tu contraseña" styleClass="custom-field" />
+                            <StackPane>
+                                <PasswordField fx:id="passwordField" promptText="Crea tu contraseña" 
+                                               styleClass="custom-field" style="-fx-padding: 10 45 10 15;" maxWidth="Infinity" />
+                                <TextField fx:id="passwordShown" promptText="Crea tu contraseña" 
+                                           styleClass="custom-field" style="-fx-padding: 10 45 10 15;" maxWidth="Infinity" visible="false" />
+                                
+                                <Button fx:id="btnTogglePass" onAction="#togglePassword" text="👁" 
+                                        StackPane.alignment="CENTER_RIGHT"
+                                        style="-fx-background-color: transparent; -fx-text-fill: #f7d27a; -fx-cursor: hand; -fx-font-size: 16px; -fx-padding: 0 15 0 0;"
+                                        focusTraversable="false" />
+                            </StackPane>
                         </VBox>
 
                         <VBox spacing="6">
                             <Label text="CONFIRMAR CONTRASEÑA" styleClass="input-label-runic-gold"/>
-                            <PasswordField fx:id="confirmPasswordField" promptText="Confirma tu contraseña" styleClass="custom-field" />
+                            <StackPane>
+                                <PasswordField fx:id="confirmPasswordField" promptText="Confirma tu contraseña" 
+                                               styleClass="custom-field" style="-fx-padding: 10 45 10 15;" maxWidth="Infinity" />
+                                <TextField fx:id="confirmPasswordShown" promptText="Confirma tu contraseña" 
+                                           styleClass="custom-field" style="-fx-padding: 10 45 10 15;" maxWidth="Infinity" visible="false" />
+                                
+                                <Button fx:id="btnToggleConfirm" onAction="#toggleConfirmPassword" text="👁" 
+                                        StackPane.alignment="CENTER_RIGHT"
+                                        style="-fx-background-color: transparent; -fx-text-fill: #f7d27a; -fx-cursor: hand; -fx-font-size: 16px; -fx-padding: 0 15 0 0;"
+                                        focusTraversable="false" />
+                            </StackPane>
                         </VBox>
                     </VBox>
                     

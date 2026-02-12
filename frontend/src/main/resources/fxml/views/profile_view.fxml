@@ -6,6 +6,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.effect.Glow?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
             fx:controller="com.ctrlaltquest.ui.controllers.views.ProfileViewController"
@@ -15,88 +16,114 @@
     <VBox spacing="35" style="-fx-background-color: transparent;">
         <padding><Insets top="30" right="50" bottom="50" left="50"/></padding>
 
-        <HBox spacing="25" alignment="CENTER_LEFT" styleClass="activity-card" style="-fx-padding: 25;">
+        <HBox fx:id="headerCard" spacing="30" alignment="CENTER_LEFT" 
+              style="-fx-padding: 30; -fx-background-color: rgba(20, 20, 25, 0.85); -fx-background-radius: 16; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 16;">
             <effect>
-                <DropShadow color="rgba(0,0,0,0.6)" radius="20" offsetY="5"/>
+                <DropShadow color="rgba(0,0,0,0.5)" radius="25" offsetY="8"/>
             </effect>
             
-            <StackPane>
-                <StackPane style="-fx-border-color: #f7d27a; -fx-border-radius: 50%; -fx-border-width: 3; -fx-padding: 5;">
-                    <ImageView fx:id="imgAvatar" fitHeight="100" fitWidth="100" preserveRatio="true" smooth="true"/>
+            <VBox alignment="CENTER" spacing="10">
+                <StackPane>
+                    <StackPane style="-fx-border-color: #f7d27a; -fx-border-radius: 100; -fx-border-width: 3; -fx-padding: 5;">
+                        <effect><Glow level="0.4"/></effect>
+                        <ImageView fx:id="imgAvatar" fitHeight="110" fitWidth="110" preserveRatio="true" smooth="true"/>
+                    </StackPane>
+                    <Label text="ACTIVO" style="-fx-background-color: #2d5a27; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 10; -fx-font-size: 10px;" 
+                           StackPane.alignment="BOTTOM_CENTER" translateY="12"/>
                 </StackPane>
-                <Label text="LVL 1" style="-fx-background-color: #2c1a4d; -fx-text-fill: #f7d27a; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 10; -fx-border-color: #f7d27a; -fx-border-radius: 10;" StackPane.alignment="BOTTOM_CENTER" translateY="10"/>
-            </StackPane>
-
-            <VBox spacing="8">
-                <Label fx:id="lblUsernameHeader" text="CARGANDO..." styleClass="hero-name" style="-fx-font-size: 28px;"/>
-                <Label fx:id="lblEmailHeader" text="usuario@email.com" styleClass="text-tiny-bright" style="-fx-font-size: 14px; -fx-opacity: 0.8;"/>
-                <Label text="Miembro del Gremio desde 2026" styleClass="text-tiny" style="-fx-text-fill: #b5a7c6;"/>
+                
+                <Button fx:id="btnChangeAvatar" text="↻ CAMBIAR CLASE" onAction="#handleChangeAvatar" 
+                        styleClass="btn-nav" 
+                        style="-fx-font-size: 10px; -fx-padding: 5 15; -fx-cursor: hand;"/>
             </VBox>
-            
-            <Region HBox.hgrow="ALWAYS"/>
-            
-            <Button text="Cambiar Retrato" styleClass="btn-nav" style="-fx-font-size: 12px;"/>
+
+            <VBox spacing="5" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT">
+                <Label text="IDENTIFICACIÓN DE AGENTE" styleClass="text-tiny" style="-fx-text-fill: #888;"/>
+                <Label fx:id="lblUsernameHeader" text="CARGANDO..." styleClass="hero-name" style="-fx-font-size: 32px; -fx-text-fill: white;"/>
+                <Label fx:id="lblEmailHeader" text="usuario@sistema.com" styleClass="text-tiny-bright" style="-fx-font-size: 14px; -fx-opacity: 0.8; -fx-text-fill: #4ade80;"/>
+                
+                <Region prefHeight="10"/>
+                <Label fx:id="lblJoinDate" text="ESTADO: EN LÍNEA" styleClass="text-tiny" style="-fx-text-fill: #666;"/>
+            </VBox>
         </HBox>
 
-        <VBox spacing="15">
-            <Label text="CREDENCIALES" styleClass="section-title-small" style="-fx-text-fill: #f7d27a;"/>
-            
-            <GridPane vgap="20" hgap="20" styleClass="activity-card" style="-fx-padding: 25;">
-                <columnConstraints>
-                    <ColumnConstraints minWidth="120" halignment="RIGHT"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                </columnConstraints>
-
-                <Label text="Nombre Clave:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="text-tiny-bright" style="-fx-font-size: 13px;"/>
-                <TextField fx:id="txtUsername" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="input-field" promptText="Tu nombre público"/>
-
-                <Label text="Correo:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="text-tiny-bright" style="-fx-font-size: 13px;"/>
-                <TextField fx:id="txtEmail" editable="false" opacity="0.6" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="input-field" text="usuario@email.com"/>
-                
-                <Button text="GUARDAR CAMBIOS" onAction="#handleSaveProfile" styleClass="btn-action-primary" GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.halignment="RIGHT"/>
-            </GridPane>
-        </VBox>
-
-        <VBox spacing="15">
-            <Label text="PROTOCOLOS DE SEGURIDAD" styleClass="section-title-small" style="-fx-text-fill: #f7d27a;"/>
-            
-            <GridPane vgap="20" hgap="20" styleClass="activity-card" style="-fx-padding: 25;">
-                <columnConstraints>
-                    <ColumnConstraints minWidth="120" halignment="RIGHT"/>
-                    <ColumnConstraints hgrow="ALWAYS"/>
-                </columnConstraints>
-
-                <Label text="Nueva Llave:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="text-tiny-bright" style="-fx-font-size: 13px;"/>
-                <PasswordField fx:id="txtNewPass" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="input-field" promptText="Mínimo 6 caracteres"/>
-
-                <Label text="Confirmar:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="text-tiny-bright" style="-fx-font-size: 13px;"/>
-                <PasswordField fx:id="txtConfirmPass" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="input-field" promptText="Repite la nueva llave"/>
-                
-                <Button text="ACTUALIZAR CONTRASEÑA" onAction="#handleChangePassword" styleClass="btn-nav" GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.halignment="RIGHT" style="-fx-border-color: #f7d27a;"/>
-            </GridPane>
-        </VBox>
-
         <HBox spacing="30">
-            <VBox spacing="15" HBox.hgrow="ALWAYS">
-                <Label text="ARCHIVOS DEL SISTEMA" styleClass="section-title-small" style="-fx-text-fill: #4ade80;"/>
-                <VBox spacing="15" styleClass="activity-card" style="-fx-padding: 20;" VBox.vgrow="ALWAYS">
-                    <Label text="Descarga una copia local de tu historial de misiones y actividad." styleClass="text-tiny" wrapText="true"/>
-                    <Region VBox.vgrow="ALWAYS"/>
-                    <HBox spacing="15">
-                        <Button text="📄 CSV" onAction="#handleExportCSV" styleClass="btn-nav" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                        <Button text="📊 PDF" onAction="#handleExportPDF" styleClass="btn-nav" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
-                    </HBox>
-                </VBox>
+            <VBox fx:id="configCard" spacing="15" HBox.hgrow="ALWAYS" styleClass="activity-card" style="-fx-padding: 25;">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="🔧" style="-fx-font-size: 18px; -fx-text-fill: #f7d27a;"/>
+                    <Label text="DATOS DE PERFIL" styleClass="section-title-small" style="-fx-text-fill: #f7d27a;"/>
+                </HBox>
+                <Line endX="200" style="-fx-stroke: rgba(255,255,255,0.1);"/>
+                
+                <GridPane vgap="15" hgap="15">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="80"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <Label text="ALIAS" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="text-tiny"/>
+                    <TextField fx:id="txtUsername" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="input-field"/>
+
+                    <Label text="CORREO" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="text-tiny"/>
+                    <TextField fx:id="txtEmail" editable="false" opacity="0.6" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="input-field"/>
+                </GridPane>
+                
+                <Region VBox.vgrow="ALWAYS"/>
+                <HBox alignment="CENTER_RIGHT">
+                    <Button text="GUARDAR CAMBIOS" onAction="#handleSaveProfile" styleClass="btn-action-primary"/>
+                </HBox>
             </VBox>
 
-            <VBox spacing="15" HBox.hgrow="ALWAYS">
-                <Label text="ZONA DE PELIGRO" styleClass="section-title-small" style="-fx-text-fill: #ff4444;"/>
-                <VBox spacing="15" style="-fx-border-color: rgba(255, 68, 68, 0.4); -fx-border-radius: 12; -fx-background-color: rgba(45, 10, 10, 0.4); -fx-padding: 20;" VBox.vgrow="ALWAYS">
-                    <effect><DropShadow color="rgba(255, 68, 68, 0.1)" radius="15"/></effect>
-                    <Label text="Esta acción borrará permanentemente tu usuario y progreso." styleClass="text-tiny" wrapText="true" style="-fx-text-fill: #ffaaaa;"/>
-                    <Region VBox.vgrow="ALWAYS"/>
-                    <Button text="ELIMINAR CUENTA" onAction="#handleDeleteAccount" styleClass="btn-nav-danger" maxWidth="Infinity" style="-fx-alignment: CENTER; -fx-border-color: #ff4444;"/>
-                </VBox>
+            <VBox fx:id="securityCard" spacing="15" HBox.hgrow="ALWAYS" styleClass="activity-card" style="-fx-padding: 25;">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="🔒" style="-fx-font-size: 18px; -fx-text-fill: #f7d27a;"/>
+                    <Label text="SEGURIDAD" styleClass="section-title-small" style="-fx-text-fill: #f7d27a;"/>
+                </HBox>
+                <Line endX="200" style="-fx-stroke: rgba(255,255,255,0.1);"/>
+                
+                <GridPane vgap="15" hgap="15">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="100"/>
+                        <ColumnConstraints hgrow="ALWAYS"/>
+                    </columnConstraints>
+
+                    <Label text="NUEVA CLAVE" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="text-tiny"/>
+                    <PasswordField fx:id="txtNewPass" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="input-field" promptText="••••••"/>
+
+                    <Label text="CONFIRMAR" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="text-tiny"/>
+                    <PasswordField fx:id="txtConfirmPass" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="input-field" promptText="••••••"/>
+                </GridPane>
+                
+                <Region VBox.vgrow="ALWAYS"/>
+                <HBox alignment="CENTER_RIGHT">
+                    <Button text="ACTUALIZAR" onAction="#handleChangePassword" styleClass="btn-nav"/>
+                </HBox>
+            </VBox>
+        </HBox>
+
+        <HBox fx:id="footerContainer" spacing="30">
+            <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="activity-card" style="-fx-padding: 20;">
+                <Label text="RESPALDO DE DATOS" styleClass="section-title-small" style="-fx-text-fill: #4ade80;"/>
+                <Label text="Exporta tu historial de misiones para análisis." styleClass="text-tiny" wrapText="true" style="-fx-text-fill: #aaa;"/>
+                
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <Button text="📄 CSV" onAction="#handleExportCSV" styleClass="btn-nav" prefWidth="120"/>
+                    <Button text="📊 PDF" onAction="#handleExportPDF" styleClass="btn-nav" prefWidth="120" disable="true" opacity="0.6"/>
+                </HBox>
+            </VBox>
+
+            <VBox spacing="15" HBox.hgrow="ALWAYS" 
+                  style="-fx-background-color: rgba(60, 20, 20, 0.6); -fx-border-color: rgba(255, 68, 68, 0.4); -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 20;">
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="⚠" style="-fx-text-fill: #ff4444; -fx-font-size: 16px;"/>
+                    <Label text="ZONA DE PELIGRO" styleClass="section-title-small" style="-fx-text-fill: #ff4444;"/>
+                </HBox>
+                <Label text="La eliminación de cuenta es permanente." styleClass="text-tiny" style="-fx-text-fill: #ffcccc;"/>
+                
+                <HBox alignment="CENTER_RIGHT">
+                    <Button text="ELIMINAR CUENTA" onAction="#handleDeleteAccount" styleClass="btn-nav-danger" 
+                            style="-fx-border-color: #ff4444; -fx-text-fill: #ff4444; -fx-background-color: rgba(255,0,0,0.1);"/>
+                </HBox>
             </VBox>
         </HBox>
 

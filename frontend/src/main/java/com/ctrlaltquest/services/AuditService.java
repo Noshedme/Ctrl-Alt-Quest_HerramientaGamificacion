@@ -1,9 +1,10 @@
 package com.ctrlaltquest.services;
 
-import com.ctrlaltquest.db.DatabaseConnection;
 import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+
+import com.ctrlaltquest.db.DatabaseConnection;
 
 public class AuditService {
     public static void log(Integer userId, String action, String description) {
