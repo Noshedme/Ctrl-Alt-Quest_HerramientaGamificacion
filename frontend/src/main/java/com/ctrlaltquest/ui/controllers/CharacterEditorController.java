@@ -33,26 +33,49 @@ public class CharacterEditorController {
     @FXML private StackPane rootContainer;
     @FXML private MediaView bgMedia;
     
-    // Capas del Avatar
-    @FXML private ImageView layerBody, layerHead, layerChest, layerLegs, layerFeet;
+    @FXML private ImageView fullCharacterView;
     @FXML private StackPane spritePreview;
     
     @FXML private ToggleButton toggleMale, toggleFemale;
-    @FXML private Label lblHeadName, lblChestName, lblLegsName;
+    @FXML private Label lblSkinName; 
     @FXML private ChoiceBox<String> classSelector;
 
     private MediaPlayer mediaPlayer;
     private int userId;
     private int slotIndex;
     
-    private String currentGender = "male";
-    private int headIndex = 0;
-    private int chestIndex = 0;
-    private int legsIndex = 0;
+    private String currentGender = "female"; 
+    private int skinIndex = 0;
 
-    private final List<String> headItems = Arrays.asList("none", "prog_visor", "read_monocle", "write_beret");
-    private final List<String> chestItems = Arrays.asList("basic", "prog_hoodie", "read_tunic", "write_shirt");
-    private final List<String> legsItems = Arrays.asList("basic", "prog_pants", "read_skirt", "write_dark");
+    // --- LISTAS EXACTAS DE SKINS ---
+    
+    private final List<String> femaleSkins = Arrays.asList(
+        "arquera_fuego_female",
+        "arquera_hielo_female",
+        "arquera_veneno_female",
+        "dk_muerte_female",
+        "dk_peste_female",
+        "maga_fuego_female",
+        "maga_hielo_female",
+        "maga_vacio_female",
+        "war_fuego_female",
+        "war_luz_female",
+        "war_sangre_female",
+        "body_female"
+    );
+
+    private final List<String> maleSkins = Arrays.asList(
+        "body_male",
+        "dk_muerte_male",
+        "dk_peste_male",
+        "dk_sangre_male",
+        "mago_fuego",
+        "mago_hielo",
+        "mago_luz",
+        "mago_vacio",
+        "picaro_armas",
+        "picaro_veneno"
+    );
 
     @FXML
     public void initialize() {
@@ -72,85 +95,110 @@ public class CharacterEditorController {
         if (toggleMale != null && toggleFemale != null) {
             toggleMale.setToggleGroup(genderGroup);
             toggleFemale.setToggleGroup(genderGroup);
-            toggleMale.setSelected(true);
+            toggleFemale.setSelected(true); // Default Female
         }
 
         SoundManager.getInstance().synchronizeMusic();
         refreshAvatar();
     }
 
+    /**
+     * Devuelve la lista activa según el género seleccionado.
+     */
+    private List<String> getCurrentList() {
+        return currentGender.equals("male") ? maleSkins : femaleSkins;
+    }
+
     private void refreshAvatar() {
         try {
-            // 1. Cuerpo Base
-            updateLayer(layerBody, "bases/body_" + currentGender);
+            List<String> activeList = getCurrentList();
             
-            // 2. Cabeza
-            String head = headItems.get(headIndex);
-            if (lblHeadName != null) lblHeadName.setText(head.replace("_", " ").toUpperCase());
-            updateLayer(layerHead, head.equals("none") ? null : "head/" + head);
+            // Seguridad: Si cambiamos de lista y el índice se sale, lo reseteamos
+            if (skinIndex >= activeList.size()) {
+                skinIndex = 0;
+            }
 
-            // 3. Torso
-            String chest = chestItems.get(chestIndex);
-            if (lblChestName != null) lblChestName.setText(chest.replace("_", " ").toUpperCase());
-            updateLayer(layerChest, "chest/" + chest);
+            // Obtenemos el nombre EXACTO del archivo de la lista
+            String fileName = activeList.get(skinIndex);
+            
+            // Actualizar etiqueta visual (limpiamos guiones bajos para que se vea bonito)
+            if (lblSkinName != null) {
+                String displayName = fileName.replace("_female", "").replace("_male", "").replace("_", " ").toUpperCase();
+                lblSkinName.setText(displayName);
+            }
 
-            // 4. Piernas
-            String legs = legsItems.get(legsIndex);
-            if (lblLegsName != null) lblLegsName.setText(legs.replace("_", " ").toUpperCase());
-            updateLayer(layerLegs, "legs/" + legs);
+            // Cargar imagen directa
+            updateImage(fullCharacterView, fileName);
 
-            // Animación suave al cambiar
             if (spritePreview != null) {
                 FadeTransition ft = new FadeTransition(Duration.millis(200), spritePreview);
                 ft.setFromValue(0.85); ft.setToValue(1.0); ft.play();
             }
 
         } catch (Exception e) {
-            System.err.println("⚠️ Error al actualizar capas: " + e.getMessage());
+            System.err.println("⚠️ Error al actualizar avatar: " + e.getMessage());
         }
     }
 
-    /**
-     * Actualiza una capa específica asegurando el tamaño y alineación.
-     */
-    private void updateLayer(ImageView layer, String path) {
+    private void updateImage(ImageView layer, String fileName) {
         if (layer == null) return;
         
-        if (path == null) {
-            layer.setImage(null);
-            return;
+        Image img = loadImage("bases/" + fileName);
+        
+        // Fallback simple: Si falla, intenta cargar el body del género actual
+        if (img == null) {
+            System.err.println("❌ No se encontró la imagen: " + fileName);
+            img = loadImage("bases/body_" + currentGender);
         }
 
-        Image img = loadImage(path);
         if (img != null) {
             layer.setImage(img);
-            layer.setFitHeight(380); // Mismo tamaño para todas las capas
+            layer.setFitHeight(380); 
             layer.setPreserveRatio(true);
-            layer.setSmooth(false); // Estilo Pixel Art nítido
+            layer.setSmooth(false); 
         }
     }
 
     private Image loadImage(String path) {
         String fullPath = "/assets/images/sprites/" + path + ".png";
         InputStream is = getClass().getResourceAsStream(fullPath);
-        if (is == null) {
-            System.err.println("❌ No se encontró la imagen: " + fullPath);
-            return null; 
-        }
+        if (is == null) return null;
         return new Image(is);
     }
 
-    @FXML private void setMale() { currentGender = "male"; refreshAvatar(); }
-    @FXML private void setFemale() { currentGender = "female"; refreshAvatar(); }
+    // --- CONTROLES DE UI ---
 
-    @FXML private void nextHead() { headIndex = (headIndex + 1) % headItems.size(); playSelectionSound(); refreshAvatar(); }
-    @FXML private void prevHead() { headIndex = (headIndex - 1 + headItems.size()) % headItems.size(); playSelectionSound(); refreshAvatar(); }
+    @FXML 
+    private void setMale() { 
+        currentGender = "male";
+        skinIndex = 0; // Reset index al cambiar género para evitar errores de rango
+        playSelectionSound();
+        refreshAvatar(); 
+    }
     
-    @FXML private void nextChest() { chestIndex = (chestIndex + 1) % chestItems.size(); playSelectionSound(); refreshAvatar(); }
-    @FXML private void prevChest() { chestIndex = (chestIndex - 1 + chestItems.size()) % chestItems.size(); playSelectionSound(); refreshAvatar(); }
+    @FXML 
+    private void setFemale() { 
+        currentGender = "female"; 
+        skinIndex = 0; // Reset index al cambiar género
+        playSelectionSound();
+        refreshAvatar(); 
+    }
+
+    @FXML 
+    private void nextSkin() { 
+        List<String> activeList = getCurrentList();
+        skinIndex = (skinIndex + 1) % activeList.size(); 
+        playSelectionSound(); 
+        refreshAvatar(); 
+    }
     
-    @FXML private void nextLegs() { legsIndex = (legsIndex + 1) % legsItems.size(); playSelectionSound(); refreshAvatar(); }
-    @FXML private void prevLegs() { legsIndex = (legsIndex - 1 + legsItems.size()) % legsItems.size(); playSelectionSound(); refreshAvatar(); }
+    @FXML 
+    private void prevSkin() { 
+        List<String> activeList = getCurrentList();
+        skinIndex = (skinIndex - 1 + activeList.size()) % activeList.size(); 
+        playSelectionSound(); 
+        refreshAvatar(); 
+    }
 
     @FXML
     public void handleOpenSettings() {
@@ -198,7 +246,10 @@ public class CharacterEditorController {
     @FXML
     private void handleSave() {
         String name = nameField.getText().trim();
-        if (name.isEmpty() || name.length() < 3) return;
+        if (name.isEmpty() || name.length() < 3) {
+            showAlert("Nombre inválido", "El nombre debe tener al menos 3 caracteres.");
+            return;
+        }
 
         Character newChar = new Character();
         newChar.setUserId(userId);
@@ -206,9 +257,18 @@ public class CharacterEditorController {
         newChar.setSlotIndex(slotIndex);
         newChar.setLevel(1);
         newChar.setClassId(classSelector.getSelectionModel().getSelectedIndex() + 1);
+        
+        // --- GUARDADO DIRECTO ---
+        // Obtenemos el nombre directamente de la lista activa. Cero lógica compleja.
+        String skinToSave = getCurrentList().get(skinIndex);
+        
+        System.out.println("💾 Guardando personaje con skin: " + skinToSave);
+        newChar.setSkin(skinToSave);
 
         if (CharacterDAO.saveCharacter(newChar)) {
             regresarEscena("/fxml/character_selection.fxml");
+        } else {
+            showAlert("Error Crítico", "No se pudo guardar en la base de datos.");
         }
     }
 
@@ -229,4 +289,13 @@ public class CharacterEditorController {
     }
 
     private void playSelectionSound() { SoundManager.playKeyClick(); }
+    
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Editor");
+        alert.setHeaderText(title);
+        alert.setContentText(content);
+        alert.initOwner(rootContainer.getScene().getWindow());
+        alert.show();
+    }
 }

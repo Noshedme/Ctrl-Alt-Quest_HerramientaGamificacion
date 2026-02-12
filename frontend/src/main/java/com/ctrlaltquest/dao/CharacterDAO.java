@@ -10,7 +10,7 @@ import java.util.Map;
 public class CharacterDAO {
 
     /**
-     * Recupera todos los personajes de un usuario específico incluyendo XP, Monedas y Racha.
+     * Recupera todos los personajes de un usuario específico incluyendo XP, Monedas, Racha y SKIN.
      */
     public static Map<Integer, Character> getCharactersByUser(int userId) {
         Map<Integer, Character> map = new HashMap<>();
@@ -21,8 +21,8 @@ public class CharacterDAO {
         
         if (userId <= 0) return map;
 
-        // SELECT actualizado con los campos de gamificación
-        String query = "SELECT id, name, class_id, user_id, level, slot_index, current_xp, coins, health_streak " +
+        // SELECT actualizado para incluir 'skin'
+        String query = "SELECT id, name, class_id, user_id, level, slot_index, current_xp, coins, health_streak, skin " +
                        "FROM characters WHERE user_id = ? ORDER BY slot_index";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -41,10 +41,14 @@ public class CharacterDAO {
                     c.setLevel(rs.getInt("level"));
                     c.setSlotIndex(rs.getInt("slot_index"));
                     
-                    // Mapeo de nuevos campos requeridos por el HomeController
+                    // Datos de gamificación
                     c.setCurrentXp(rs.getInt("current_xp"));
                     c.setCoins(rs.getInt("coins"));
                     c.setHealthStreak(rs.getInt("health_streak"));
+                    
+                    // DATOS DE SKIN (APARIENCIA)
+                    String skin = rs.getString("skin");
+                    c.setSkin(skin != null ? skin : "body_female"); // Default seguro
                     
                     map.put(c.getSlotIndex(), c);
                 }
@@ -56,22 +60,23 @@ public class CharacterDAO {
     }
 
     /**
-     * Guarda o actualiza un objeto Character completo.
+     * Guarda o actualiza un objeto Character completo, incluyendo la SKIN.
      */
     public static boolean saveCharacter(Character c) {
         int userId = c.getUserId();
         if (userId <= 0) userId = SessionManager.getInstance().getUserId();
 
-        // SQL actualizado para incluir persistencia de progreso
-        String query = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak) " +
-                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
+        // SQL actualizado: Incluye 'skin' en INSERT y en ON CONFLICT UPDATE
+        String query = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak, skin) " +
+                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                        "ON CONFLICT (user_id, slot_index) DO UPDATE SET " +
                        "name = EXCLUDED.name, " +
                        "class_id = EXCLUDED.class_id, " +
                        "level = EXCLUDED.level, " +
                        "current_xp = EXCLUDED.current_xp, " +
                        "coins = EXCLUDED.coins, " +
-                       "health_streak = EXCLUDED.health_streak";
+                       "health_streak = EXCLUDED.health_streak, " +
+                       "skin = EXCLUDED.skin"; // Actualizar skin si cambia
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
@@ -87,6 +92,10 @@ public class CharacterDAO {
             ps.setInt(7, c.getCoins());
             ps.setInt(8, c.getHealthStreak());
             
+            // Guardar skin (con fallback)
+            String skinToSave = (c.getSkin() != null && !c.getSkin().isEmpty()) ? c.getSkin() : "body_female";
+            ps.setString(9, skinToSave);
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("❌ Error al salvar personaje: " + e.getMessage());
@@ -95,18 +104,19 @@ public class CharacterDAO {
     }
 
     /**
-     * Crea un personaje nuevo inicializando valores por defecto (XP 0, Monedas 0).
+     * Crea un personaje nuevo inicializando valores por defecto.
+     * Ahora acepta 'skin' como parámetro opcional (puede ser null).
      */
-    public static boolean createCharacter(int userId, String name, int classId, int slotIndex) {
+    public static boolean createCharacter(int userId, String name, int classId, int slotIndex, String skin) {
         Connection conn = null;
         try {
             conn = DatabaseConnection.getConnection();
             if (conn == null) return false;
             conn.setAutoCommit(false); 
 
-            // Insertamos con valores iniciales de nivel 1 y 0 progreso
-            String sqlChar = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak) " +
-                             "VALUES (?, ?, ?, ?, 1, 0, 0, 0) RETURNING id";
+            // Insertamos con valores iniciales
+            String sqlChar = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak, skin) " +
+                             "VALUES (?, ?, ?, ?, 1, 0, 0, 0, ?) RETURNING id";
             
             int characterId = -1;
             try (PreparedStatement ps = conn.prepareStatement(sqlChar)) {
@@ -114,12 +124,15 @@ public class CharacterDAO {
                 ps.setString(2, name);
                 ps.setInt(3, classId);
                 ps.setInt(4, slotIndex);
+                // Si no se pasa skin, usamos un default genérico
+                ps.setString(5, (skin != null) ? skin : "body_female");
+                
                 ResultSet rs = ps.executeQuery();
                 if (rs.next()) characterId = rs.getInt(1);
             }
 
             if (characterId != -1) {
-                // Sincronizamos la clase en la tabla de usuarios para preferencias globales
+                // Sincronizamos la clase en la tabla de usuarios
                 String sqlUpdateUser = "UPDATE users SET selected_class_id = ? WHERE id = ?";
                 try (PreparedStatement psUp = conn.prepareStatement(sqlUpdateUser)) {
                     psUp.setInt(1, classId);
@@ -128,7 +141,7 @@ public class CharacterDAO {
                 }
 
                 conn.commit();
-                System.out.println("✨ Personaje '" + name + "' creado exitosamente con stats base.");
+                System.out.println("✨ Personaje '" + name + "' creado exitosamente con skin: " + skin);
                 return true;
             }
             

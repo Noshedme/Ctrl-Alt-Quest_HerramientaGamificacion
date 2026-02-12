@@ -12,12 +12,15 @@ public class Character {
     private int currentXp;
     private int coins;
     private int healthStreak;
+    
+    // NUEVO CAMPO: Skin (Nombre del archivo de imagen base)
+    private String skin;
 
     // Constructor vacío (VITAL para instanciación desde DAOs)
     public Character() {}
 
     // Constructor completo actualizado
-    public Character(int id, String name, int classId, int userId, int level, int currentXp, int coins, int healthStreak) {
+    public Character(int id, String name, int classId, int userId, int level, int currentXp, int coins, int healthStreak, String skin) {
         this.id = id;
         this.name = name;
         this.classId = classId;
@@ -26,6 +29,7 @@ public class Character {
         this.currentXp = currentXp;
         this.coins = coins;
         this.healthStreak = healthStreak;
+        this.skin = skin;
     }
 
     // --- GETTERS Y SETTERS ---
@@ -48,8 +52,6 @@ public class Character {
     public int getSlotIndex() { return slotIndex; }
     public void setSlotIndex(int slotIndex) { this.slotIndex = slotIndex; }
 
-    // Métodos VITALES para corregir errores de compilación en HomeController:
-    
     public int getCurrentXp() { return currentXp; }
     public void setCurrentXp(int currentXp) { this.currentXp = currentXp; }
 
@@ -58,4 +60,14 @@ public class Character {
 
     public int getHealthStreak() { return healthStreak; }
     public void setHealthStreak(int healthStreak) { this.healthStreak = healthStreak; }
+
+    // --- MÉTODOS PARA CORREGIR EL ERROR DE COMPILACIÓN ---
+    
+    public String getSkin() { 
+        return skin; 
+    }
+    
+    public void setSkin(String skin) { 
+        this.skin = skin; 
+    }
 }

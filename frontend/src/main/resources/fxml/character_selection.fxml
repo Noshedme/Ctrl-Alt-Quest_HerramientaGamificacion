@@ -38,8 +38,9 @@
                     
                     <AnchorPane>
                         <VBox fx:id="slot1" styleClass="news-card-compact" alignment="CENTER" onMouseClicked="#handleSlot1" 
-                              spacing="20" prefWidth="300" prefHeight="450">
-                            <StackPane fx:id="container1" prefHeight="260" prefWidth="220" styleClass="stack-pane">
+                              spacing="15" prefWidth="300" prefHeight="480">
+                            <StackPane fx:id="container1" prefHeight="280" prefWidth="240" styleClass="stack-pane" 
+                                       style="-fx-background-color: rgba(0,0,0,0.2); -fx-background-radius: 10;">
                                 <Label text="+" styleClass="empty-slot-label" />
                             </StackPane>
                             <VBox alignment="CENTER" spacing="12">
@@ -54,8 +55,9 @@
 
                     <AnchorPane>
                         <VBox fx:id="slot2" styleClass="news-card-compact" alignment="CENTER" onMouseClicked="#handleSlot2" 
-                              spacing="20" prefWidth="300" prefHeight="450">
-                            <StackPane fx:id="container2" prefHeight="260" prefWidth="220" styleClass="stack-pane">
+                              spacing="15" prefWidth="300" prefHeight="480">
+                            <StackPane fx:id="container2" prefHeight="280" prefWidth="240" styleClass="stack-pane"
+                                       style="-fx-background-color: rgba(0,0,0,0.2); -fx-background-radius: 10;">
                                 <Label text="+" styleClass="empty-slot-label" />
                             </StackPane>
                             <VBox alignment="CENTER" spacing="12">
@@ -70,8 +72,9 @@
 
                     <AnchorPane>
                         <VBox fx:id="slot3" styleClass="news-card-compact" alignment="CENTER" onMouseClicked="#handleSlot3" 
-                              spacing="20" prefWidth="300" prefHeight="450">
-                            <StackPane fx:id="container3" prefHeight="260" prefWidth="220" styleClass="stack-pane">
+                              spacing="15" prefWidth="300" prefHeight="480">
+                            <StackPane fx:id="container3" prefHeight="280" prefWidth="240" styleClass="stack-pane"
+                                       style="-fx-background-color: rgba(0,0,0,0.2); -fx-background-radius: 10;">
                                 <Label text="+" styleClass="empty-slot-label" />
                             </StackPane>
                             <VBox alignment="CENTER" spacing="12">

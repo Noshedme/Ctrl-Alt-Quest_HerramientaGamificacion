@@ -14,7 +14,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -27,6 +26,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
@@ -135,15 +135,37 @@ public class CharacterSelectionController {
         }
     }
 
+    /**
+     * Renderiza la imagen del personaje basada en la skin guardada (ej: "maga_fuego_female").
+     */
     private void renderizarPersonaje(StackPane container, Character c) {
         try {
-            String path = "/assets/images/sprites/base/class_" + c.getClassId() + ".png";
-            URL imgUrl = getClass().getResource(path);
-            if (imgUrl != null) {
-                ImageView body = new ImageView(new Image(imgUrl.toExternalForm()));
-                body.setFitHeight(180);
+            // 1. Obtener nombre del archivo. 
+            // Si c.getSkin() es nulo, usamos un default seguro.
+            String skinName = (c.getSkin() != null && !c.getSkin().isEmpty()) ? c.getSkin() : "body_female";
+            
+            // 2. Construir ruta (bases/nombre.png)
+            String path = "/assets/images/sprites/bases/" + skinName + ".png";
+            
+            // 3. Cargar imagen
+            InputStream is = getClass().getResourceAsStream(path);
+            
+            // Fallback si la imagen específica no existe (ej. error de escritura)
+            if (is == null) {
+                System.err.println("⚠️ Sprite no encontrado: " + path + ". Usando default.");
+                path = "/assets/images/sprites/bases/body_female.png"; 
+                is = getClass().getResourceAsStream(path);
+            }
+
+            if (is != null) {
+                ImageView body = new ImageView(new Image(is));
+                body.setFitHeight(220); // Ajustado para que se vea bien en el slot
                 body.setPreserveRatio(true);
-                body.setSmooth(false);
+                body.setSmooth(false); // Pixel art nítido
+                
+                // Efecto de sombra sutil para que resalte del fondo
+                body.setEffect(new javafx.scene.effect.DropShadow(10, Color.BLACK));
+                
                 container.getChildren().add(body);
             }
         } catch (Exception e) {
@@ -155,8 +177,8 @@ public class CharacterSelectionController {
         return switch (classId) {
             case 1 -> "PROGRAMADOR";
             case 2 -> "LECTOR";
-            case 3 -> "ANALISTA";
-            default -> "PROFESIONAL";
+            case 3 -> "ESCRITOR";
+            default -> "AVENTURERO";
         };
     }
 
@@ -183,7 +205,7 @@ public class CharacterSelectionController {
         Character c = personajes.get(slotIndex);
         if (c == null) return;
 
-        showConfirmAlert("Eliminar Perfil", "¿Estás seguro?", () -> {
+        showConfirmAlert("Eliminar Perfil", "¿Estás seguro de borrar a " + c.getName() + "?", () -> {
             if (CharacterDAO.deleteCharacter(c.getId())) {
                 cargarPersonajes();
             }
@@ -196,6 +218,10 @@ public class CharacterSelectionController {
             alert.setTitle("Ctrl + Alt + Quest");
             alert.setHeaderText(title);
             alert.setContentText(content);
+            
+            // Estilo transparente si tienes el CSS cargado en la alerta
+            alert.initStyle(StageStyle.UTILITY);
+            
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 onConfirm.run();
@@ -227,11 +253,9 @@ public class CharacterSelectionController {
         try {
             Stage stage = (Stage) slot1.getScene().getWindow();
             
-            // 1. CARGAR EL LOADER PRIMERO (Si falla aquí, saltará al catch y no dejará la pantalla blanca)
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent root = loader.load();
 
-            // 2. INYECTAR DATOS
             if (fxmlPath.contains("character_editor")) {
                 CharacterEditorController ctrl = loader.getController();
                 ctrl.setInitData(currentUserId, (Integer) data);
@@ -240,7 +264,6 @@ public class CharacterSelectionController {
                 ctrl.initPlayerData((Character) data);
             }
 
-            // 3. ANIMACIÓN DE SALIDA
             FadeTransition ft = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
             ft.setFromValue(1.0);
             ft.setToValue(0.0);
