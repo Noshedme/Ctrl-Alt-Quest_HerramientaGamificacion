@@ -16,10 +16,6 @@ import com.ctrlaltquest.models.Mission;
 
 public class MissionsDAO {
 
-    // ==========================================
-    // SECCIÓN 1: MÉTODOS PARA LA INTERFAZ (UI)
-    // ==========================================
-
     public static List<Mission> getMisionesUsuario(int userId) {
         System.out.println("🔍 [MissionsDAO] Buscando misiones globales para userId=" + userId);
         List<Mission> lista = new ArrayList<>();
@@ -67,10 +63,6 @@ public class MissionsDAO {
         return lista;
     }
 
-    // ==========================================
-    // SECCIÓN 2: LÓGICA DEL MOTOR DE JUEGO
-    // ==========================================
-
     public static List<Integer> actualizarProgreso(int userId, String metricKey, int amountToAdd) {
         List<Integer> completedMissions = new ArrayList<>();
         
@@ -117,10 +109,6 @@ public class MissionsDAO {
         return completedMissions;
     }
 
-    // ==========================================
-    // SECCIÓN 3: ACCIONES DE ESTADO
-    // ==========================================
-
     public static void reclamarMision(int userId, int missionId) {
         Mission m = getMisionById(missionId);
         String metric = (m != null) ? mapearCategoriaAMetrica(m.getDescription()) : "manual_check";
@@ -150,12 +138,8 @@ public class MissionsDAO {
         System.err.println("⚠️ ERROR CRÍTICO: Se llamó a reclamarMision sin userId.");
     }
 
-    // ==========================================
-    // SECCIÓN 4: EXPORTACIÓN & REPORTES (CORREGIDO)
-    // ==========================================
-
     public static boolean exportMissionHistoryToCSV(int userId, File file) {
-        // CORRECCIÓN CRÍTICA: Se eliminó mp.updated_at porque no existe en la BD.
+        // Usa fecha actual porque 'updated_at' no existe en tu esquema actual
         String sql = "SELECT m.title, m.difficulty, m.xp_reward, m.coin_reward " +
                      "FROM public.missions m " +
                      "INNER JOIN public.mission_progress mp ON m.id = mp.mission_id " +
@@ -169,11 +153,10 @@ public class MissionsDAO {
             pstmt.setInt(1, userId);
             ResultSet rs = pstmt.executeQuery();
             
-            // Cabecera
             writer.write("Mision,Dificultad,XP Ganada,Oro Ganado,Fecha Reporte\n");
             
             int count = 0;
-            String fechaHoy = LocalDate.now().toString(); // Usamos fecha actual como fallback
+            String fechaHoy = LocalDate.now().toString();
 
             while (rs.next()) {
                 String linea = String.format("%s,%s,%d,%d,%s\n", 
@@ -181,7 +164,7 @@ public class MissionsDAO {
                     rs.getString("difficulty") != null ? rs.getString("difficulty") : "Normal",
                     rs.getInt("xp_reward"),
                     rs.getInt("coin_reward"),
-                    fechaHoy // Fecha del sistema
+                    fechaHoy 
                 );
                 writer.write(linea);
                 count++;
@@ -192,14 +175,9 @@ public class MissionsDAO {
             
         } catch (Exception e) {
             System.err.println("❌ Error exportando CSV: " + e.getMessage());
-            e.printStackTrace();
             return false;
         }
     }
-
-    // ==========================================
-    // SECCIÓN 5: UTILIDADES & INICIALIZACIÓN
-    // ==========================================
 
     public static Mission getMisionById(int id) {
         Mission mision = null;

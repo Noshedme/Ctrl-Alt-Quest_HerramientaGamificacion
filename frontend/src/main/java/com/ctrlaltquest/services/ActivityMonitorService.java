@@ -44,6 +44,9 @@ public class ActivityMonitorService {
         }
 
         this.isRunning = true;
+        
+        // 🎮 Iniciar generador de eventos contextuales (cada 3 minutos)
+        EventContextualService.getInstance().startEventGenerator(currentUserId);
 
         monitorThread = new Thread(() -> {
             System.out.println("⚡ ActivityMonitor: Iniciado para usuario " + currentUserId);
@@ -75,6 +78,10 @@ public class ActivityMonitorService {
      */
     public void stopMonitoring() {
         isRunning = false;
+        
+        // 🎮 Detener generador de eventos contextuales
+        EventContextualService.getInstance().stopEventGenerator(currentUserId);
+        
         if (monitorThread != null) {
             monitorThread.interrupt();
         }
@@ -85,6 +92,12 @@ public class ActivityMonitorService {
 
     /**
      * Método central que analiza la actividad actual y la reporta al motor de juego.
+     * 
+     * INTEGRACIÓN CON XPSYNCSERVICE:
+     * ✅ Otorga XP automáticamente por actividad productiva
+     * ✅ Actualiza misiones en tiempo real
+     * ✅ Procesa logros
+     * ✅ Guarda TODO en BD
      */
     private void reportActivity() {
         // 1. Obtener ventana activa real (Usando JNA)
@@ -101,8 +114,20 @@ public class ActivityMonitorService {
             // Registrar en BD
             ActivityDAO.registrarActividad(currentUserId, currentApp, metricKey);
             
+            // ✅ SINCRONIZAR XP EN TIEMPO REAL (1 XP por segundo productivo)
+            if (isProductive) {
+                XPSyncService.getInstance().awardXPFromActivity(
+                    currentUserId,
+                    1,  // 1 XP por segundo de actividad productiva
+                    metricKey
+                );
+            }
+            
             // GameService está en el mismo paquete, no requiere import
             GameService.getInstance().processActivityEvent(currentUserId, metricKey, 1);
+            
+            // Actualizar misiones de progreso
+            MissionProgressService.getInstance().processActivityEvent(currentUserId, metricKey, isProductive);
         }
     }
 

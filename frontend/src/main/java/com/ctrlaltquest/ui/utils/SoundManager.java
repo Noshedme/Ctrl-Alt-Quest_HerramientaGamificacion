@@ -96,6 +96,23 @@ public class SoundManager {
         // Opcional: Si quieres sonido al pasar el mouse, descomenta abajo usando el click muy suave
         // playEffect(getInstance().clickSound, 0.1); 
     }
+    
+    // ========== SONIDOS DE EVENTOS CONTEXTUALES ==========
+    
+    public static void playEventSound() {
+        // Sonido cuando aparece un evento contextual
+        playSuccessSound();
+    }
+    
+    public static void playEventWinSound() {
+        // Sonido cuando se completa un evento exitosamente
+        playLevelUpSound();
+    }
+    
+    public static void playEventFailSound() {
+        // Sonido cuando se falla un evento
+        playErrorSound();
+    }
 
     // --- CONTROL DE MÚSICA (Integración con SettingsController) ---
 

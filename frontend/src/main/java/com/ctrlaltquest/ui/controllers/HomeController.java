@@ -1,5 +1,6 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalTime;
@@ -14,7 +15,12 @@ import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.dao.MissionsDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.services.ActivityMonitorService;
+import com.ctrlaltquest.services.EventContextualListener;
+import com.ctrlaltquest.services.EventContextualService;
 import com.ctrlaltquest.services.SessionManager;
+import com.ctrlaltquest.services.XPChangeListener;
+import com.ctrlaltquest.services.XPSyncService;
+import com.ctrlaltquest.ui.utils.EventContextualUI;
 import com.ctrlaltquest.ui.utils.SoundManager;
 
 import javafx.animation.FadeTransition;
@@ -30,6 +36,7 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tooltip;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -42,6 +49,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -49,9 +57,11 @@ import javafx.util.Duration;
 
 /**
  * 🎮 HOME CONTROLLER - HUB PRINCIPAL DEL JUEGO
+ * IMPLEMENTA XPChangeListener para sincronización en tiempo real
+ * IMPLEMENTA EventContextualListener para reaccionar a eventos dinámicos
  * ==========================================
  */
-public class HomeController {
+public class HomeController implements XPChangeListener, EventContextualListener {
 
     // ==========================================
     // SECCIÓN 1: ELEMENTOS DE UI (FXML)
@@ -124,7 +134,11 @@ public class HomeController {
         configurarFondo();
         configurarTooltips();
         iniciarMonitoreoActividad();
-        SoundManager.getInstance().synchronizeMusic();
+        configurarEfectosAvatar(); // <-- NUEVO: Prepara el avatar para ser interactivo
+        
+        try {
+            SoundManager.getInstance().synchronizeMusic();
+        } catch (Exception e) {}
 
         Platform.runLater(() -> {
             loadView("dashboard_view");
@@ -143,60 +157,54 @@ public class HomeController {
         });
     }
 
-    /**
-     * Configura tooltips informativos para los elementos de UI
-     */
     private void configurarTooltips() {
-        if (xpBar != null) {
-            Tooltip.install(xpBar, new Tooltip("Experiencia hasta el próximo nivel"));
-        }
-        if (healthBar != null) {
-            Tooltip.install(healthBar, new Tooltip("Racha de días productivos"));
-        }
+        if (xpBar != null) Tooltip.install(xpBar, new Tooltip("Experiencia hasta el próximo nivel"));
+        if (healthBar != null) Tooltip.install(healthBar, new Tooltip("Racha de días productivos"));
+        if (imgAvatarSmall != null) Tooltip.install(imgAvatarSmall, new Tooltip("Clic para cambiar foto. (O 50 clics para un secreto)"));
+    }
+    
+    /**
+     * Da un efecto visual al avatar cuando pasas el mouse por encima para que el usuario
+     * sepa que puede hacer clic en él para cambiar su foto.
+     */
+    private void configurarEfectosAvatar() {
         if (imgAvatarSmall != null) {
-            Tooltip.install(imgAvatarSmall, new Tooltip("Haz click 50 veces... 🤔"));
+            imgAvatarSmall.setOnMouseEntered(e -> {
+                imgAvatarSmall.setEffect(new DropShadow(15, Color.rgb(163, 53, 238, 0.8)));
+                imgAvatarSmall.setStyle("-fx-cursor: hand;");
+                ScaleTransition st = new ScaleTransition(Duration.millis(150), imgAvatarSmall);
+                st.setToX(1.05); st.setToY(1.05); st.play();
+            });
+            
+            imgAvatarSmall.setOnMouseExited(e -> {
+                imgAvatarSmall.setEffect(null);
+                ScaleTransition st = new ScaleTransition(Duration.millis(150), imgAvatarSmall);
+                st.setToX(1.0); st.setToY(1.0); st.play();
+            });
         }
     }
 
-    /**
-     * Aplica los estilos CSS a la escena
-     */
     private void aplicarEstilos(Scene scene) {
         try {
             String authCss = getClass().getResource("/styles/auth.css").toExternalForm();
             String homeCss = getClass().getResource("/styles/home.css").toExternalForm();
             
-            if (!scene.getStylesheets().contains(authCss)) {
-                scene.getStylesheets().add(authCss);
-            }
-            if (!scene.getStylesheets().contains(homeCss)) {
-                scene.getStylesheets().add(homeCss);
-            }
-            
-            System.out.println("✅ Estilos CSS aplicados correctamente");
+            if (!scene.getStylesheets().contains(authCss)) scene.getStylesheets().add(authCss);
+            if (!scene.getStylesheets().contains(homeCss)) scene.getStylesheets().add(homeCss);
         } catch (Exception e) {
             System.err.println("⚠️ Error cargando CSS: " + e.getMessage());
         }
     }
 
-    /**
-     * Configura listeners para Easter Eggs (Konami Code, clicks en avatar)
-     */
     private void setupInputListeners(Scene scene) {
-        // Listener para Konami Code
+        // Konami Code
         scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             long currentTime = System.currentTimeMillis();
-            
-            // Reset si pasan más de 2 segundos entre teclas
-            if (currentTime - lastKonamiInputTime > 2000) {
-                konamiIndex = 0;
-            }
+            if (currentTime - lastKonamiInputTime > 2000) konamiIndex = 0;
             
             if (event.getCode() == konamiCode.get(konamiIndex)) {
                 konamiIndex++;
                 lastKonamiInputTime = currentTime;
-                System.out.println("🕹️ Konami progreso: " + konamiIndex + "/" + konamiCode.size());
-                
                 if (konamiIndex == konamiCode.size()) {
                     activarKonamiCode();
                     konamiIndex = 0;
@@ -206,105 +214,115 @@ public class HomeController {
             }
         });
 
-        // Listener para clicks en avatar (Easter Egg)
+        // Click Avatar (Sirve para cambiar foto Y para el Easter Egg)
         if (imgAvatarSmall != null) {
             imgAvatarSmall.setPickOnBounds(true);
             imgAvatarSmall.setOnMouseClicked(e -> {
                 long currentTime = System.currentTimeMillis();
                 
-                // Reset contador si pasan más de 3 segundos
-                if (currentTime - lastAvatarClickTime > 3000) {
-                    avatarClickCount = 0;
+                // Si hace doble clic rápido o un solo clic, abrimos el selector de imágenes
+                if (e.getClickCount() == 1 || e.getClickCount() == 2) {
+                     cambiarImagenPerfil();
                 }
                 
+                // Lógica del Easter Egg (50 clics)
+                if (currentTime - lastAvatarClickTime > 3000) avatarClickCount = 0;
                 avatarClickCount++;
                 lastAvatarClickTime = currentTime;
-                
-                // Pequeña animación de feedback
                 animarClickAvatar();
                 
                 if (avatarClickCount == 50) {
-                    intentarDesbloquearLogro(903, "Spammer de Clicks", 
-                        "¡Cálmate con el mouse! Has clickeado 50 veces tu avatar.");
+                    intentarDesbloquearLogro(903, "Spammer de Clicks", "¡Cálmate con el mouse! Has clickeado 50 veces tu avatar.");
                     avatarClickCount = 0;
                 }
             });
         }
     }
-
+    
+    // ==========================================
+    // SECCIÓN 4.5: CAMBIO DE IMAGEN DE PERFIL
+    // ==========================================
+    
     /**
-     * Animación de feedback al hacer click en el avatar
+     * Abre un selector de archivos para que el usuario elija su propio avatar.
      */
+    private void cambiarImagenPerfil() {
+        if (currentCharacter == null) return;
+        
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Elige tu nuevo Avatar");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+        
+        // Mostrar la ventana de selección encima de la actual
+        Stage stage = (Stage) mainLayout.getScene().getWindow();
+        File selectedFile = fileChooser.showOpenDialog(stage);
+        
+        if (selectedFile != null) {
+            try {
+                // 1. Cargar la imagen seleccionada y ponerla en el ImageView
+                String imageUri = selectedFile.toURI().toString();
+                Image newAvatar = new Image(imageUri);
+                imgAvatarSmall.setImage(newAvatar);
+                
+                // 2. Guardar la ruta en el modelo (Asume que agregaste un campo 'avatarUrl' o similar a la clase Character)
+                // currentCharacter.setAvatarUrl(selectedFile.getAbsolutePath());
+                // CharacterDAO.saveCharacter(currentCharacter);
+                
+                mostrarNotificacion("¡Genial!", "Tu foto de perfil ha sido actualizada.");
+                
+            } catch (Exception ex) {
+                System.err.println("❌ Error al cargar la nueva imagen: " + ex.getMessage());
+                mostrarNotificacion("Error", "No se pudo cargar la imagen seleccionada.");
+            }
+        }
+    }
+
     private void animarClickAvatar() {
         ScaleTransition st = new ScaleTransition(Duration.millis(100), imgAvatarSmall);
-        st.setFromX(1.0);
-        st.setFromY(1.0);
-        st.setToX(0.9);
-        st.setToY(0.9);
+        st.setFromX(1.0); st.setFromY(1.0);
+        st.setToX(0.85); st.setToY(0.85);
         st.setAutoReverse(true);
         st.setCycleCount(2);
         st.play();
     }
 
-    /**
-     * Activa el Easter Egg del Konami Code
-     */
     private void activarKonamiCode() {
-        intentarDesbloquearLogro(901, "Konami Code Master", 
-            "↑↑↓↓←→←→BA - ¡Has activado el código legendario!");
-        
-        // Bonus: 500 monedas extra
+        intentarDesbloquearLogro(901, "Konami Code Master", "↑↑↓↓←→←→BA - ¡Has activado el código legendario!");
         if (currentCharacter != null) {
             currentCharacter.setCoins(currentCharacter.getCoins() + 500);
             CharacterDAO.saveCharacter(currentCharacter);
             actualizarUI();
-            
             mostrarNotificacion("¡BONUS!", "+500 monedas por descubrir el Konami Code!");
         }
     }
 
-    /**
-     * Intenta desbloquear un logro. Si es nuevo, muestra alerta.
-     */
     private void intentarDesbloquearLogro(int achievementId, String title, String msg) {
         int userId = SessionManager.getInstance().getUserId();
         new Thread(() -> {
             boolean esNuevo = AchievementsDAO.unlockAchievement(userId, achievementId);
             if (esNuevo) {
                 Platform.runLater(() -> {
-                    SoundManager.playSuccessSound();
+                    try { SoundManager.playSuccessSound(); } catch (Exception e) {}
                     mostrarAlertaLogro(title, msg);
                 });
             }
         }).start();
     }
 
-    /**
-     * Muestra una alerta de logro desbloqueado
-     */
     private void mostrarAlertaLogro(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("🏆 SECRET UNLOCKED!");
         alert.setHeaderText("🏆 " + title);
         alert.setContentText(content);
         alert.initStyle(StageStyle.UTILITY);
-        
-        // Aplicar estilos si es posible
         try {
-            DialogPane dialogPane = alert.getDialogPane();
-            dialogPane.getStylesheets().add(
-                getClass().getResource("/styles/home.css").toExternalForm()
-            );
-        } catch (Exception e) {
-            // Ignorar si falla
-        }
-        
+            alert.getDialogPane().getStylesheets().add(getClass().getResource("/styles/home.css").toExternalForm());
+        } catch (Exception e) {}
         alert.show();
     }
 
-    /**
-     * Muestra una notificación temporal en pantalla
-     */
     private void mostrarNotificacion(String titulo, String mensaje) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(titulo);
@@ -313,7 +331,6 @@ public class HomeController {
         alert.initStyle(StageStyle.UTILITY);
         alert.show();
         
-        // Auto-cerrar después de 3 segundos
         new Thread(() -> {
             try {
                 Thread.sleep(3000);
@@ -328,140 +345,99 @@ public class HomeController {
     // SECCIÓN 5: GESTIÓN DE DATOS DEL JUGADOR
     // ==========================================
 
-    /**
-     * Inicializa los datos del jugador en la UI y en el backend
-     */
     public void initPlayerData(Character character) {
-        if (character == null) {
-            System.err.println("⚠️ Character es null en initPlayerData");
-            return;
-        }
-        
+        if (character == null) return;
         this.currentCharacter = character;
-        System.out.println("✅ Personaje cargado: " + character.getName() + " (Nivel " + character.getLevel() + ")");
 
-        // Inicialización en background thread
         new Thread(() -> {
             try {
                 int userId = SessionManager.getInstance().getUserId();
-                
-                // 1. Iniciar sesión en BD
                 this.dbSessionId = ActivityDAO.iniciarSesion(userId);
-                System.out.println("✅ Sesión BD iniciada: ID " + dbSessionId);
                 
-                // 2. Inicializar misiones globales del usuario
                 MissionsDAO.inicializarMisionesGlobalesParaUsuario(userId);
-                System.out.println("✅ Misiones globales inicializadas");
                 
-                // 3. Easter Egg: Hora maldita (3:33 AM)
+                XPSyncService.getInstance().addXPChangeListener(HomeController.this);
+                
+                // Suscribirse a los Eventos Dinámicos
+                EventContextualService.getInstance().addEventListener(this);
+                
+                // Instanciar la UI que pinta los eventos
+                new EventContextualUI();
+                
+                // Activar motor de eventos
+                EventContextualService.getInstance().startEventGenerator(userId);
+                
                 LocalTime now = LocalTime.now();
                 if (now.getHour() == 3 && now.getMinute() == 33) {
-                    intentarDesbloquearLogro(902, "Viajero del Tiempo", 
-                        "Has entrado a las 3:33 AM... La hora maldita. 👻");
+                    intentarDesbloquearLogro(902, "Viajero del Tiempo", "Has entrado a las 3:33 AM... La hora maldita. 👻");
                 }
                 
-                // 4. Iniciar monitoreo de actividad
                 monitorService.startMonitoring(userId);
-                System.out.println("✅ Monitoreo de actividad iniciado");
                 
             } catch (Exception e) {
                 System.err.println("❌ Error en initPlayerData background: " + e.getMessage());
-                e.printStackTrace();
             }
         }).start();
 
-        // Actualizar UI en JavaFX thread
         Platform.runLater(this::actualizarUI);
     }
 
-    /**
-     * Actualiza todos los elementos de la UI con los datos actuales del personaje
-     */
     public void actualizarUI() {
         if (currentCharacter == null) return;
-        
         try {
-            // Header - Información del personaje
             lblUsername.setText(currentCharacter.getName().toUpperCase());
             lblClass.setText(obtenerNombreClase(currentCharacter.getClassId()));
             lblLevel.setText(String.valueOf(currentCharacter.getLevel()));
             lblCoins.setText(String.valueOf(currentCharacter.getCoins()));
             
-            // Avatar
             cargarAvatarSmall(currentCharacter.getClassId());
             
-            // Barra de XP
             int xpActual = currentCharacter.getCurrentXp();
             int xpRequerido = currentCharacter.getLevel() * 1000;
             double xpProgress = (double) xpActual / xpRequerido;
             xpBar.setProgress(xpProgress);
             lblXPText.setText(xpActual + " / " + xpRequerido + " XP");
             
-            // Barra de Salud/Racha
             healthBar.setProgress(1.0);
             if (lblHealthStreak != null) {
                 int racha = currentCharacter.getHealthStreak();
                 lblHealthStreak.setText("RACHA: " + racha + (racha == 1 ? " DÍA" : " DÍAS"));
             }
-            
-            System.out.println("✅ UI actualizada correctamente");
-        } catch (Exception e) {
-            System.err.println("❌ Error actualizando UI: " + e.getMessage());
-        }
+        } catch (Exception e) {}
     }
 
-    /**
-     * Refresca los datos del personaje desde la base de datos
-     */
     public void refreshCharacterData() {
         if (currentCharacter == null) return;
-        
         new Thread(() -> {
             try {
                 int userId = SessionManager.getInstance().getUserId();
                 Map<Integer, Character> characters = CharacterDAO.getCharactersByUser(userId);
-                
                 if (!characters.isEmpty()) {
                     Character refreshed = characters.get(currentCharacter.getSlotIndex());
                     if (refreshed != null) {
                         this.currentCharacter = refreshed;
                         Platform.runLater(this::actualizarUI);
-                        System.out.println("✅ Datos del personaje refrescados");
                     }
                 }
-            } catch (Exception e) {
-                System.err.println("❌ Error refrescando personaje: " + e.getMessage());
-            }
+            } catch (Exception e) {}
         }).start();
     }
 
-    /**
-     * Carga el avatar pequeño del personaje según su clase
-     */
     private void cargarAvatarSmall(int classId) {
         try {
+            // Nota: Aquí podrías chequear si currentCharacter.getAvatarUrl() tiene algo 
+            // y cargar esa imagen primero. Si está vacío, cargar las por defecto.
+            
             String path = "/assets/images/sprites/base/class_" + classId + ".png";
             URL url = getClass().getResource(path);
-            
-            // Fallback si no existe la imagen base
             if (url == null) {
                 path = "/assets/images/sprites/class_" + classId + "_idle.png";
                 url = getClass().getResource(path);
             }
-            
-            if (url != null) {
-                imgAvatarSmall.setImage(new Image(url.toExternalForm()));
-            } else {
-                System.err.println("⚠️ Avatar no encontrado: " + path);
-            }
-        } catch (Exception e) {
-            System.err.println("⚠️ Error cargando avatar: " + e.getMessage());
-        }
+            if (url != null) imgAvatarSmall.setImage(new Image(url.toExternalForm()));
+        } catch (Exception e) {}
     }
 
-    /**
-     * Obtiene el nombre legible de una clase por su ID
-     */
     private String obtenerNombreClase(int classId) {
         return switch (classId) {
             case 1 -> "PROGRAMADOR";
@@ -475,28 +451,16 @@ public class HomeController {
     // SECCIÓN 6: NAVEGACIÓN ENTRE VISTAS
     // ==========================================
 
-    /**
-     * Carga una vista en el área de contenido con sistema de caché
-     */
     private void loadView(String viewName) {
-        if (viewName.equals(currentViewName)) {
-            System.out.println("ℹ️ Vista ya cargada: " + viewName);
-            return;
-        }
-        
+        if (viewName.equals(currentViewName)) return;
         try {
             Node nextView = viewCache.get(viewName);
             Object controller = controllerCache.get(viewName);
             
-            // Si no está en caché, cargarla
             if (nextView == null) {
                 String path = "/fxml/views/" + viewName + ".fxml";
                 URL url = getClass().getResource(path);
-                
-                if (url == null) {
-                    System.err.println("⚠️ Vista no encontrada: " + path);
-                    return;
-                }
+                if (url == null) return;
 
                 FXMLLoader loader = new FXMLLoader(url);
                 nextView = loader.load();
@@ -504,67 +468,50 @@ public class HomeController {
                 
                 viewCache.put(viewName, nextView);
                 controllerCache.put(viewName, controller);
-                
-                System.out.println("✅ Vista cargada y cacheada: " + viewName);
-            } else {
-                System.out.println("✅ Vista recuperada de caché: " + viewName);
             }
 
-            // Inyectar datos al controlador
-            if (controller != null) {
-                injectCharacterData(controller);
-            }
+            if (controller != null) injectCharacterData(controller);
 
-            // Animar transición
             animarCambioDeVista(nextView);
             currentViewName = viewName;
-            
         } catch (IOException e) {
-            System.err.println("❌ Error cargando vista " + viewName + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    /**
-     * Inyecta datos del personaje/usuario en el controlador de la vista
-     */
     private void injectCharacterData(Object controller) {
         int userId = SessionManager.getInstance().getUserId();
-
+        // Inyección a sub-controladores
         if (controller instanceof com.ctrlaltquest.ui.controllers.views.CharacterPanelController) {
             ((com.ctrlaltquest.ui.controllers.views.CharacterPanelController) controller).setPlayerData(currentCharacter);
         } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.ProfileViewController) {
             ((com.ctrlaltquest.ui.controllers.views.ProfileViewController) controller).setPlayerData(currentCharacter);
         } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.DashboardViewController) {
-            ((com.ctrlaltquest.ui.controllers.views.DashboardViewController) controller).setUserId(userId);
+            com.ctrlaltquest.ui.controllers.views.DashboardViewController dashCtrl = (com.ctrlaltquest.ui.controllers.views.DashboardViewController) controller;
+            dashCtrl.setUserId(userId);
+            dashCtrl.setPlayerData(currentCharacter);
         } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.MissionsViewController) {
             ((com.ctrlaltquest.ui.controllers.views.MissionsViewController) controller).setUserId(userId);
         } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.ActivityViewController) {
-            // ✅ CORRECCIÓN CRÍTICA: Pasar 'this' al ActivityViewController
             com.ctrlaltquest.ui.controllers.views.ActivityViewController activityCtrl = (com.ctrlaltquest.ui.controllers.views.ActivityViewController) controller;
             activityCtrl.setUserId(userId);
-            activityCtrl.setHomeController(this); // <-- ESTO PERMITE ACTUALIZAR LA BARRA DE XP
+            activityCtrl.setHomeController(this);
         } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.AchievementsViewController) {
             ((com.ctrlaltquest.ui.controllers.views.AchievementsViewController) controller).setUserId(userId);
         }
     }
 
-    /**
-     * Anima la transición entre vistas con fade in/out
-     */
     private void animarCambioDeVista(Node nextView) {
         if (contentArea.getChildren().isEmpty()) {
             contentArea.getChildren().add(nextView);
             fadeIn(nextView);
             return;
         }
-
         Node currentView = contentArea.getChildren().get(0);
         if (currentView == nextView) return;
 
         FadeTransition fadeOut = new FadeTransition(Duration.millis(200), currentView);
-        fadeOut.setFromValue(1.0);
-        fadeOut.setToValue(0.0);
+        fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
         fadeOut.setOnFinished(e -> {
             contentArea.getChildren().clear();
             contentArea.getChildren().add(nextView);
@@ -573,64 +520,32 @@ public class HomeController {
         fadeOut.play();
     }
 
-    /**
-     * Animación de fade in para un nodo
-     */
     private void fadeIn(Node node) {
         node.setOpacity(0);
         FadeTransition fadeIn = new FadeTransition(Duration.millis(300), node);
-        fadeIn.setFromValue(0.0);
-        fadeIn.setToValue(1.0);
-        fadeIn.play();
+        fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0); fadeIn.play();
     }
 
     // ==========================================
-    // SECCIÓN 7: ACCIONES DEL MENÚ DE NAVEGACIÓN
+    // SECCIÓN 7: ACCIONES DEL MENÚ
     // ==========================================
 
-    @FXML private void showDashboard() { 
-        SoundManager.playClickSound(); 
-        loadView("dashboard_view"); 
-    }
-    
-    @FXML private void showActivity() { 
-        SoundManager.playClickSound(); 
-        loadView("activity_view"); 
-    }
-    
-    @FXML private void showMissions() { 
-        SoundManager.playClickSound(); 
-        loadView("missions_view"); 
-    }
-    
-    @FXML private void showStore() { 
-        SoundManager.playClickSound(); 
-        loadView("store_view"); 
-    }
-    
-    @FXML private void showInventory() { 
-        SoundManager.playClickSound(); 
-        loadView("character_panel"); 
-    }
-    
-    @FXML private void showStats() { 
-        SoundManager.playClickSound(); 
-        loadView("achievements_view"); 
-    }
-    
-    @FXML private void showProfile() { 
-        SoundManager.playClickSound(); 
-        loadView("profile_view"); 
+    private void playClick() {
+        try { SoundManager.playClickSound(); } catch(Exception e){}
     }
 
-    /**
-     * Abre el modal de configuración (icono de engranaje)
-     */
+    @FXML private void showDashboard() { playClick(); loadView("dashboard_view"); }
+    @FXML private void showActivity() { playClick(); loadView("activity_view"); }
+    @FXML private void showMissions() { playClick(); loadView("missions_view"); }
+    @FXML private void showStore() { playClick(); loadView("store_view"); }
+    @FXML private void showInventory() { playClick(); loadView("character_panel"); }
+    @FXML private void showStats() { playClick(); loadView("achievements_view"); }
+    @FXML private void showProfile() { playClick(); loadView("profile_view"); }
+
     @FXML
     private void showSettingsModal() {
         try {
-            SoundManager.playClickSound();
-            
+            playClick();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
             Parent root = loader.load();
             SettingsController settingsCtrl = loader.getController();
@@ -646,79 +561,47 @@ public class HomeController {
             settingsStage.setScene(scene);
             settingsStage.setTitle("Ajustes");
             settingsStage.show();
-            
-            System.out.println("✅ Modal de ajustes abierto");
-        } catch (IOException e) {
-            System.err.println("❌ Error abriendo ajustes: " + e.getMessage());
-            e.printStackTrace();
-        }
+        } catch (IOException e) {}
     }
 
     // ==========================================
     // SECCIÓN 8: MONITOREO DE ACTIVIDAD
     // ==========================================
 
-    /**
-     * Inicia el thread de monitoreo de actividad en tiempo real
-     */
     private void iniciarMonitoreoActividad() {
         monitorThread = new Thread(() -> {
-            System.out.println("🔍 Thread de monitoreo iniciado");
-            
             while (isMonitoring) {
                 try {
                     String currentTitle = monitorService.getActiveWindowTitle();
                     boolean isProductive = monitorService.isProductive(currentTitle);
+                    
+                    // Notificar al sistema de eventos en qué estamos trabajando
+                    EventContextualService.getInstance().updateCurrentActivity(currentTitle);
 
                     Platform.runLater(() -> actualizarPanelActividad(currentTitle, isProductive));
-                    
-                    Thread.sleep(2000); // Actualizar cada 2 segundos
-                    
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
-                    System.out.println("⚠️ Thread de monitoreo interrumpido");
                     break;
-                } catch (Exception e) {
-                    System.err.println("❌ Error en monitor UI: " + e.getMessage());
-                }
+                } catch (Exception e) {}
             }
-            
-            System.out.println("🛑 Thread de monitoreo finalizado");
         });
-        
         monitorThread.setDaemon(true);
         monitorThread.start();
     }
 
-    /**
-     * Actualiza el panel lateral de actividad con la app actual
-     */
     private void actualizarPanelActividad(String currentTitle, boolean isProductive) {
         if (lblCurrentApp != null) {
-            String display = currentTitle.length() > 30 
-                ? currentTitle.substring(0, 30) + "..." 
-                : currentTitle;
+            String display = currentTitle.length() > 30 ? currentTitle.substring(0, 30) + "..." : currentTitle;
             lblCurrentApp.setText(display);
         }
         
         if (lblAppStatus != null) {
             if (isProductive) {
                 lblAppStatus.setText("✓ PRODUCTIVO (+XP)");
-                lblAppStatus.setStyle(
-                    "-fx-background-color: #2d5a27; " +
-                    "-fx-text-fill: #90EE90; " +
-                    "-fx-padding: 4 12; " +
-                    "-fx-background-radius: 6; " +
-                    "-fx-font-weight: bold;"
-                );
+                lblAppStatus.setStyle("-fx-background-color: #2d5a27; -fx-text-fill: #90EE90; -fx-padding: 4 12; -fx-background-radius: 6; -fx-font-weight: bold;");
             } else {
                 lblAppStatus.setText("○ OCIO / NEUTRAL");
-                lblAppStatus.setStyle(
-                    "-fx-background-color: #5a2d2d; " +
-                    "-fx-text-fill: #FFB6C1; " +
-                    "-fx-padding: 4 12; " +
-                    "-fx-background-radius: 6; " +
-                    "-fx-font-weight: bold;"
-                );
+                lblAppStatus.setStyle("-fx-background-color: #5a2d2d; -fx-text-fill: #FFB6C1; -fx-padding: 4 12; -fx-background-radius: 6; -fx-font-weight: bold;");
             }
         }
     }
@@ -727,9 +610,6 @@ public class HomeController {
     // SECCIÓN 9: VIDEO DE FONDO
     // ==========================================
 
-    /**
-     * Configura el video de fondo del hub principal
-     */
     private void configurarFondo() {
         try {
             URL videoUrl = getClass().getResource("/assets/videos/main_hub.mp4");
@@ -740,142 +620,169 @@ public class HomeController {
                 
                 videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                 videoPlayer.setMute(true);
-                videoPlayer.setRate(0.6); // Velocidad lenta para ambiente
-                
-                // Efecto de desenfoque para no distraer
+                videoPlayer.setRate(0.6);
                 backgroundVideo.setEffect(new GaussianBlur(20));
                 
-                // Respetar configuración del usuario
                 if (SettingsController.isVideoPaused) {
                     videoPlayer.pause();
                 } else {
                     videoPlayer.play();
                 }
-                
-                System.out.println("✅ Video de fondo configurado");
-            } else {
-                // Manejo silencioso: Si no hay video, no pasa nada, se verá el color de fondo.
-                System.out.println("ℹ️ Nota: Video de fondo no encontrado (main_hub.mp4)");
             }
-        } catch (Exception e) {
-            System.err.println("⚠️ Error configurando video: " + e.getMessage());
-        }
+        } catch (Exception e) {}
     }
 
-    /**
-     * Control del video de fondo (play/pause)
-     */
     public void setVideoPlaying(boolean shouldPlay) {
         if (videoPlayer == null) return;
-        
         Platform.runLater(() -> {
-            if (shouldPlay) {
-                videoPlayer.play();
-            } else {
-                videoPlayer.pause();
-            }
+            if (shouldPlay) videoPlayer.play();
+            else videoPlayer.pause();
         });
     }
 
     // ==========================================
-    // SECCIÓN 10: CIERRE DE SESIÓN Y CLEANUP
+    // SECCIÓN 10: CIERRE DE SESIÓN
     // ==========================================
 
-    /**
-     * Maneja el cierre de sesión del usuario
-     */
     @FXML
     private void handleLogout() {
-        SoundManager.playClickSound();
-        
-        // Mostrar capa de carga
+        playClick();
         if (loadingLayer != null) {
             loadingLayer.setVisible(true);
             loadingLayer.setOpacity(0);
             FadeTransition ft = new FadeTransition(Duration.millis(300), loadingLayer);
-            ft.setToValue(1.0);
-            ft.play();
+            ft.setToValue(1.0); ft.play();
         }
 
-        // Detener monitoreo
         isMonitoring = false;
         monitorService.stopMonitoring();
 
-        // Cleanup en background
         new Thread(() -> {
             try {
-                // Cerrar sesión en BD
-                if (dbSessionId != -1) {
-                    ActivityDAO.cerrarSesion(dbSessionId);
-                    System.out.println("✅ Sesión BD cerrada: ID " + dbSessionId);
-                }
-
-                Thread.sleep(800); // Dar tiempo para animaciones
-
+                if (dbSessionId != -1) ActivityDAO.cerrarSesion(dbSessionId);
+                Thread.sleep(800);
                 Platform.runLater(this::volverALogin);
-                
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }).start();
     }
 
-    /**
-     * Vuelve a la pantalla de login
-     */
     private void volverALogin() {
         try {
-            // Limpiar recursos
             cleanup();
-
-            // Cargar vista de login
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) mainLayout.getScene().getWindow();
             
-            // Transición suave
             FadeTransition fadeOut = new FadeTransition(Duration.millis(600), stage.getScene().getRoot());
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
+            fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(e -> {
                 stage.getScene().setRoot(root);
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(600), root);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                fadeIn.play();
+                fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0); fadeIn.play();
             });
             fadeOut.play();
-            
-            System.out.println("✅ Sesión cerrada correctamente");
-            
-        } catch (IOException e) {
-            System.err.println("❌ Error volviendo a login: " + e.getMessage());
-            e.printStackTrace();
-        }
+        } catch (IOException e) {}
     }
 
-    /**
-     * Limpia todos los recursos antes de cerrar
-     */
     private void cleanup() {
         try {
-            // Detener video
             if (videoPlayer != null) {
-                videoPlayer.stop();
-                videoPlayer.dispose();
-                videoPlayer = null;
+                videoPlayer.stop(); videoPlayer.dispose(); videoPlayer = null;
             }
-            
-            // Limpiar caché de vistas
-            viewCache.clear();
-            controllerCache.clear();
-            
-            // Cerrar sesión
+            viewCache.clear(); controllerCache.clear();
+            XPSyncService.getInstance().removeXPChangeListener(this);
+            EventContextualService.getInstance().removeEventListener(this);
+            EventContextualService.getInstance().stopEventGenerator(SessionManager.getInstance().getUserId());
             SessionManager.getInstance().logout();
-            
-            System.out.println("✅ Recursos liberados correctamente");
-        } catch (Exception e) {
-            System.err.println("⚠️ Error en cleanup: " + e.getMessage());
+        } catch (Exception e) {}
+    }
+    
+    // ==========================================
+    // IMPLEMENTACIÓN DE XPChangeListener
+    // ==========================================
+    
+    @Override
+    public void onXPChanged(int userId, XPSyncService.XPChangeEvent event) {
+        if (currentCharacter == null || SessionManager.getInstance().getUserId() != userId) return;
+        
+        Platform.runLater(() -> {
+            try {
+                XPSyncService.UserXPData data = XPSyncService.getInstance().getUserXPData(userId);
+                if (data == null) return;
+                
+                double progress = XPSyncService.getInstance().getUserXPProgress(userId);
+                xpBar.setProgress(progress);
+                lblXPText.setText(data.currentXP + " / " + data.xpRequired + " XP");
+                
+                if (event.xpGained > 0) {
+                    ScaleTransition scaleUp = new ScaleTransition(Duration.millis(300), xpBar);
+                    scaleUp.setToY(1.1); scaleUp.setCycleCount(2); scaleUp.setAutoReverse(true); scaleUp.play();
+                    showXPGainNotification(event.xpGained, event.source);
+                }
+            } catch (Exception e) {}
+        });
+    }
+    
+    @Override
+    public void onLevelUp(int userId, int newLevel) {
+        if (currentCharacter == null || SessionManager.getInstance().getUserId() != userId) return;
+        
+        Platform.runLater(() -> {
+            try {
+                lblLevel.setText(String.valueOf(newLevel));
+                currentCharacter.setLevel(newLevel);
+                xpBar.setProgress(0.0);
+                
+                XPSyncService.UserXPData data = XPSyncService.getInstance().getUserXPData(userId);
+                if (data != null) lblXPText.setText(data.currentXP + " / " + data.xpRequired + " XP");
+                
+                playLevelUpAnimation();
+                try { SoundManager.playLevelUpSound(); } catch (Exception e) {}
+                mostrarNotificacion("🎉 ¡SUBIDA DE NIVEL!", "¡Felicidades! Acabas de alcanzar NIVEL " + newLevel + "! 🎊");
+            } catch (Exception e) {}
+        });
+    }
+    
+    private void playLevelUpAnimation() {
+        ScaleTransition scale = new ScaleTransition(Duration.millis(500), lblLevel);
+        scale.setToX(1.3); scale.setToY(1.3); scale.setCycleCount(2); scale.setAutoReverse(true);
+        FadeTransition fade = new FadeTransition(Duration.millis(500), lblLevel);
+        fade.setFromValue(1.0); fade.setToValue(0.7); fade.setCycleCount(2); fade.setAutoReverse(true);
+        scale.play(); fade.play();
+    }
+    
+    private void showXPGainNotification(int xpAmount, String source) {
+        Label notifLabel = new Label("+ " + xpAmount + " XP");
+        notifLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #FFD700;");
+        notifLabel.setOpacity(1.0);
+        StackPane.setAlignment(notifLabel, javafx.geometry.Pos.CENTER);
+        FadeTransition fade = new FadeTransition(Duration.millis(1500), notifLabel);
+        fade.setFromValue(1.0); fade.setToValue(0.0); fade.play();
+    }
+
+    // ==========================================
+    // IMPLEMENTACIÓN DE EventContextualListener
+    // ==========================================
+
+    @Override
+    public void onEventGenerated(int userId, EventContextualService.ContextualEvent event) { }
+
+    @Override
+    public void onEventStarted(int userId, EventContextualService.ContextualEvent event) { }
+
+    @Override
+    public void onEventProgressUpdated(int userId, EventContextualService.ContextualEvent event, int currentProgress, int target) { }
+
+    @Override
+    public void onEventCriticalPhase(int userId, EventContextualService.ContextualEvent event) { }
+
+    @Override
+    public void onEventCompleted(int userId, EventContextualService.ContextualEvent event, CompletionStatus status, int xpReward, int coinReward) {
+        // Al terminar un evento, pedimos a la BD que actualice la interfaz por si ganamos oro o nivel.
+        if (status == CompletionStatus.VICTORY) {
+            refreshCharacterData();
         }
     }
 }

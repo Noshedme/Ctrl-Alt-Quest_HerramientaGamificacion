@@ -14,11 +14,7 @@ import com.ctrlaltquest.services.SessionManager;
 public class CharacterDAO {
 
     /**
-<<<<<<< HEAD
      * Recupera todos los personajes de un usuario específico incluyendo XP, Monedas, Racha y SKIN.
-=======
-     * Recupera todos los personajes de un usuario específico.
->>>>>>> 89a1d6382800dd5b9b2c5d5902797a39cef53167
      */
     public static Map<Integer, Character> getCharactersByUser(int userId) {
         Map<Integer, Character> map = new HashMap<>();
@@ -29,12 +25,8 @@ public class CharacterDAO {
         
         if (userId <= 0) return map;
 
-<<<<<<< HEAD
         // SELECT actualizado para incluir 'skin'
         String query = "SELECT id, name, class_id, user_id, level, slot_index, current_xp, coins, health_streak, skin " +
-=======
-        String query = "SELECT id, name, class_id, user_id, level, slot_index, current_xp, coins, health_streak " +
->>>>>>> 89a1d6382800dd5b9b2c5d5902797a39cef53167
                        "FROM characters WHERE user_id = ? ORDER BY slot_index";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -52,11 +44,8 @@ public class CharacterDAO {
                     c.setUserId(rs.getInt("user_id"));
                     c.setLevel(rs.getInt("level"));
                     c.setSlotIndex(rs.getInt("slot_index"));
-<<<<<<< HEAD
                     
                     // Datos de gamificación
-=======
->>>>>>> 89a1d6382800dd5b9b2c5d5902797a39cef53167
                     c.setCurrentXp(rs.getInt("current_xp"));
                     c.setCoins(rs.getInt("coins"));
                     c.setHealthStreak(rs.getInt("health_streak"));
@@ -81,14 +70,9 @@ public class CharacterDAO {
         int userId = c.getUserId();
         if (userId <= 0) userId = SessionManager.getInstance().getUserId();
 
-<<<<<<< HEAD
         // SQL actualizado: Incluye 'skin' en INSERT y en ON CONFLICT UPDATE
         String query = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak, skin) " +
                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-=======
-        String query = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak) " +
-                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " +
->>>>>>> 89a1d6382800dd5b9b2c5d5902797a39cef53167
                        "ON CONFLICT (user_id, slot_index) DO UPDATE SET " +
                        "name = EXCLUDED.name, " +
                        "class_id = EXCLUDED.class_id, " +
@@ -124,12 +108,16 @@ public class CharacterDAO {
     }
 
     /**
+     * SOBRECARGA: Crea un personaje nuevo con skin por defecto.
+     * (Mantenemos este método para compatibilidad con código antiguo que no envía skin)
+     */
+    public static boolean createCharacter(int userId, String name, int classId, int slotIndex) {
+        return createCharacter(userId, name, classId, slotIndex, "body_female");
+    }
+
+    /**
      * Crea un personaje nuevo inicializando valores por defecto.
-<<<<<<< HEAD
-     * Ahora acepta 'skin' como parámetro opcional (puede ser null).
-=======
-     * NECESARIO PARA CharacterSelectionController
->>>>>>> 89a1d6382800dd5b9b2c5d5902797a39cef53167
+     * Ahora acepta 'skin' como parámetro opcional.
      */
     public static boolean createCharacter(int userId, String name, int classId, int slotIndex, String skin) {
         Connection conn = null;
@@ -138,14 +126,9 @@ public class CharacterDAO {
             if (conn == null) return false;
             conn.setAutoCommit(false); 
 
-<<<<<<< HEAD
             // Insertamos con valores iniciales
             String sqlChar = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak, skin) " +
                              "VALUES (?, ?, ?, ?, 1, 0, 0, 0, ?) RETURNING id";
-=======
-            String sqlChar = "INSERT INTO characters (user_id, name, class_id, slot_index, level, current_xp, coins, health_streak) " +
-                             "VALUES (?, ?, ?, ?, 1, 0, 0, 0) RETURNING id";
->>>>>>> 89a1d6382800dd5b9b2c5d5902797a39cef53167
             
             int characterId = -1;
             try (PreparedStatement ps = conn.prepareStatement(sqlChar)) {
@@ -170,11 +153,7 @@ public class CharacterDAO {
                 }
 
                 conn.commit();
-<<<<<<< HEAD
                 System.out.println("✨ Personaje '" + name + "' creado exitosamente con skin: " + skin);
-=======
-                System.out.println("✨ Personaje '" + name + "' creado exitosamente.");
->>>>>>> 89a1d6382800dd5b9b2c5d5902797a39cef53167
                 return true;
             }
             
@@ -192,7 +171,6 @@ public class CharacterDAO {
 
     /**
      * Elimina un personaje por su ID único.
-     * ESTE ES EL MÉTODO QUE FALTABA Y CAUSABA EL ERROR DE COMPILACIÓN.
      */
     public static boolean deleteCharacter(int characterId) {
         String query = "DELETE FROM characters WHERE id = ?";

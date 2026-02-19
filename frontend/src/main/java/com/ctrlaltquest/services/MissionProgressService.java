@@ -1,10 +1,11 @@
 package com.ctrlaltquest.services;
 
-import com.ctrlaltquest.db.DatabaseConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import com.ctrlaltquest.db.DatabaseConnection;
 
 /**
  * MissionProgressService - Servicio que actualiza misiones automáticamente basado en actividad.
@@ -25,14 +26,6 @@ public class MissionProgressService {
         return instance;
     }
 
-    /**
-     * 🎯 MÉTODO PÚBLICO - Captura actividad MANUAL cuando el usuario presiona el botón en la UI.
-     * Este método es llamado desde el botón "Capturar Actividad" en la sección de Actividad.
-     * 
-     * @param userId ID del usuario
-     * @param appName Nombre de la aplicación (ej: "VSCode", "Chrome")
-     * @param isProductive ¿Es actividad productiva?
-     */
     public void captureActivityManual(int userId, String appName, boolean isProductive) {
         System.out.println("🎯 [MissionProgressService] Captura MANUAL de actividad");
         System.out.println("   └─ Usuario: " + userId);
@@ -42,14 +35,6 @@ public class MissionProgressService {
         processActivityEvent(userId, appName, isProductive);
     }
 
-    /**
-     * Procesa un evento de actividad y actualiza misiones relacionadas.
-     * Se llama cada 1 segundo desde ActivityMonitorService.
-     * 
-     * @param userId ID del usuario
-     * @param appName Nombre de la aplicación activa (ej: "VSCode", "Chrome")
-     * @param isProductive ¿Es actividad productiva?
-     */
     public void processActivityEvent(int userId, String appName, boolean isProductive) {
         try (Connection conn = DatabaseConnection.getConnection()) {
             
@@ -62,15 +47,15 @@ public class MissionProgressService {
             // 3. Actualizar misiones de contadores (apps usadas, etc.)
             updateCounterBasedMissions(userId, appName, category, conn);
             
-            // 4. Otorgar XP por actividad productiva
+            // 4. OTORGAR XP POR ACTIVIDAD PRODUCTIVA USANDO XPSYNCSERVICE
             if (isProductive) {
-                rewardsService.awardXPForActivity(userId, true);
+                XPSyncService.getInstance().awardXPFromActivity(userId, 1, "time_" + category.toLowerCase());
             }
             
             // 5. Verificar y completar logros
-            rewardsService.checkAndAwardAchievements(userId);
+            RewardsService.getInstance().checkAndAwardAchievements(userId);
             
-            // 6. ✨ NUEVO: Verificar y generar eventos contextuales
+            // 6. Verificar y generar eventos contextuales
             eventsService.checkAndGenerateEvent(userId, category);
             
         } catch (SQLException e) {
@@ -78,13 +63,6 @@ public class MissionProgressService {
         }
     }
 
-    /**
-     * Categoriza la aplicación según el nombre.
-     * 
-     * @param appName Nombre de la aplicación
-     * @param isProductive ¿Es productiva?
-     * @return Categoría (ej: "CODING", "BROWSING", "PRODUCTIVITY")
-     */
     private String categorizeApp(String appName, boolean isProductive) {
         if (appName == null) return "UNKNOWN";
         
@@ -95,18 +73,15 @@ public class MissionProgressService {
             lower.contains("netbeans") || lower.contains("sublime")) {
             return "CODING";
         }
-        
         if (lower.contains("chrome") || lower.contains("firefox") || 
             lower.contains("edge") || lower.contains("safari")) {
             return "BROWSING";
         }
-        
         if (lower.contains("word") || lower.contains("excel") || 
             lower.contains("powerpoint") || lower.contains("docs") ||
             lower.contains("sheets")) {
             return "OFFICE";
         }
-        
         if (lower.contains("slack") || lower.contains("teams") || 
             lower.contains("discord") || lower.contains("telegram")) {
             return "COMMUNICATION";
@@ -115,23 +90,13 @@ public class MissionProgressService {
         return isProductive ? "PRODUCTIVITY" : "ENTERTAINMENT";
     }
 
-    /**
-     * Actualiza misiones basadas en tiempo de actividad.
-     * Incrementa 1 segundo por cada tick de actividad.
-     * 
-     * @param userId ID del usuario
-     * @param category Categoría de la aplicación
-     * @param conn Conexión a BD
-     */
     private void updateTimeBasedMissions(int userId, String category, Connection conn) throws SQLException {
-        // Buscar misiones de tiempo para esta categoría
+        // CORRECCIÓN: No existe m.completed. Buscamos donde progress_percentage < 100
         String sql = "SELECT mp.id, mp.mission_id, mp.current_value, mp.target_value, mp.progress_percentage " +
                      "FROM public.mission_progress mp " +
-                     "JOIN public.missions m ON mp.mission_id = m.id " +
                      "WHERE mp.user_id = ? " +
-                     "  AND m.completed = false " +
-                     "  AND mp.metric_key LIKE ? " +
-                     "  AND mp.current_value < mp.target_value";
+                     "  AND mp.progress_percentage < 100 " +
+                     "  AND mp.metric_key LIKE ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
@@ -143,13 +108,10 @@ public class MissionProgressService {
                 int missionId = rs.getInt("mission_id");
                 long currentValue = rs.getLong("current_value");
                 long targetValue = rs.getLong("target_value");
-                double currentProgress = rs.getDouble("progress_percentage");
                 
-                // Incrementar 1 segundo
                 long newValue = Math.min(currentValue + 1, targetValue);
                 double newProgress = (double) newValue / targetValue * 100;
                 
-                // Actualizar mission_progress
                 String updateSql = "UPDATE public.mission_progress " +
                                   "SET current_value = ?, progress_percentage = ? " +
                                   "WHERE id = ?";
@@ -161,7 +123,7 @@ public class MissionProgressService {
                     updateStmt.executeUpdate();
                 }
                 
-                // Si se completó la misión
+                // Si se completó la misión ahora mismo
                 if (newValue >= targetValue && currentValue < targetValue) {
                     completeMission(userId, missionId, conn);
                 }
@@ -169,17 +131,7 @@ public class MissionProgressService {
         }
     }
 
-    /**
-     * Actualiza misiones basadas en contadores (aplicaciones únicas usadas, etc.).
-     * 
-     * @param userId ID del usuario
-     * @param appName Nombre de la aplicación
-     * @param category Categoría de la aplicación
-     * @param conn Conexión a BD
-     */
     private void updateCounterBasedMissions(int userId, String appName, String category, Connection conn) throws SQLException {
-        // Ejemplos: "apps_used", "categories_used", "productive_apps_used"
-        
         // 1. Contar apps únicas usadas en esta sesión
         String countAppsSql = "SELECT COUNT(DISTINCT app_id) as count " +
                              "FROM public.app_usage_logs aul " +
@@ -189,7 +141,6 @@ public class MissionProgressService {
         try (PreparedStatement pstmt = conn.prepareStatement(countAppsSql)) {
             pstmt.setInt(1, userId);
             ResultSet rs = pstmt.executeQuery();
-            
             if (rs.next()) {
                 int uniqueApps = rs.getInt("count");
                 updateMissionCounter(userId, "apps_used", uniqueApps, conn);
@@ -206,7 +157,6 @@ public class MissionProgressService {
         try (PreparedStatement pstmt = conn.prepareStatement(countCatSql)) {
             pstmt.setInt(1, userId);
             ResultSet rs = pstmt.executeQuery();
-            
             if (rs.next()) {
                 int uniqueCategories = rs.getInt("count");
                 updateMissionCounter(userId, "categories_used", uniqueCategories, conn);
@@ -214,27 +164,17 @@ public class MissionProgressService {
         }
     }
 
-    /**
-     * Actualiza el contador de una misión.
-     * 
-     * @param userId ID del usuario
-     * @param metricKey Clave de la métrica
-     * @param value Nuevo valor del contador
-     * @param conn Conexión a BD
-     */
     private void updateMissionCounter(int userId, String metricKey, int value, Connection conn) throws SQLException {
-        String sql = "SELECT mp.id, mp.mission_id, mp.target_value, mp.progress_percentage " +
+        // CORRECCIÓN: Filtrar por progress_percentage < 100
+        String sql = "SELECT mp.id, mp.mission_id, mp.target_value " +
                      "FROM public.mission_progress mp " +
-                     "JOIN public.missions m ON mp.mission_id = m.id " +
                      "WHERE mp.user_id = ? " +
-                     "  AND m.completed = false " +
-                     "  AND mp.metric_key = ? " +
-                     "  AND mp.current_value < ?";
+                     "  AND mp.progress_percentage < 100 " +
+                     "  AND mp.metric_key = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             pstmt.setString(2, metricKey);
-            pstmt.setInt(3, value);
             ResultSet rs = pstmt.executeQuery();
             
             while (rs.next()) {
@@ -242,7 +182,7 @@ public class MissionProgressService {
                 int missionId = rs.getInt("mission_id");
                 long targetValue = rs.getLong("target_value");
                 
-                double newProgress = (double) value / targetValue * 100;
+                double newProgress = Math.min(((double) value / targetValue) * 100, 100.0);
                 
                 String updateSql = "UPDATE public.mission_progress " +
                                   "SET current_value = ?, progress_percentage = ? " +
@@ -255,7 +195,6 @@ public class MissionProgressService {
                     updateStmt.executeUpdate();
                 }
                 
-                // Si se completó
                 if (value >= targetValue) {
                     completeMission(userId, missionId, conn);
                 }
@@ -263,18 +202,11 @@ public class MissionProgressService {
         }
     }
 
-    /**
-     * Completa una misión: actualiza BD, otorga recompensas y verifica logros.
-     * 
-     * @param userId ID del usuario
-     * @param missionId ID de la misión
-     * @param conn Conexión a BD
-     */
     private void completeMission(int userId, int missionId, Connection conn) throws SQLException {
-        // 1. Marcar misión como completada
-        String completeSql = "UPDATE public.missions " +
-                            "SET completed = true, completed_at = CURRENT_TIMESTAMP, progress = 100 " +
-                            "WHERE id = ? AND user_id = ?";
+        // Asegurarse de que en mission_progress esté al 100%
+        String completeSql = "UPDATE public.mission_progress " +
+                            "SET progress_percentage = 100, current_value = target_value " +
+                            "WHERE mission_id = ? AND user_id = ?";
         
         try (PreparedStatement pstmt = conn.prepareStatement(completeSql)) {
             pstmt.setInt(1, missionId);
@@ -282,7 +214,7 @@ public class MissionProgressService {
             pstmt.executeUpdate();
         }
         
-        // 2. Obtener recompensas de la misión
+        // Obtener recompensas
         String rewardSql = "SELECT xp_reward, coin_reward, title FROM public.missions WHERE id = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(rewardSql)) {
             pstmt.setInt(1, missionId);
@@ -293,7 +225,6 @@ public class MissionProgressService {
                 int coinReward = rs.getInt("coin_reward");
                 String title = rs.getString("title");
                 
-                // 3. Otorgar recompensas
                 if (xpReward > 0) {
                     String xpSql = "UPDATE public.users SET current_xp = current_xp + ?, total_xp = total_xp + ? WHERE id = ?";
                     try (PreparedStatement xpStmt = conn.prepareStatement(xpSql)) {
@@ -313,7 +244,6 @@ public class MissionProgressService {
             }
         }
         
-        // 4. Verificar logros (ej: "Completar 5 misiones")
-        rewardsService.checkAndAwardAchievements(userId);
+        RewardsService.getInstance().checkAndAwardAchievements(userId);
     }
 }

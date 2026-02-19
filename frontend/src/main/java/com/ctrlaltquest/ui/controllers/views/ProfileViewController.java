@@ -12,6 +12,7 @@ import com.ctrlaltquest.ui.utils.SoundManager;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -79,21 +80,26 @@ public class ProfileViewController {
             lblJoinDate.setText("ESTADO: OPERATIVO");
         });
         
-        new Thread(task).start();
+        Thread t = new Thread(task);
+        t.setDaemon(true);
+        t.start();
     }
 
     public void setPlayerData(Character c) {
         this.characterData = c;
         if (c != null) {
-            lblUsernameHeader.setText(c.getName().toUpperCase());
-            txtUsername.setText(c.getName());
-            cargarAvatar(c.getClassId());
+            Platform.runLater(() -> {
+                lblUsernameHeader.setText(c.getName().toUpperCase());
+                txtUsername.setText(c.getName());
+                cargarAvatar(c.getClassId());
+            });
         }
     }
 
     private void cargarAvatar(int classId) {
         try {
-            // Carga de imagen con fallback
+            // Nota: Aquí se debería leer una ruta personalizada si existe
+            // Para mantener compatibilidad con tu sistema de "clases", rotamos imágenes base:
             String path = "/assets/images/sprites/class_" + classId + "_idle.png";
             URL url = getClass().getResource(path);
             
@@ -119,9 +125,9 @@ public class ProfileViewController {
         SoundManager.playClickSound();
 
         int currentClass = characterData.getClassId();
-        int nextClass = (currentClass % 3) + 1; // Ciclo 1 -> 2 -> 3 -> 1
+        int nextClass = (currentClass % 3) + 1; // Ciclo de clases 1 -> 2 -> 3 -> 1
 
-        // 1. Actualizar Visual
+        // 1. Actualizar Visual Instantáneamente
         characterData.setClassId(nextClass);
         cargarAvatar(nextClass);
 
@@ -135,13 +141,17 @@ public class ProfileViewController {
 
         updateTask.setOnSucceeded(e -> {
             if (updateTask.getValue()) {
-                mostrarAlerta(Alert.AlertType.INFORMATION, "IMAGEN ACTUALIZADA", "Tu apariencia ha cambiado a la Clase " + nextClass);
+                mostrarAlerta(Alert.AlertType.INFORMATION, "IMAGEN ACTUALIZADA", "Tu apariencia base ha cambiado a la Variante " + nextClass);
+                // Aquí el HomeController debería detectar el cambio en la siguiente recarga, 
+                // pero si quieres instantáneo, se recomienda usar un EventBus o similar.
             } else {
                 mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "No se guardó el cambio de imagen.");
             }
         });
 
-        new Thread(updateTask).start();
+        Thread t = new Thread(updateTask);
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
@@ -150,7 +160,7 @@ public class ProfileViewController {
         String newName = txtUsername.getText().trim();
         
         if (newName.length() < 3) {
-            mostrarAlerta(Alert.AlertType.WARNING, "ERROR", "Nombre muy corto.");
+            mostrarAlerta(Alert.AlertType.WARNING, "ERROR", "El nombre debe tener al menos 3 caracteres.");
             return;
         }
         
@@ -166,22 +176,24 @@ public class ProfileViewController {
                 lblUsernameHeader.setText(newName.toUpperCase());
                 characterData.setName(newName);
                 SoundManager.playSuccessSound();
-                mostrarAlerta(Alert.AlertType.INFORMATION, "GUARDADO", "Perfil actualizado.");
+                mostrarAlerta(Alert.AlertType.INFORMATION, "GUARDADO", "Perfil actualizado correctamente.");
             } else {
-                mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Fallo al guardar.");
+                mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Fallo al guardar en la base de datos.");
             }
         });
         
-        new Thread(saveTask).start();
+        Thread t = new Thread(saveTask);
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
     private void handleChangePassword() {
-        // Lógica de contraseña (simplificada visualmente aquí, el DAO lo maneja)
         String p1 = txtNewPass.getText();
         String p2 = txtConfirmPass.getText();
+        
         if (p1.isEmpty() || !p1.equals(p2)) {
-            mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Contraseñas inválidas.");
+            mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Las contraseñas no coinciden o están vacías.");
             return;
         }
         
@@ -190,20 +202,25 @@ public class ProfileViewController {
         };
         t.setOnSucceeded(e -> {
             if(t.getValue()) {
-                mostrarAlerta(Alert.AlertType.INFORMATION, "ÉXITO", "Contraseña cambiada.");
-                txtNewPass.clear(); txtConfirmPass.clear();
+                mostrarAlerta(Alert.AlertType.INFORMATION, "ÉXITO", "Contraseña de seguridad actualizada.");
+                txtNewPass.clear(); 
+                txtConfirmPass.clear();
+            } else {
+                mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "No se pudo actualizar la contraseña.");
             }
         });
-        new Thread(t).start();
+        Thread th = new Thread(t);
+        th.setDaemon(true);
+        th.start();
     }
 
     @FXML
     private void handleExportCSV() {
         SoundManager.playClickSound();
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Guardar Historial");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
-        fileChooser.setInitialFileName("misiones.csv");
+        fileChooser.setTitle("Guardar Historial de Misiones");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos CSV", "*.csv"));
+        fileChooser.setInitialFileName("historial_misiones.csv");
         
         File file = fileChooser.showSaveDialog(lblUsernameHeader.getScene().getWindow());
         if (file != null) {
@@ -211,43 +228,58 @@ public class ProfileViewController {
                 @Override protected Boolean call() { return MissionsDAO.exportMissionHistoryToCSV(userId, file); }
             };
             t.setOnSucceeded(e -> {
-                if(t.getValue()) mostrarAlerta(Alert.AlertType.INFORMATION, "EXPORTADO", "CSV generado.");
-                else mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Fallo al exportar.");
+                if(t.getValue()) mostrarAlerta(Alert.AlertType.INFORMATION, "EXPORTADO", "Archivo CSV generado con éxito en tu equipo.");
+                else mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Fallo al intentar exportar el archivo.");
             });
-            new Thread(t).start();
+            Thread th = new Thread(t);
+            th.setDaemon(true);
+            th.start();
         }
     }
 
     @FXML
     private void handleDeleteAccount() {
         // Lógica de borrado (sin cambios respecto a lo que ya funcionaba)
-        // ...
+        mostrarAlerta(Alert.AlertType.WARNING, "PELIGRO", "Esta función borrará todos tus datos. Contáctate con el Admin.");
     }
 
-    // Animaciones y Alertas
+    // --- Animaciones y Alertas ---
+    
     private void prepararAnimacion(Node node) {
         if(node!=null) { node.setOpacity(0); node.setTranslateY(20); }
     }
+    
     private void animarEntrada() {
         playAnimation(headerCard, 0);
         playAnimation(configCard, 100);
         playAnimation(securityCard, 200);
         playAnimation(footerContainer, 300);
     }
+    
     private void playAnimation(Node node, int delay) {
         if(node==null) return;
         TranslateTransition tt = new TranslateTransition(Duration.millis(600), node);
         tt.setToY(0); tt.setDelay(Duration.millis(delay));
+        
         FadeTransition ft = new FadeTransition(Duration.millis(600), node);
         ft.setToValue(1); ft.setDelay(Duration.millis(delay));
+        
         tt.play(); ft.play();
     }
+    
     private void mostrarAlerta(Alert.AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+        Platform.runLater(() -> {
+            Alert alert = new Alert(type);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(content);
+            alert.showAndWait();
+        });
     }
-    @FXML private void handleExportPDF() { mostrarAlerta(Alert.AlertType.INFORMATION, "INFO", "Próximamente"); }
+    
+    @FXML 
+    private void handleExportPDF() { 
+        SoundManager.playClickSound();
+        mostrarAlerta(Alert.AlertType.INFORMATION, "INFO", "Generación de PDF en desarrollo. Usa CSV por ahora."); 
+    }
 }

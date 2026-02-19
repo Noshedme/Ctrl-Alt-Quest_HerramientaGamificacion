@@ -3,185 +3,6 @@
 BEGIN;
 
 
-CREATE TABLE IF NOT EXISTS public.users
-(
-    id serial NOT NULL,
-    username character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    email character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    password_hash character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    avatar character varying(255) COLLATE pg_catalog."default",
-    selected_class_id integer,
-    level integer DEFAULT 1,
-    current_xp integer DEFAULT 0,
-    total_xp integer DEFAULT 0,
-    coins integer DEFAULT 0,
-    health_streak integer DEFAULT 0,
-    total_play_time interval DEFAULT '00:00:00'::interval,
-    last_sync timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    is_active boolean DEFAULT false,
-    CONSTRAINT users_pkey PRIMARY KEY (id),
-    CONSTRAINT users_email_key UNIQUE (email),
-    CONSTRAINT users_username_key UNIQUE (username)
-);
-
-CREATE TABLE IF NOT EXISTS public.classes
-(
-    id serial NOT NULL,
-    name character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    description text COLLATE pg_catalog."default",
-    bonus_xp_per_category jsonb,
-    missions_exclusive jsonb,
-    skins_unlockable jsonb,
-    CONSTRAINT classes_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.characters
-(
-    id serial NOT NULL,
-    user_id integer NOT NULL,
-    slot_index integer NOT NULL,
-    name character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    class_id integer NOT NULL,
-    sprite_base character varying(100) COLLATE pg_catalog."default",
-    helmet_item character varying(100) COLLATE pg_catalog."default" DEFAULT 'none'::character varying,
-    chest_item character varying(100) COLLATE pg_catalog."default" DEFAULT 'basic_tunic'::character varying,
-    legs_item character varying(100) COLLATE pg_catalog."default" DEFAULT 'basic_pants'::character varying,
-    boots_item character varying(100) COLLATE pg_catalog."default" DEFAULT 'none'::character varying,
-    level integer DEFAULT 1,
-    current_xp integer DEFAULT 0,
-    hp integer DEFAULT 100,
-    coins integer DEFAULT 0,
-    health_streak integer DEFAULT 0,
-    CONSTRAINT player_characters_pkey PRIMARY KEY (id),
-    CONSTRAINT unique_character_slot UNIQUE (user_id, slot_index)
-);
-
-CREATE TABLE IF NOT EXISTS public.activity_sessions
-(
-    id serial NOT NULL,
-    user_id integer NOT NULL,
-    device_id integer,
-    network_ip_id integer,
-    session_start timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    session_end timestamp without time zone,
-    total_screen_time interval,
-    CONSTRAINT activity_sessions_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.devices
-(
-    id serial NOT NULL,
-    user_id integer NOT NULL,
-    device_uuid uuid NOT NULL,
-    device_name character varying(100) COLLATE pg_catalog."default",
-    os character varying(50) COLLATE pg_catalog."default",
-    os_version character varying(50) COLLATE pg_catalog."default",
-    cpu_info character varying(100) COLLATE pg_catalog."default",
-    first_seen timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    last_seen timestamp without time zone,
-    trusted boolean DEFAULT true,
-    CONSTRAINT devices_pkey PRIMARY KEY (id),
-    CONSTRAINT devices_device_uuid_key UNIQUE (device_uuid),
-    CONSTRAINT unique_device_uuid UNIQUE (device_uuid)
-);
-
-CREATE TABLE IF NOT EXISTS public.login_logs
-(
-    id serial NOT NULL,
-    user_id integer NOT NULL,
-    device_id integer,
-    login_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    ip_address character varying(45) COLLATE pg_catalog."default",
-    device_info text COLLATE pg_catalog."default",
-    success boolean NOT NULL,
-    failure_reason text COLLATE pg_catalog."default",
-    CONSTRAINT login_logs_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.network_events
-(
-    id serial NOT NULL,
-    device_id integer NOT NULL,
-    old_public_ip character varying(45) COLLATE pg_catalog."default",
-    new_public_ip character varying(45) COLLATE pg_catalog."default",
-    changed_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    reason character varying(100) COLLATE pg_catalog."default",
-    CONSTRAINT network_events_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.network_ips
-(
-    id serial NOT NULL,
-    device_id integer NOT NULL,
-    local_ip character varying(45) COLLATE pg_catalog."default",
-    public_ip character varying(45) COLLATE pg_catalog."default",
-    isp character varying(100) COLLATE pg_catalog."default",
-    country character varying(50) COLLATE pg_catalog."default",
-    city character varying(50) COLLATE pg_catalog."default",
-    first_detected timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    last_detected timestamp without time zone,
-    CONSTRAINT network_ips_pkey PRIMARY KEY (id),
-    CONSTRAINT unique_device_ip UNIQUE (device_id, local_ip),
-    CONSTRAINT unique_device_local_ip UNIQUE (device_id, local_ip)
-);
-
-CREATE TABLE IF NOT EXISTS public.payment_orders
-(
-    id serial NOT NULL,
-    user_id integer NOT NULL,
-    device_id integer,
-    product_id integer NOT NULL,
-    order_uuid uuid NOT NULL DEFAULT gen_random_uuid(),
-    status character varying(30) COLLATE pg_catalog."default" NOT NULL DEFAULT 'created'::character varying,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT payment_orders_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.payment_products
-(
-    id serial NOT NULL,
-    sku character varying(80) COLLATE pg_catalog."default" NOT NULL,
-    name character varying(120) COLLATE pg_catalog."default" NOT NULL,
-    description text COLLATE pg_catalog."default",
-    price_cents integer NOT NULL,
-    currency character varying(10) COLLATE pg_catalog."default" NOT NULL DEFAULT 'USD'::character varying,
-    product_type character varying(30) COLLATE pg_catalog."default" NOT NULL,
-    metadata jsonb,
-    is_active boolean DEFAULT true,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT payment_products_pkey PRIMARY KEY (id),
-    CONSTRAINT payment_products_sku_key UNIQUE (sku)
-);
-
-CREATE TABLE IF NOT EXISTS public.payment_product_rewards
-(
-    product_id integer NOT NULL,
-    item_id integer NOT NULL,
-    coins_amount integer DEFAULT 0,
-    quantity integer DEFAULT 1,
-    CONSTRAINT payment_product_rewards_pkey PRIMARY KEY (product_id, item_id)
-);
-
-CREATE TABLE IF NOT EXISTS public.items
-(
-    id serial NOT NULL,
-    sku character varying(80) COLLATE pg_catalog."default",
-    name character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    type character varying(50) COLLATE pg_catalog."default",
-    description text COLLATE pg_catalog."default",
-    effect jsonb,
-    duration interval,
-    rarity character varying(20) COLLATE pg_catalog."default",
-    price_coins integer DEFAULT 0,
-    icon_path character varying(255) COLLATE pg_catalog."default",
-    is_active boolean DEFAULT true,
-    CONSTRAINT items_pkey PRIMARY KEY (id),
-    CONSTRAINT items_sku_key UNIQUE (sku)
-);
-
 CREATE TABLE IF NOT EXISTS public.achievement_item_rewards
 (
     achievement_id integer NOT NULL,
@@ -201,14 +22,62 @@ CREATE TABLE IF NOT EXISTS public.achievements
     CONSTRAINT achievements_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.user_achievements
+CREATE TABLE IF NOT EXISTS public.activity_sessions
 (
     id serial NOT NULL,
     user_id integer NOT NULL,
-    achievement_id integer NOT NULL,
-    unlocked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT user_achievements_pkey PRIMARY KEY (id),
-    CONSTRAINT user_achievements_user_id_achievement_id_key UNIQUE (user_id, achievement_id)
+    device_id integer,
+    network_ip_id integer,
+    session_start timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    session_end timestamp without time zone,
+    total_screen_time interval,
+    CONSTRAINT activity_sessions_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.app_name_mapping
+(
+    id serial NOT NULL,
+    app_hash integer NOT NULL,
+    app_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    app_id integer NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT app_name_mapping_pkey PRIMARY KEY (id),
+    CONSTRAINT app_name_mapping_app_hash_key UNIQUE (app_hash)
+);
+
+CREATE TABLE IF NOT EXISTS public.app_usage_logs
+(
+    id serial NOT NULL,
+    session_id integer NOT NULL,
+    app_id integer,
+    start_time timestamp without time zone,
+    end_time timestamp without time zone,
+    duration interval,
+    productive_time interval,
+    CONSTRAINT app_usage_logs_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.apps
+(
+    id serial NOT NULL,
+    name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    category character varying(50) COLLATE pg_catalog."default",
+    executable_path character varying(255) COLLATE pg_catalog."default",
+    is_productive boolean DEFAULT true,
+    CONSTRAINT apps_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.audit_logs
+(
+    id serial NOT NULL,
+    user_id integer,
+    action character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default",
+    ip_address character varying(45) COLLATE pg_catalog."default",
+    pc_name character varying(100) COLLATE pg_catalog."default",
+    os_info character varying(100) COLLATE pg_catalog."default",
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT audit_logs_pkey PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS public.boss_item_rewards
@@ -234,144 +103,6 @@ CREATE TABLE IF NOT EXISTS public.bosses
     CONSTRAINT bosses_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.user_boss_encounters
-(
-    id serial NOT NULL,
-    user_id integer NOT NULL,
-    boss_id integer NOT NULL,
-    session_id integer,
-    spawn_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    defeated boolean DEFAULT false,
-    defeated_at timestamp without time zone,
-    hp_remaining integer,
-    actions_taken jsonb,
-    CONSTRAINT user_boss_encounters_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.mission_item_rewards
-(
-    mission_id integer NOT NULL,
-    item_id integer NOT NULL,
-    quantity integer DEFAULT 1,
-    CONSTRAINT mission_item_rewards_pkey PRIMARY KEY (mission_id, item_id)
-);
-
-CREATE TABLE IF NOT EXISTS public.missions
-(
-    id serial NOT NULL,
-    user_id integer NOT NULL,
-    title character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    category character varying(50) COLLATE pg_catalog."default",
-    difficulty character varying(20) COLLATE pg_catalog."default",
-    xp_reward integer DEFAULT 0,
-    coin_reward integer DEFAULT 0,
-    trigger_type character varying(50) COLLATE pg_catalog."default",
-    conditions jsonb NOT NULL,
-    is_manual boolean DEFAULT false,
-    is_daily boolean DEFAULT false,
-    is_weekly boolean DEFAULT false,
-    progress integer DEFAULT 0,
-    completed boolean DEFAULT false,
-    completed_at timestamp without time zone,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT missions_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.mission_progress
-(
-    id serial NOT NULL,
-    mission_id integer NOT NULL,
-    user_id integer NOT NULL,
-    metric_key character varying(50) COLLATE pg_catalog."default" NOT NULL,
-    current_value bigint DEFAULT 0,
-    target_value bigint DEFAULT 0,
-    last_updated timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    progress_percentage numeric(5, 2) DEFAULT 0.00,
-    CONSTRAINT mission_progress_pkey PRIMARY KEY (id),
-    CONSTRAINT mission_progress_user_mission_metric_key UNIQUE (user_id, mission_id, metric_key)
-);
-
-CREATE TABLE IF NOT EXISTS public.store_offer_items
-(
-    offer_id integer NOT NULL,
-    item_id integer NOT NULL,
-    quantity integer DEFAULT 1,
-    CONSTRAINT store_offer_items_pkey PRIMARY KEY (offer_id, item_id)
-);
-
-CREATE TABLE IF NOT EXISTS public.store_offers
-(
-    id serial NOT NULL,
-    offer_name character varying(120) COLLATE pg_catalog."default" NOT NULL,
-    description text COLLATE pg_catalog."default",
-    offer_type character varying(30) COLLATE pg_catalog."default" NOT NULL,
-    coin_price integer DEFAULT 0,
-    is_featured boolean DEFAULT false,
-    is_active boolean DEFAULT true,
-    metadata jsonb,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT store_offers_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.user_inventory
-(
-    id serial NOT NULL,
-    user_id integer NOT NULL,
-    item_id integer NOT NULL,
-    quantity integer DEFAULT 1,
-    equipped boolean DEFAULT false,
-    acquired_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT user_inventory_pkey PRIMARY KEY (id),
-    CONSTRAINT user_inventory_user_id_item_id_key UNIQUE (user_id, item_id)
-);
-
-CREATE TABLE IF NOT EXISTS public.payment_transactions
-(
-    id serial NOT NULL,
-    order_id integer NOT NULL,
-    provider character varying(40) COLLATE pg_catalog."default" NOT NULL,
-    provider_tx_id character varying(120) COLLATE pg_catalog."default",
-    amount_cents integer NOT NULL,
-    currency character varying(10) COLLATE pg_catalog."default" NOT NULL DEFAULT 'USD'::character varying,
-    status character varying(30) COLLATE pg_catalog."default" NOT NULL,
-    raw_payload jsonb,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT payment_transactions_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.app_usage_logs
-(
-    id serial NOT NULL,
-    session_id integer NOT NULL,
-    app_id integer,
-    start_time timestamp without time zone,
-    end_time timestamp without time zone,
-    duration interval,
-    productive_time interval,
-    CONSTRAINT app_usage_logs_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.apps
-(
-    id serial NOT NULL,
-    name character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    category character varying(50) COLLATE pg_catalog."default",
-    executable_path character varying(255) COLLATE pg_catalog."default",
-    is_productive boolean DEFAULT true,
-    CONSTRAINT apps_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.app_name_mapping
-(
-    id serial NOT NULL,
-    app_hash integer NOT NULL,
-    app_name character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    app_id integer NOT NULL,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT app_name_mapping_pkey PRIMARY KEY (id),
-    CONSTRAINT app_name_mapping_app_hash_key UNIQUE (app_hash)
-);
-
 CREATE TABLE IF NOT EXISTS public.browser_logs
 (
     id serial NOT NULL,
@@ -395,37 +126,37 @@ CREATE TABLE IF NOT EXISTS public.build_logs
     CONSTRAINT build_logs_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.keyboard_logs
+CREATE TABLE IF NOT EXISTS public.characters
 (
     id serial NOT NULL,
-    session_id integer NOT NULL,
-    app_id integer,
-    keys_typed bigint DEFAULT 0,
-    words_typed bigint DEFAULT 0,
-    log_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT keyboard_logs_pkey PRIMARY KEY (id)
+    user_id integer NOT NULL,
+    slot_index integer NOT NULL,
+    name character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    class_id integer NOT NULL,
+    sprite_base character varying(100) COLLATE pg_catalog."default",
+    helmet_item character varying(100) COLLATE pg_catalog."default" DEFAULT 'none'::character varying,
+    chest_item character varying(100) COLLATE pg_catalog."default" DEFAULT 'basic_tunic'::character varying,
+    legs_item character varying(100) COLLATE pg_catalog."default" DEFAULT 'basic_pants'::character varying,
+    boots_item character varying(100) COLLATE pg_catalog."default" DEFAULT 'none'::character varying,
+    level integer DEFAULT 1,
+    current_xp integer DEFAULT 0,
+    hp integer DEFAULT 100,
+    coins integer DEFAULT 0,
+    health_streak integer DEFAULT 0,
+    skin character varying(100) COLLATE pg_catalog."default" DEFAULT 'body_female'::character varying,
+    CONSTRAINT player_characters_pkey PRIMARY KEY (id),
+    CONSTRAINT unique_character_slot UNIQUE (user_id, slot_index)
 );
 
-CREATE TABLE IF NOT EXISTS public.mouse_logs
+CREATE TABLE IF NOT EXISTS public.classes
 (
     id serial NOT NULL,
-    session_id integer NOT NULL,
-    app_id integer,
-    mouse_clicks bigint DEFAULT 0,
-    mouse_movements bigint DEFAULT 0,
-    log_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT mouse_logs_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE IF NOT EXISTS public.file_logs
-(
-    id serial NOT NULL,
-    session_id integer NOT NULL,
-    file_path character varying(255) COLLATE pg_catalog."default",
-    action character varying(50) COLLATE pg_catalog."default",
-    file_type character varying(50) COLLATE pg_catalog."default",
-    log_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT file_logs_pkey PRIMARY KEY (id)
+    name character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default",
+    bonus_xp_per_category jsonb,
+    missions_exclusive jsonb,
+    skins_unlockable jsonb,
+    CONSTRAINT classes_pkey PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS public.coin_transactions
@@ -438,6 +169,23 @@ CREATE TABLE IF NOT EXISTS public.coin_transactions
     ref_id integer,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT coin_transactions_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.devices
+(
+    id serial NOT NULL,
+    user_id integer NOT NULL,
+    device_uuid uuid NOT NULL,
+    device_name character varying(100) COLLATE pg_catalog."default",
+    os character varying(50) COLLATE pg_catalog."default",
+    os_version character varying(50) COLLATE pg_catalog."default",
+    cpu_info character varying(100) COLLATE pg_catalog."default",
+    first_seen timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    last_seen timestamp without time zone,
+    trusted boolean DEFAULT true,
+    CONSTRAINT devices_pkey PRIMARY KEY (id),
+    CONSTRAINT devices_device_uuid_key UNIQUE (device_uuid),
+    CONSTRAINT unique_device_uuid UNIQUE (device_uuid)
 );
 
 CREATE TABLE IF NOT EXISTS public.email_verifications
@@ -476,6 +224,139 @@ CREATE TABLE IF NOT EXISTS public.export_logs
     CONSTRAINT export_logs_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS public.file_logs
+(
+    id serial NOT NULL,
+    session_id integer NOT NULL,
+    file_path character varying(255) COLLATE pg_catalog."default",
+    action character varying(50) COLLATE pg_catalog."default",
+    file_type character varying(50) COLLATE pg_catalog."default",
+    log_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT file_logs_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.items
+(
+    id serial NOT NULL,
+    sku character varying(80) COLLATE pg_catalog."default",
+    name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    type character varying(50) COLLATE pg_catalog."default",
+    description text COLLATE pg_catalog."default",
+    effect jsonb,
+    duration interval,
+    rarity character varying(20) COLLATE pg_catalog."default",
+    price_coins integer DEFAULT 0,
+    icon_path character varying(255) COLLATE pg_catalog."default",
+    is_active boolean DEFAULT true,
+    CONSTRAINT items_pkey PRIMARY KEY (id),
+    CONSTRAINT items_sku_key UNIQUE (sku)
+);
+
+CREATE TABLE IF NOT EXISTS public.keyboard_logs
+(
+    id serial NOT NULL,
+    session_id integer NOT NULL,
+    app_id integer,
+    keys_typed bigint DEFAULT 0,
+    words_typed bigint DEFAULT 0,
+    log_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT keyboard_logs_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.login_logs
+(
+    id serial NOT NULL,
+    user_id integer NOT NULL,
+    device_id integer,
+    login_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    ip_address character varying(45) COLLATE pg_catalog."default",
+    device_info text COLLATE pg_catalog."default",
+    success boolean NOT NULL,
+    failure_reason text COLLATE pg_catalog."default",
+    CONSTRAINT login_logs_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.mission_item_rewards
+(
+    mission_id integer NOT NULL,
+    item_id integer NOT NULL,
+    quantity integer DEFAULT 1,
+    CONSTRAINT mission_item_rewards_pkey PRIMARY KEY (mission_id, item_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.mission_progress
+(
+    id serial NOT NULL,
+    mission_id integer NOT NULL,
+    user_id integer NOT NULL,
+    metric_key character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    current_value bigint DEFAULT 0,
+    target_value bigint DEFAULT 0,
+    last_updated timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    progress_percentage numeric(5, 2) DEFAULT 0.00,
+    CONSTRAINT mission_progress_pkey PRIMARY KEY (id),
+    CONSTRAINT mission_progress_user_mission_metric_key UNIQUE (user_id, mission_id, metric_key)
+);
+
+CREATE TABLE IF NOT EXISTS public.missions
+(
+    id serial NOT NULL,
+    user_id integer NOT NULL,
+    title character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    category character varying(50) COLLATE pg_catalog."default",
+    difficulty character varying(20) COLLATE pg_catalog."default",
+    xp_reward integer DEFAULT 0,
+    coin_reward integer DEFAULT 0,
+    trigger_type character varying(50) COLLATE pg_catalog."default",
+    conditions jsonb NOT NULL,
+    is_manual boolean DEFAULT false,
+    is_daily boolean DEFAULT false,
+    is_weekly boolean DEFAULT false,
+    progress integer DEFAULT 0,
+    completed boolean DEFAULT false,
+    completed_at timestamp without time zone,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT missions_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.mouse_logs
+(
+    id serial NOT NULL,
+    session_id integer NOT NULL,
+    app_id integer,
+    mouse_clicks bigint DEFAULT 0,
+    mouse_movements bigint DEFAULT 0,
+    log_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT mouse_logs_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.network_events
+(
+    id serial NOT NULL,
+    device_id integer NOT NULL,
+    old_public_ip character varying(45) COLLATE pg_catalog."default",
+    new_public_ip character varying(45) COLLATE pg_catalog."default",
+    changed_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    reason character varying(100) COLLATE pg_catalog."default",
+    CONSTRAINT network_events_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.network_ips
+(
+    id serial NOT NULL,
+    device_id integer NOT NULL,
+    local_ip character varying(45) COLLATE pg_catalog."default",
+    public_ip character varying(45) COLLATE pg_catalog."default",
+    isp character varying(100) COLLATE pg_catalog."default",
+    country character varying(50) COLLATE pg_catalog."default",
+    city character varying(50) COLLATE pg_catalog."default",
+    first_detected timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    last_detected timestamp without time zone,
+    CONSTRAINT network_ips_pkey PRIMARY KEY (id),
+    CONSTRAINT unique_device_ip UNIQUE (device_id, local_ip),
+    CONSTRAINT unique_device_local_ip UNIQUE (device_id, local_ip)
+);
+
 CREATE TABLE IF NOT EXISTS public.notifications
 (
     id serial NOT NULL,
@@ -496,6 +377,58 @@ CREATE TABLE IF NOT EXISTS public.password_history
     CONSTRAINT password_history_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS public.payment_orders
+(
+    id serial NOT NULL,
+    user_id integer NOT NULL,
+    device_id integer,
+    product_id integer NOT NULL,
+    order_uuid uuid NOT NULL DEFAULT gen_random_uuid(),
+    status character varying(30) COLLATE pg_catalog."default" NOT NULL DEFAULT 'created'::character varying,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT payment_orders_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.payment_product_rewards
+(
+    product_id integer NOT NULL,
+    item_id integer NOT NULL,
+    coins_amount integer DEFAULT 0,
+    quantity integer DEFAULT 1,
+    CONSTRAINT payment_product_rewards_pkey PRIMARY KEY (product_id, item_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.payment_products
+(
+    id serial NOT NULL,
+    sku character varying(80) COLLATE pg_catalog."default" NOT NULL,
+    name character varying(120) COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default",
+    price_cents integer NOT NULL,
+    currency character varying(10) COLLATE pg_catalog."default" NOT NULL DEFAULT 'USD'::character varying,
+    product_type character varying(30) COLLATE pg_catalog."default" NOT NULL,
+    metadata jsonb,
+    is_active boolean DEFAULT true,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT payment_products_pkey PRIMARY KEY (id),
+    CONSTRAINT payment_products_sku_key UNIQUE (sku)
+);
+
+CREATE TABLE IF NOT EXISTS public.payment_transactions
+(
+    id serial NOT NULL,
+    order_id integer NOT NULL,
+    provider character varying(40) COLLATE pg_catalog."default" NOT NULL,
+    provider_tx_id character varying(120) COLLATE pg_catalog."default",
+    amount_cents integer NOT NULL,
+    currency character varying(10) COLLATE pg_catalog."default" NOT NULL DEFAULT 'USD'::character varying,
+    status character varying(30) COLLATE pg_catalog."default" NOT NULL,
+    raw_payload jsonb,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT payment_transactions_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE IF NOT EXISTS public.session_tokens
 (
     id serial NOT NULL,
@@ -507,6 +440,64 @@ CREATE TABLE IF NOT EXISTS public.session_tokens
     CONSTRAINT session_tokens_pkey PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS public.store_offer_items
+(
+    offer_id integer NOT NULL,
+    item_id integer NOT NULL,
+    quantity integer DEFAULT 1,
+    CONSTRAINT store_offer_items_pkey PRIMARY KEY (offer_id, item_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.store_offers
+(
+    id serial NOT NULL,
+    offer_name character varying(120) COLLATE pg_catalog."default" NOT NULL,
+    description text COLLATE pg_catalog."default",
+    offer_type character varying(30) COLLATE pg_catalog."default" NOT NULL,
+    coin_price integer DEFAULT 0,
+    is_featured boolean DEFAULT false,
+    is_active boolean DEFAULT true,
+    metadata jsonb,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT store_offers_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.user_achievements
+(
+    id serial NOT NULL,
+    user_id integer NOT NULL,
+    achievement_id integer NOT NULL,
+    unlocked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_achievements_pkey PRIMARY KEY (id),
+    CONSTRAINT user_achievements_user_id_achievement_id_key UNIQUE (user_id, achievement_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.user_boss_encounters
+(
+    id serial NOT NULL,
+    user_id integer NOT NULL,
+    boss_id integer NOT NULL,
+    session_id integer,
+    spawn_time timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    defeated boolean DEFAULT false,
+    defeated_at timestamp without time zone,
+    hp_remaining integer,
+    actions_taken jsonb,
+    CONSTRAINT user_boss_encounters_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.user_inventory
+(
+    id serial NOT NULL,
+    user_id integer NOT NULL,
+    item_id integer NOT NULL,
+    quantity integer DEFAULT 1,
+    equipped boolean DEFAULT false,
+    acquired_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT user_inventory_pkey PRIMARY KEY (id),
+    CONSTRAINT user_inventory_user_id_item_id_key UNIQUE (user_id, item_id)
+);
+
 CREATE TABLE IF NOT EXISTS public.user_settings
 (
     id serial NOT NULL,
@@ -516,6 +507,29 @@ CREATE TABLE IF NOT EXISTS public.user_settings
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT user_settings_pkey PRIMARY KEY (id),
     CONSTRAINT user_settings_user_id_setting_key_key UNIQUE (user_id, setting_key)
+);
+
+CREATE TABLE IF NOT EXISTS public.users
+(
+    id serial NOT NULL,
+    username character varying(50) COLLATE pg_catalog."default" NOT NULL,
+    email character varying(100) COLLATE pg_catalog."default" NOT NULL,
+    password_hash character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    avatar character varying(255) COLLATE pg_catalog."default",
+    selected_class_id integer,
+    level integer DEFAULT 1,
+    current_xp integer DEFAULT 0,
+    total_xp integer DEFAULT 0,
+    coins integer DEFAULT 0,
+    health_streak integer DEFAULT 0,
+    total_play_time interval DEFAULT '00:00:00'::interval,
+    last_sync timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    is_active boolean DEFAULT false,
+    CONSTRAINT users_pkey PRIMARY KEY (id),
+    CONSTRAINT users_email_key UNIQUE (email),
+    CONSTRAINT users_username_key UNIQUE (username)
 );
 
 CREATE TABLE IF NOT EXISTS public.xp_history
@@ -530,23 +544,16 @@ CREATE TABLE IF NOT EXISTS public.xp_history
     CONSTRAINT xp_history_pkey PRIMARY KEY (id)
 );
 
-ALTER TABLE IF EXISTS public.users
-    ADD CONSTRAINT fk_user_class FOREIGN KEY (selected_class_id)
-    REFERENCES public.classes (id) MATCH SIMPLE
+ALTER TABLE IF EXISTS public.achievement_item_rewards
+    ADD CONSTRAINT achievement_item_rewards_achievement_id_fkey FOREIGN KEY (achievement_id)
+    REFERENCES public.achievements (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE SET NULL;
+    ON DELETE CASCADE;
 
 
-ALTER TABLE IF EXISTS public.characters
-    ADD CONSTRAINT player_characters_class_id_fkey FOREIGN KEY (class_id)
-    REFERENCES public.classes (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
-
-
-ALTER TABLE IF EXISTS public.characters
-    ADD CONSTRAINT player_characters_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
+ALTER TABLE IF EXISTS public.achievement_item_rewards
+    ADD CONSTRAINT achievement_item_rewards_item_id_fkey FOREIGN KEY (item_id)
+    REFERENCES public.items (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
 
@@ -576,6 +583,98 @@ CREATE INDEX IF NOT EXISTS idx_activity_sessions_user
     ON public.activity_sessions(user_id);
 
 
+ALTER TABLE IF EXISTS public.app_name_mapping
+    ADD CONSTRAINT app_name_mapping_app_id_fkey FOREIGN KEY (app_id)
+    REFERENCES public.apps (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.app_usage_logs
+    ADD CONSTRAINT app_usage_logs_app_id_fkey FOREIGN KEY (app_id)
+    REFERENCES public.apps (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.app_usage_logs
+    ADD CONSTRAINT app_usage_logs_session_id_fkey FOREIGN KEY (session_id)
+    REFERENCES public.activity_sessions (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_app_usage_session
+    ON public.app_usage_logs(session_id);
+
+
+ALTER TABLE IF EXISTS public.boss_item_rewards
+    ADD CONSTRAINT boss_item_rewards_boss_id_fkey FOREIGN KEY (boss_id)
+    REFERENCES public.bosses (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.boss_item_rewards
+    ADD CONSTRAINT boss_item_rewards_item_id_fkey FOREIGN KEY (item_id)
+    REFERENCES public.items (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.browser_logs
+    ADD CONSTRAINT browser_logs_app_id_fkey FOREIGN KEY (app_id)
+    REFERENCES public.apps (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.browser_logs
+    ADD CONSTRAINT browser_logs_session_id_fkey FOREIGN KEY (session_id)
+    REFERENCES public.activity_sessions (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_browser_logs_session
+    ON public.browser_logs(session_id);
+
+
+ALTER TABLE IF EXISTS public.build_logs
+    ADD CONSTRAINT build_logs_app_id_fkey FOREIGN KEY (app_id)
+    REFERENCES public.apps (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.build_logs
+    ADD CONSTRAINT build_logs_session_id_fkey FOREIGN KEY (session_id)
+    REFERENCES public.activity_sessions (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_build_logs_session
+    ON public.build_logs(session_id);
+
+
+ALTER TABLE IF EXISTS public.characters
+    ADD CONSTRAINT player_characters_class_id_fkey FOREIGN KEY (class_id)
+    REFERENCES public.classes (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+
+ALTER TABLE IF EXISTS public.characters
+    ADD CONSTRAINT player_characters_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.coin_transactions
+    ADD CONSTRAINT coin_transactions_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_coin_transactions_user
+    ON public.coin_transactions(user_id);
+
+
 ALTER TABLE IF EXISTS public.devices
     ADD CONSTRAINT devices_user_id_fkey FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
@@ -583,6 +682,52 @@ ALTER TABLE IF EXISTS public.devices
     ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS idx_devices_user
     ON public.devices(user_id);
+
+
+ALTER TABLE IF EXISTS public.email_verifications
+    ADD CONSTRAINT email_verifications_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.events
+    ADD CONSTRAINT events_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.export_logs
+    ADD CONSTRAINT export_logs_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.file_logs
+    ADD CONSTRAINT file_logs_session_id_fkey FOREIGN KEY (session_id)
+    REFERENCES public.activity_sessions (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_file_logs_session
+    ON public.file_logs(session_id);
+
+
+ALTER TABLE IF EXISTS public.keyboard_logs
+    ADD CONSTRAINT keyboard_logs_app_id_fkey FOREIGN KEY (app_id)
+    REFERENCES public.apps (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.keyboard_logs
+    ADD CONSTRAINT keyboard_logs_session_id_fkey FOREIGN KEY (session_id)
+    REFERENCES public.activity_sessions (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_keyboard_logs_session
+    ON public.keyboard_logs(session_id);
 
 
 ALTER TABLE IF EXISTS public.login_logs
@@ -603,6 +748,59 @@ CREATE INDEX IF NOT EXISTS idx_login_logs_user
     ON public.login_logs(user_id);
 
 
+ALTER TABLE IF EXISTS public.mission_item_rewards
+    ADD CONSTRAINT mission_item_rewards_item_id_fkey FOREIGN KEY (item_id)
+    REFERENCES public.items (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.mission_item_rewards
+    ADD CONSTRAINT mission_item_rewards_mission_id_fkey FOREIGN KEY (mission_id)
+    REFERENCES public.missions (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.mission_progress
+    ADD CONSTRAINT mission_progress_mission_id_fkey FOREIGN KEY (mission_id)
+    REFERENCES public.missions (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.mission_progress
+    ADD CONSTRAINT mission_progress_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.missions
+    ADD CONSTRAINT missions_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_missions_user
+    ON public.missions(user_id);
+
+
+ALTER TABLE IF EXISTS public.mouse_logs
+    ADD CONSTRAINT mouse_logs_app_id_fkey FOREIGN KEY (app_id)
+    REFERENCES public.apps (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
+
+
+ALTER TABLE IF EXISTS public.mouse_logs
+    ADD CONSTRAINT mouse_logs_session_id_fkey FOREIGN KEY (session_id)
+    REFERENCES public.activity_sessions (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_mouse_logs_session
+    ON public.mouse_logs(session_id);
+
+
 ALTER TABLE IF EXISTS public.network_events
     ADD CONSTRAINT network_events_device_id_fkey FOREIGN KEY (device_id)
     REFERENCES public.devices (id) MATCH SIMPLE
@@ -619,6 +817,20 @@ ALTER TABLE IF EXISTS public.network_ips
     ON DELETE CASCADE;
 CREATE INDEX IF NOT EXISTS idx_network_device
     ON public.network_ips(device_id);
+
+
+ALTER TABLE IF EXISTS public.notifications
+    ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.password_history
+    ADD CONSTRAINT password_history_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
 
 
 ALTER TABLE IF EXISTS public.payment_orders
@@ -658,16 +870,32 @@ ALTER TABLE IF EXISTS public.payment_product_rewards
     ON DELETE CASCADE;
 
 
-ALTER TABLE IF EXISTS public.achievement_item_rewards
-    ADD CONSTRAINT achievement_item_rewards_achievement_id_fkey FOREIGN KEY (achievement_id)
-    REFERENCES public.achievements (id) MATCH SIMPLE
+ALTER TABLE IF EXISTS public.payment_transactions
+    ADD CONSTRAINT payment_transactions_order_id_fkey FOREIGN KEY (order_id)
+    REFERENCES public.payment_orders (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS idx_payment_tx_order
+    ON public.payment_transactions(order_id);
+
+
+ALTER TABLE IF EXISTS public.session_tokens
+    ADD CONSTRAINT session_tokens_user_id_fkey FOREIGN KEY (user_id)
+    REFERENCES public.users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
 
 
-ALTER TABLE IF EXISTS public.achievement_item_rewards
-    ADD CONSTRAINT achievement_item_rewards_item_id_fkey FOREIGN KEY (item_id)
+ALTER TABLE IF EXISTS public.store_offer_items
+    ADD CONSTRAINT store_offer_items_item_id_fkey FOREIGN KEY (item_id)
     REFERENCES public.items (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.store_offer_items
+    ADD CONSTRAINT store_offer_items_offer_id_fkey FOREIGN KEY (offer_id)
+    REFERENCES public.store_offers (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
 
@@ -682,20 +910,6 @@ ALTER TABLE IF EXISTS public.user_achievements
 ALTER TABLE IF EXISTS public.user_achievements
     ADD CONSTRAINT user_achievements_user_id_fkey FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.boss_item_rewards
-    ADD CONSTRAINT boss_item_rewards_boss_id_fkey FOREIGN KEY (boss_id)
-    REFERENCES public.bosses (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.boss_item_rewards
-    ADD CONSTRAINT boss_item_rewards_item_id_fkey FOREIGN KEY (item_id)
-    REFERENCES public.items (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
 
@@ -721,57 +935,6 @@ ALTER TABLE IF EXISTS public.user_boss_encounters
     ON DELETE CASCADE;
 
 
-ALTER TABLE IF EXISTS public.mission_item_rewards
-    ADD CONSTRAINT mission_item_rewards_item_id_fkey FOREIGN KEY (item_id)
-    REFERENCES public.items (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.mission_item_rewards
-    ADD CONSTRAINT mission_item_rewards_mission_id_fkey FOREIGN KEY (mission_id)
-    REFERENCES public.missions (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.missions
-    ADD CONSTRAINT missions_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_missions_user
-    ON public.missions(user_id);
-
-
-ALTER TABLE IF EXISTS public.mission_progress
-    ADD CONSTRAINT mission_progress_mission_id_fkey FOREIGN KEY (mission_id)
-    REFERENCES public.missions (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.mission_progress
-    ADD CONSTRAINT mission_progress_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.store_offer_items
-    ADD CONSTRAINT store_offer_items_item_id_fkey FOREIGN KEY (item_id)
-    REFERENCES public.items (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.store_offer_items
-    ADD CONSTRAINT store_offer_items_offer_id_fkey FOREIGN KEY (offer_id)
-    REFERENCES public.store_offers (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
 ALTER TABLE IF EXISTS public.user_inventory
     ADD CONSTRAINT user_inventory_item_id_fkey FOREIGN KEY (item_id)
     REFERENCES public.items (id) MATCH SIMPLE
@@ -786,167 +949,18 @@ ALTER TABLE IF EXISTS public.user_inventory
     ON DELETE CASCADE;
 
 
-ALTER TABLE IF EXISTS public.payment_transactions
-    ADD CONSTRAINT payment_transactions_order_id_fkey FOREIGN KEY (order_id)
-    REFERENCES public.payment_orders (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_payment_tx_order
-    ON public.payment_transactions(order_id);
-
-
-ALTER TABLE IF EXISTS public.app_usage_logs
-    ADD CONSTRAINT app_usage_logs_app_id_fkey FOREIGN KEY (app_id)
-    REFERENCES public.apps (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE SET NULL;
-
-
-ALTER TABLE IF EXISTS public.app_usage_logs
-    ADD CONSTRAINT app_usage_logs_session_id_fkey FOREIGN KEY (session_id)
-    REFERENCES public.activity_sessions (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_app_usage_session
-    ON public.app_usage_logs(session_id);
-
-
-ALTER TABLE IF EXISTS public.app_name_mapping
-    ADD CONSTRAINT app_name_mapping_app_id_fkey FOREIGN KEY (app_id)
-    REFERENCES public.apps (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.browser_logs
-    ADD CONSTRAINT browser_logs_app_id_fkey FOREIGN KEY (app_id)
-    REFERENCES public.apps (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE SET NULL;
-
-
-ALTER TABLE IF EXISTS public.browser_logs
-    ADD CONSTRAINT browser_logs_session_id_fkey FOREIGN KEY (session_id)
-    REFERENCES public.activity_sessions (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_browser_logs_session
-    ON public.browser_logs(session_id);
-
-
-ALTER TABLE IF EXISTS public.build_logs
-    ADD CONSTRAINT build_logs_app_id_fkey FOREIGN KEY (app_id)
-    REFERENCES public.apps (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE SET NULL;
-
-
-ALTER TABLE IF EXISTS public.build_logs
-    ADD CONSTRAINT build_logs_session_id_fkey FOREIGN KEY (session_id)
-    REFERENCES public.activity_sessions (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_build_logs_session
-    ON public.build_logs(session_id);
-
-
-ALTER TABLE IF EXISTS public.keyboard_logs
-    ADD CONSTRAINT keyboard_logs_app_id_fkey FOREIGN KEY (app_id)
-    REFERENCES public.apps (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE SET NULL;
-
-
-ALTER TABLE IF EXISTS public.keyboard_logs
-    ADD CONSTRAINT keyboard_logs_session_id_fkey FOREIGN KEY (session_id)
-    REFERENCES public.activity_sessions (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_keyboard_logs_session
-    ON public.keyboard_logs(session_id);
-
-
-ALTER TABLE IF EXISTS public.mouse_logs
-    ADD CONSTRAINT mouse_logs_app_id_fkey FOREIGN KEY (app_id)
-    REFERENCES public.apps (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE SET NULL;
-
-
-ALTER TABLE IF EXISTS public.mouse_logs
-    ADD CONSTRAINT mouse_logs_session_id_fkey FOREIGN KEY (session_id)
-    REFERENCES public.activity_sessions (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_mouse_logs_session
-    ON public.mouse_logs(session_id);
-
-
-ALTER TABLE IF EXISTS public.file_logs
-    ADD CONSTRAINT file_logs_session_id_fkey FOREIGN KEY (session_id)
-    REFERENCES public.activity_sessions (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_file_logs_session
-    ON public.file_logs(session_id);
-
-
-ALTER TABLE IF EXISTS public.coin_transactions
-    ADD CONSTRAINT coin_transactions_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-CREATE INDEX IF NOT EXISTS idx_coin_transactions_user
-    ON public.coin_transactions(user_id);
-
-
-ALTER TABLE IF EXISTS public.email_verifications
-    ADD CONSTRAINT email_verifications_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.events
-    ADD CONSTRAINT events_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE SET NULL;
-
-
-ALTER TABLE IF EXISTS public.export_logs
-    ADD CONSTRAINT export_logs_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.notifications
-    ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.password_history
-    ADD CONSTRAINT password_history_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
-ALTER TABLE IF EXISTS public.session_tokens
-    ADD CONSTRAINT session_tokens_user_id_fkey FOREIGN KEY (user_id)
-    REFERENCES public.users (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE CASCADE;
-
-
 ALTER TABLE IF EXISTS public.user_settings
     ADD CONSTRAINT user_settings_user_id_fkey FOREIGN KEY (user_id)
     REFERENCES public.users (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.users
+    ADD CONSTRAINT fk_user_class FOREIGN KEY (selected_class_id)
+    REFERENCES public.classes (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE SET NULL;
 
 
 ALTER TABLE IF EXISTS public.xp_history

@@ -23,6 +23,7 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Glow;
 import javafx.scene.input.MouseEvent;
@@ -46,11 +47,25 @@ public class DashboardViewController {
     @FXML private VBox chartCard;
 
     private int userId = -1;
+    private Character currentCharacter;
 
     public void setUserId(int userId) {
         this.userId = userId;
         cargarNombrePersonaje();
         cargarDatosDashboard();
+    }
+
+    /**
+     * Recibe el objeto Character desde HomeController para mostrar datos inmediatamente
+     */
+    public void setPlayerData(Character character) {
+        this.currentCharacter = character;
+        if (character != null && lblWelcome != null) {
+            Platform.runLater(() -> {
+                typewriterEffect(lblWelcome, "HOLA DE NUEVO, " + character.getName().toUpperCase(), 30);
+                animarEntradaDashboard();
+            });
+        }
     }
 
     @FXML
@@ -61,6 +76,11 @@ public class DashboardViewController {
         if(chartCard != null) chartCard.setOpacity(0);
         
         if(lblWelcome != null) lblWelcome.setText("SINTONIZANDO...");
+        
+        // Evitar animaciones por defecto de JavaFX que chocan con las nuestras
+        if (productivityChart != null) {
+            productivityChart.setAnimated(false);
+        }
     }
 
     // --- LÓGICA DE DATOS ---
@@ -82,7 +102,9 @@ public class DashboardViewController {
             animarEntradaDashboard();
         });
 
-        new Thread(taskName).start();
+        Thread th = new Thread(taskName);
+        th.setDaemon(true); // Permite que la app cierre correctamente
+        th.start();
     }
 
     private void cargarDatosDashboard() {
@@ -131,17 +153,18 @@ public class DashboardViewController {
             }
         });
 
-        new Thread(taskMisiones).start();
-        new Thread(taskChart).start();
+        Thread t1 = new Thread(taskMisiones); t1.setDaemon(true); t1.start();
+        Thread t2 = new Thread(taskChart); t2.setDaemon(true); t2.start();
     }
 
     // --- GENERACIÓN DE UI DINÁMICA ---
 
     private void mostrarMensajeVacio() {
         Label empty = new Label("No hay misiones activas.\n¡Ve al tablón y acepta un desafío!");
-        empty.setStyle("-fx-text-fill: #666; -fx-font-style: italic; -fx-text-alignment: CENTER; -fx-font-size: 12px;");
+        empty.setStyle("-fx-text-fill: #666; -fx-font-style: italic; -fx-text-alignment: CENTER; -fx-font-size: 13px;");
         empty.setMaxWidth(Double.MAX_VALUE);
         empty.setAlignment(Pos.CENTER);
+        empty.setPadding(new Insets(20, 0, 20, 0));
         activeMissionsContainer.getChildren().add(empty);
     }
 
@@ -189,7 +212,7 @@ public class DashboardViewController {
 
         row.getChildren().addAll(icon, textBox, spacer, progressBox);
 
-        // Interactividad
+        // Interactividad Hover de Misión
         row.setOnMouseEntered(e -> {
             row.setStyle("-fx-background-color: rgba(247, 210, 122, 0.08); -fx-background-radius: 10; -fx-border-color: #f7d27a; -fx-border-radius: 10;");
             row.setEffect(new Glow(0.3));
@@ -222,19 +245,45 @@ public class DashboardViewController {
         Platform.runLater(() -> {
             if (productivityChart == null) return;
             
-            // CORRECCIÓN: Usamos -fx-bar-fill para soportar gradientes
-            for (Node n : productivityChart.lookupAll(".default-color0.chart-bar")) {
-                n.setStyle("-fx-bar-fill: linear-gradient(to top, #6a1b9a, #f7d27a); " +
-                           "-fx-background-radius: 5 5 0 0; " +
-                           "-fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.3), 10, 0, 0, 0);");
-                
-                ScaleTransition st = new ScaleTransition(Duration.millis(800), n);
-                st.setFromY(0);
-                st.setToY(1);
-                st.play();
-                
-                n.setOnMouseEntered(e -> n.setEffect(new Glow(0.8)));
-                n.setOnMouseExited(e -> n.setEffect(null));
+            int delay = 0;
+            
+            // Iteramos sobre los datos reales en lugar de hacer un lookup a ciegas
+            for (XYChart.Series<String, Number> series : productivityChart.getData()) {
+                for (XYChart.Data<String, Number> data : series.getData()) {
+                    Node n = data.getNode();
+                    if (n != null) {
+                        // Color vibrante para gráfica cyberpunk
+                        n.setStyle("-fx-background-color: linear-gradient(to top, #6a1b9a, #f7d27a); " +
+                                   "-fx-background-insets: 0; " +
+                                   "-fx-background-radius: 5 5 0 0; " +
+                                   "-fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.4), 10, 0, 0, 0);");
+                        
+                        // Añadir Tooltip interactivo flotante
+                        Tooltip tooltip = new Tooltip(data.getXValue() + ": " + data.getYValue() + " XP Ganada");
+                        tooltip.setStyle("-fx-background-color: rgba(26,26,46,0.9); -fx-text-fill: #f7d27a; -fx-font-size: 13px; -fx-font-weight: bold; -fx-border-color: #f7d27a; -fx-border-radius: 5; -fx-background-radius: 5;");
+                        Tooltip.install(n, tooltip);
+
+                        // Animación de crecimiento progresivo (Estilo barras cargando)
+                        ScaleTransition st = new ScaleTransition(Duration.millis(800), n);
+                        st.setFromY(0);
+                        st.setToY(1);
+                        st.setDelay(Duration.millis(delay));
+                        st.setInterpolator(Interpolator.SPLINE(0.25, 0.1, 0.25, 1)); // Suavizado
+                        st.play();
+                        
+                        delay += 120; // Efecto escalonado
+                        
+                        // Efecto Glow y rebote ligero al pasar el mouse
+                        n.setOnMouseEntered(e -> {
+                            n.setEffect(new Glow(0.8));
+                            n.setScaleX(1.1);
+                        });
+                        n.setOnMouseExited(e -> {
+                            n.setEffect(new DropShadow(10, Color.rgb(247, 210, 122, 0.4)));
+                            n.setScaleX(1.0);
+                        });
+                    }
+                }
             }
         });
     }
@@ -282,15 +331,15 @@ public class DashboardViewController {
     @FXML
     public void animarCardEntrada(MouseEvent e) {
         Node source = (Node) e.getSource();
-        ScaleTransition st = new ScaleTransition(Duration.millis(150), source);
-        st.setToX(1.03); st.setToY(1.03); st.play();
-        source.setEffect(new DropShadow(20, Color.rgb(163, 53, 238, 0.4)));
+        ScaleTransition st = new ScaleTransition(Duration.millis(200), source);
+        st.setToX(1.04); st.setToY(1.04); st.play();
+        source.setEffect(new DropShadow(25, Color.rgb(163, 53, 238, 0.6)));
     }
 
     @FXML
     public void animarCardSalida(MouseEvent e) {
         Node source = (Node) e.getSource();
-        ScaleTransition st = new ScaleTransition(Duration.millis(150), source);
+        ScaleTransition st = new ScaleTransition(Duration.millis(200), source);
         st.setToX(1.0); st.setToY(1.0); st.play();
         source.setEffect(null);
     }
