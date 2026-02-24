@@ -1,5 +1,6 @@
 Ctrl+Alt+Quest: gestión de usuarios, personajes, misiones, tienda y pagos.
-Requisitos mínimos
+Requisitos mínimos:
+
 •	Java 17 (compilación configurada con `maven-compiler-plugin` / `release=17`).
 •	Maven instalado (usa `javafx-maven-plugin` para ejecutar
 •	empaquetado/ejecución de JavaFX).
@@ -96,11 +97,3 @@ Controllers
 - `frontend/src/main/resources/fxml/README.md` — FXML views
 - `frontend/src/main/resources/assets/README.md` — Assets
 - `frontend/src/main/resources/styles/README.md` — Styles
-
-Si quieres, puedo:
-- Generar la guía de instalación local (pasos precisos, comandos y
-`.env.example`).
-- Añadir migraciones con Flyway y skeleton de CI (GitHub Actions) que compile y
-ejecute tests.
-- Actualizar la `pom.xml` con plugins para crear un `fat-jar`/runtime image y
-testear empaquetado.
