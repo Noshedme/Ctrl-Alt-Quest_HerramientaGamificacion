@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.effect.*?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.ctrlaltquest.ui.controllers.views.ReportModalController"
+      spacing="20" style="-fx-background-color: #0b0812;"
+      stylesheets="@/styles/home.css">
+    <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+
+    <!-- ENCABEZADO -->
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Label text="📊 REPORTE COMPLETO" styleClass="section-title-small" 
+               style="-fx-text-fill: #f7d27a; -fx-font-weight: 900; -fx-font-size: 18px; -fx-letter-spacing: 1px;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="✕" onAction="#closeModal" styleClass="btn-nav-danger"
+                style="-fx-font-size: 16px; -fx-padding: 5 10; -fx-cursor: hand;"/>
+    </HBox>
+
+    <Separator style="-fx-opacity: 0.1;"/>
+
+    <!-- TABS PRINCIPALES -->
+    <TabPane tabClosingPolicy="UNAVAILABLE" style="-fx-focus-color: transparent; -fx-faint-focus-color: transparent;">
+
+        <!-- TAB 1: RESUMEN SEMANAL -->
+        <Tab text="Resumen Semanal" closable="false">
+            <VBox spacing="20" style="-fx-padding: 20;">
+
+                <!-- Estadísticas Rápidas -->
+                <HBox spacing="15" alignment="CENTER_LEFT">
+                    <VBox styleClass="activity-card" HBox.hgrow="ALWAYS"
+                          style="-fx-padding: 15; -fx-background-radius: 12; -fx-background-color: rgba(255,255,255,0.03); -fx-border-color: rgba(138, 43, 226, 0.2);-fx-border-radius: 12;">
+                        <Label text="Racha Actual" styleClass="text-tiny-bright" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                        <Label fx:id="lblReportStreak" text="7" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #ff4757;"/>
+                        <Label text="días consecutivos" style="-fx-font-size: 10px; -fx-text-fill: #666;"/>
+                    </VBox>
+
+                    <VBox styleClass="activity-card" HBox.hgrow="ALWAYS"
+                          style="-fx-padding: 15; -fx-background-radius: 12; -fx-background-color: rgba(255,255,255,0.03); -fx-border-color: rgba(74, 222, 128, 0.2);-fx-border-radius: 12;">
+                        <Label text="XP Ganado" styleClass="text-tiny-bright" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                        <Label fx:id="lblReportXP" text="1,250" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #4ade80;"/>
+                        <Label text="esta semana" style="-fx-font-size: 10px; -fx-text-fill: #666;"/>
+                    </VBox>
+
+                    <VBox styleClass="activity-card" HBox.hgrow="ALWAYS"
+                          style="-fx-padding: 15; -fx-background-radius: 12; -fx-background-color: rgba(255,255,255,0.03); -fx-border-color: rgba(255, 209, 122, 0.2);-fx-border-radius: 12;">
+                        <Label text="Misiones" styleClass="text-tiny-bright" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                        <Label fx:id="lblReportMissions" text="12" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #f7d27a;"/>
+                        <Label text="completadas" style="-fx-font-size: 10px; -fx-text-fill: #666;"/>
+                    </VBox>
+
+                    <VBox styleClass="activity-card" HBox.hgrow="ALWAYS"
+                          style="-fx-padding: 15; -fx-background-radius: 12; -fx-background-color: rgba(255,255,255,0.03); -fx-border-color: rgba(100, 200, 255, 0.2);-fx-border-radius: 12;">
+                        <Label text="Tiempo Activo" styleClass="text-tiny-bright" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                        <Label fx:id="lblReportScreenTime" text="42h 30m" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #64c8ff;"/>
+                        <Label text="en la app" style="-fx-font-size: 10px; -fx-text-fill: #666;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Gráfica XP por día -->
+                <VBox style="-fx-padding: 20; -fx-background-color: rgba(255,255,255,0.02); -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.05); -fx-border-radius: 12;">
+                    <Label text="Progresión XP por Día" styleClass="section-title-small" style="-fx-text-fill: #eee; -fx-font-weight: 900; -fx-font-size: 13px;"/>
+                    <LineChart fx:id="xpWeeklyChart" prefHeight="250" animated="true" style="-fx-background-color: transparent;">
+                        <xAxis><CategoryAxis side="BOTTOM" /></xAxis>
+                        <yAxis><NumberAxis side="LEFT" /></yAxis>
+                    </LineChart>
+                </VBox>
+            </VBox>
+        </Tab>
+
+        <!-- TAB 2: ACTIVIDAD DIARIA -->
+        <Tab text="Hoy" closable="false">
+            <VBox spacing="20" style="-fx-padding: 20;">
+                <Label text="Desglose de uso de aplicaciones" styleClass="text-tiny-bright" style="-fx-text-fill: #ccc; -fx-font-size: 12px;"/>
+
+                <HBox spacing="20" alignment="TOP_CENTER">
+                    <PieChart fx:id="usageBreakdownPie" prefWidth="350" prefHeight="250" style="-fx-background-color: transparent;" labelsVisible="false"/>
+                    <VBox spacing="8" alignment="TOP_LEFT" prefWidth="250">
+                        <Label text="Resumen por app" styleClass="text-tiny-bright" style="-fx-font-weight: bold; -fx-text-fill: #ddd; -fx-font-size: 12px;"/>
+                        <VBox fx:id="usageBreakdownList" spacing="6" style="-fx-padding: 10;"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </Tab>
+
+        <!-- TAB 3: LOGROS -->
+        <Tab text="Logros Desbloqueados" closable="false">
+            <VBox spacing="15" style="-fx-padding: 20;">
+                <Label text="Trofeos obtenidos esta semana" styleClass="text-tiny-bright" style="-fx-text-fill: #ccc; -fx-font-size: 12px;"/>
+                <FlowPane fx:id="achievementsFlow" spacing="12" hgap="12" vgap="12" prefHeight="300" style="-fx-padding: 10;"/>
+            </VBox>
+        </Tab>
+
+        <!-- TAB 4: EXPORTAR -->
+        <Tab text="Exportar" closable="false">
+            <VBox spacing="15" style="-fx-padding: 20;" alignment="TOP_CENTER">
+                <Label text="Descarga tu reporte en diferentes formatos" styleClass="section-title-small" style="-fx-text-fill: #f7d27a; -fx-font-weight: 900; -fx-font-size: 13px;"/>
+
+                <VBox spacing="10" style="-fx-padding: 20; -fx-background-radius: 12; -fx-background-color: rgba(138, 43, 226, 0.08); -fx-border-color: rgba(138, 43, 226, 0.2);">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📄" style="-fx-font-size: 20px;"/>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="CSV (Datos crudos)" styleClass="text-tiny-bright" style="-fx-text-fill: #ddd; -fx-font-weight: bold;"/>
+                            <Label text="Descarga tus misiones completadas como CSV." style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
+                        </VBox>
+                        <Button text="Descargar" onAction="#exportAsCSV" styleClass="btn-nav"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="10" style="-fx-padding: 20; -fx-background-radius: 12; -fx-background-color: rgba(74, 222, 128, 0.08); -fx-border-color: rgba(74, 222, 128, 0.2);">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📊" style="-fx-font-size: 20px;"/>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="PDF (Con gráficas)" styleClass="text-tiny-bright" style="-fx-text-fill: #ddd; -fx-font-weight: bold;"/>
+                            <Label text="Reporte visual con gráficas e ilustraciones." style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
+                        </VBox>
+                        <Button text="Descargar" disable="true" opacity="0.5" styleClass="btn-nav"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="10" style="-fx-padding: 20; -fx-background-radius: 12; -fx-background-color: rgba(100, 200, 255, 0.08); -fx-border-color: rgba(100, 200, 255, 0.2);">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Label text="📱" style="-fx-font-size: 20px;"/>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="JSON (Datos estructurados)" styleClass="text-tiny-bright" style="-fx-text-fill: #ddd; -fx-font-weight: bold;"/>
+                            <Label text="Exporta todos tus datos en formato JSON." style="-fx-font-size: 11px; -fx-text-fill: #aaa;"/>
+                        </VBox>
+                        <Button text="Descargar" disable="true" opacity="0.5" styleClass="btn-nav"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </Tab>
+
+    </TabPane>
+
+</VBox>

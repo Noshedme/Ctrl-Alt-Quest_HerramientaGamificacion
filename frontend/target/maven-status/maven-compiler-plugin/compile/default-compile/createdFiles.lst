@@ -14,7 +14,9 @@ com\ctrlaltquest\services\EventContextualService$ContextualEventTask.class
 com\ctrlaltquest\services\EventContextualListener.class
 com\ctrlaltquest\services\EventGenerator.class
 com\ctrlaltquest\models\EventType$InteractionType.class
+com\ctrlaltquest\ui\controllers\views\ReportModalController.class
 com\ctrlaltquest\services\EventContextualListener$CompletionStatus.class
+com\ctrlaltquest\ui\controllers\views\ReportModalController$1.class
 com\ctrlaltquest\ui\controllers\CharacterSelectionController.class
 com\ctrlaltquest\ui\controllers\CharacterEditorController.class
 com\ctrlaltquest\services\BoostService$BoostInfo$1.class
@@ -23,6 +25,7 @@ com\ctrlaltquest\dao\EventsDAO.class
 com\ctrlaltquest\services\XPSyncService$UserXPData.class
 com\ctrlaltquest\dao\DashboardDAO.class
 com\ctrlaltquest\models\EventType.class
+com\ctrlaltquest\ui\controllers\views\ReportModalController$2.class
 com\ctrlaltquest\ui\controllers\views\DashboardViewController$3.class
 com\ctrlaltquest\ui\controllers\views\StoreViewController.class
 com\ctrlaltquest\ui\controllers\RegisterController$1.class
@@ -39,7 +42,9 @@ com\ctrlaltquest\ui\navigation\SceneRouter.class
 com\ctrlaltquest\dao\ActivityDAO.class
 com\ctrlaltquest\services\EventContextualService$1.class
 com\ctrlaltquest\services\PlayerService.class
+com\ctrlaltquest\ui\controllers\views\DashboardViewController$4.class
 com\ctrlaltquest\services\XPSyncService$XPChangeEvent.class
+com\ctrlaltquest\dao\DashboardDAO$AppUsage.class
 com\ctrlaltquest\ui\utils\EventContextualUI.class
 com\ctrlaltquest\services\EventContextualService.class
 com\ctrlaltquest\services\PaymentService.class
@@ -49,6 +54,7 @@ com\ctrlaltquest\services\BoostService$BoostInfo.class
 com\ctrlaltquest\services\EventGenerator$1.class
 com\ctrlaltquest\ui\controllers\LoginController.class
 com\ctrlaltquest\ui\controllers\views\DashboardViewController$2.class
+com\ctrlaltquest\ui\controllers\views\ReportModalController$3.class
 com\ctrlaltquest\services\EventsService$1.class
 com\ctrlaltquest\dao\AchievementsDAO.class
 com\ctrlaltquest\dao\MissionsDAO.class

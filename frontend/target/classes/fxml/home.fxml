@@ -70,7 +70,8 @@
                 <Separator orientation="VERTICAL" style="-fx-opacity: 0.15;" />
 
                 <HBox spacing="25" alignment="CENTER_RIGHT">
-                    <VBox alignment="CENTER_RIGHT" spacing="0">
+                    <!-- Tesoro oculto por petición del usuario (mantener lblCoins inyectable) -->
+                    <VBox alignment="CENTER_RIGHT" spacing="0" visible="false" managed="false">
                         <Label text="TESORO" styleClass="text-label-gold" style="-fx-font-size: 11px; -fx-text-fill: #bbb; -fx-letter-spacing: 1px;"/>
                         <HBox alignment="CENTER_RIGHT" spacing="5">
                             <Label text="💰" style="-fx-font-size: 18px;"/>
@@ -79,7 +80,7 @@
                                    style="-fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: #FFD700;"/>
                         </HBox>
                     </VBox>
-                    
+
                     <Separator orientation="VERTICAL" style="-fx-opacity: 0.15;" />
                     
                     <Button text="⚙" onAction="#showSettingsModal" styleClass="icon-button" 

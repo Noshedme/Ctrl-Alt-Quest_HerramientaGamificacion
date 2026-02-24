@@ -129,4 +129,49 @@ public class DashboardDAO {
 
         return series;
     }
+
+    /**
+     * DTO para resumen de uso de aplicaciones (segundos)
+     */
+    public static class AppUsage {
+        public String appName;
+        public long seconds;
+
+        public AppUsage(String appName, long seconds) {
+            this.appName = appName;
+            this.seconds = seconds;
+        }
+    }
+
+    /**
+     * Obtiene resumen de uso de aplicaciones para el usuario en el día actual.
+     */
+    public static List<AppUsage> getAppUsageSummary(int userId) {
+        List<AppUsage> lista = new ArrayList<>();
+
+        String sql = "SELECT COALESCE(a.name, 'Desconocido') as app_name, " +
+                     "SUM(EXTRACT(EPOCH FROM duration))::BIGINT as total_seconds " +
+                     "FROM public.app_usage_logs al " +
+                     "LEFT JOIN public.apps a ON al.app_id = a.id " +
+                     "LEFT JOIN public.activity_sessions s ON al.session_id = s.id " +
+                     "WHERE s.user_id = ? AND al.start_time >= CURRENT_DATE " +
+                     "GROUP BY app_name ORDER BY total_seconds DESC LIMIT 8";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String name = rs.getString("app_name");
+                long secs = rs.getLong("total_seconds");
+                lista.add(new AppUsage(name, secs));
+            }
+        } catch (SQLException e) {
+            System.err.println("❌ Error cargando resumen de uso: " + e.getMessage());
+        }
+
+        return lista;
+    }
 }

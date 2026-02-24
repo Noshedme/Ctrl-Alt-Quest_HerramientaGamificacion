@@ -353,6 +353,9 @@ public class HomeController implements XPChangeListener, EventContextualListener
             try {
                 int userId = SessionManager.getInstance().getUserId();
                 this.dbSessionId = ActivityDAO.iniciarSesion(userId);
+
+                // Actualizar datos del personaje tras iniciar sesión para reflejar racha/vitalidad
+                refreshCharacterData();
                 
                 MissionsDAO.inicializarMisionesGlobalesParaUsuario(userId);
                 
@@ -398,10 +401,14 @@ public class HomeController implements XPChangeListener, EventContextualListener
             xpBar.setProgress(xpProgress);
             lblXPText.setText(xpActual + " / " + xpRequerido + " XP");
             
-            healthBar.setProgress(1.0);
+            // Mostrar racha real (número de días consecutivos) y mapear a la barra de vitalidad
             if (lblHealthStreak != null) {
                 int racha = currentCharacter.getHealthStreak();
-                lblHealthStreak.setText("RACHA: " + racha + (racha == 1 ? " DÍA" : " DÍAS"));
+                lblHealthStreak.setText(String.valueOf(racha));
+                double progress = Math.min(1.0, ((double) racha) / 7.0); // objetivo semanal
+                healthBar.setProgress(progress);
+            } else {
+                healthBar.setProgress(0.0);
             }
         } catch (Exception e) {}
     }
@@ -541,6 +548,17 @@ public class HomeController implements XPChangeListener, EventContextualListener
     @FXML private void showInventory() { playClick(); loadView("character_panel"); }
     @FXML private void showStats() { playClick(); loadView("achievements_view"); }
     @FXML private void showProfile() { playClick(); loadView("profile_view"); }
+
+    @FXML
+    private void resumeTracking() {
+        playClick();
+        isMonitoring = true;
+        
+        // Si el thread se detuvo, reiniciarlo
+        if (monitorThread == null || !monitorThread.isAlive()) {
+            iniciarMonitoreoActividad();
+        }
+    }
 
     @FXML
     private void showSettingsModal() {

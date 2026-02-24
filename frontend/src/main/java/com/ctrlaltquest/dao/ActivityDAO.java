@@ -20,7 +20,25 @@ public class ActivityDAO {
             ResultSet rs = pstmt.executeQuery();
             
             if (rs.next()) {
-                return rs.getInt(1); 
+                int sessionId = rs.getInt(1);
+
+                // Al iniciar sesión actualizamos la racha del usuario según last_sync:
+                // - Si last_sync es hoy: no cambiar
+                // - Si last_sync es ayer: incrementar racha en 1
+                // - En otro caso: reiniciar a 1
+                String updateUserSql = "UPDATE public.users u SET " +
+                        "health_streak = CASE WHEN (u.last_sync::date = CURRENT_DATE) THEN u.health_streak " +
+                        "WHEN (u.last_sync::date = (CURRENT_DATE - INTERVAL '1 day')) THEN COALESCE(u.health_streak,0) + 1 " +
+                        "ELSE 1 END, last_sync = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE u.id = ?";
+
+                try (PreparedStatement upStmt = conn.prepareStatement(updateUserSql)) {
+                    upStmt.setInt(1, userId);
+                    upStmt.executeUpdate();
+                } catch (SQLException e) {
+                    System.err.println("Error actualizando racha al iniciar sesión: " + e.getMessage());
+                }
+
+                return sessionId;
             }
         } catch (SQLException e) {
             System.err.println("Error al iniciar sesión en BD: " + e.getMessage());

@@ -2,12 +2,15 @@ package com.ctrlaltquest.ui.controllers.views;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.dao.DashboardDAO;
 import com.ctrlaltquest.models.Character;
 
 import javafx.animation.FadeTransition;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
@@ -19,8 +22,15 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.chart.BarChart;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tooltip;
@@ -35,11 +45,20 @@ import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 public class DashboardViewController {
-
-    @FXML private Label lblWelcome;
-    @FXML private Label lblSubtitle;
+    @FXML private ImageView ivProfile;
+    @FXML private Label lblName;
+    @FXML private Label lblClass;
+    @FXML private Label lblDate;
     @FXML private VBox activeMissionsContainer;
-    @FXML private BarChart<String, Number> productivityChart;
+    @FXML private PieChart usagePie;
+    @FXML private VBox usageDetails;
+    @FXML private LineChart<String, Number> streakChart;
+    @FXML private Label lblStreakNumber;
+    @FXML private javafx.scene.control.Button btnRefreshStreak;
+
+    @FXML private VBox reportHeaderBox;
+    @FXML private javafx.scene.control.Button btnExportReport;
+    @FXML private javafx.scene.control.Button btnOpenReport;
     
     // Contenedores principales para animar
     @FXML private HBox newsContainer;
@@ -55,14 +74,60 @@ public class DashboardViewController {
         cargarDatosDashboard();
     }
 
+    @FXML
+    public void refreshStreakData() {
+        if (userId == -1) return;
+
+        Task<Void> t = new Task<>() {
+            @Override
+            protected Void call() {
+                try {
+                    // Obtener serie de rendimiento
+                    javafx.scene.chart.XYChart.Series<String, Number> serie = DashboardDAO.getRendimientoSemanal(userId);
+                    Platform.runLater(() -> {
+                        try {
+                            if (streakChart != null) {
+                                streakChart.getData().clear();
+                                streakChart.getData().add(serie);
+                                streakChart.setLegendVisible(false);
+                                
+                                // 🎨 Aplicar estilos dinámicos a la gráfica
+                                aplicarEstilosStreakChart(serie);
+                            }
+
+                            // Actualizar número de racha desde CharacterDAO
+                            Map<Integer, Character> chars = CharacterDAO.getCharactersByUser(userId);
+                            if (!chars.isEmpty()) {
+                                Character c = chars.values().iterator().next();
+                                if (lblStreakNumber != null) {
+                                    lblStreakNumber.setText(String.valueOf(c.getHealthStreak()));
+                                    // Animar la actualización del número
+                                    animarNumeroRacha(lblStreakNumber);
+                                }
+                            }
+                        } catch (Exception ex) {}
+                    });
+                } catch (Exception ex) {
+                    // ignore
+                }
+                return null;
+            }
+        };
+        Thread th = new Thread(t); th.setDaemon(true); th.start();
+    }
+
     /**
      * Recibe el objeto Character desde HomeController para mostrar datos inmediatamente
      */
     public void setPlayerData(Character character) {
         this.currentCharacter = character;
-        if (character != null && lblWelcome != null) {
+        if (character != null && lblName != null) {
             Platform.runLater(() -> {
-                typewriterEffect(lblWelcome, "HOLA DE NUEVO, " + character.getName().toUpperCase(), 30);
+                // Nombre principal
+                typewriterEffect(lblName, character.getName().toUpperCase(), 30);
+                lblClass.setText("CLASE: " + (character.getClassId() > 0 ? "CLASE_" + character.getClassId() : "--"));
+                // Cargar avatar basado en clase o skin
+                cargarAvatarPreview(character);
                 animarEntradaDashboard();
             });
         }
@@ -75,11 +140,15 @@ public class DashboardViewController {
         if(missionsCard != null) missionsCard.setOpacity(0);
         if(chartCard != null) chartCard.setOpacity(0);
         
-        if(lblWelcome != null) lblWelcome.setText("SINTONIZANDO...");
+        if(lblName != null) lblName.setText("SINTONIZANDO...");
+        if (lblDate != null) {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("EEEE, d MMM");
+            lblDate.setText(LocalDate.now().format(fmt).toUpperCase());
+        }
         
         // Evitar animaciones por defecto de JavaFX que chocan con las nuestras
-        if (productivityChart != null) {
-            productivityChart.setAnimated(false);
+        if (usagePie != null) {
+            usagePie.setAnimated(false);
         }
     }
 
@@ -98,7 +167,7 @@ public class DashboardViewController {
         };
 
         taskName.setOnSucceeded(e -> {
-            if(lblWelcome != null) typewriterEffect(lblWelcome, "HOLA DE NUEVO, " + taskName.getValue(), 50);
+            if(lblName != null) typewriterEffect(lblName, "HOLA DE NUEVO, " + taskName.getValue(), 50);
             animarEntradaDashboard();
         });
 
@@ -135,26 +204,118 @@ public class DashboardViewController {
             }
         });
 
-        // Tarea Gráfica
-        Task<XYChart.Series<String, Number>> taskChart = new Task<>() {
+        // Tarea Resumen de uso de aplicaciones (PieChart)
+        Task<List<DashboardDAO.AppUsage>> taskUsage = new Task<>() {
             @Override
-            protected XYChart.Series<String, Number> call() {
-                return DashboardDAO.getRendimientoSemanal(userId);
+            protected List<DashboardDAO.AppUsage> call() {
+                return DashboardDAO.getAppUsageSummary(userId);
             }
         };
 
-        taskChart.setOnSucceeded(e -> {
-            if (productivityChart != null) {
-                productivityChart.getData().clear();
-                if (taskChart.getValue() != null) {
-                    productivityChart.getData().add(taskChart.getValue());
-                    estilizarGrafica();
+        taskUsage.setOnSucceeded(e -> {
+            List<DashboardDAO.AppUsage> usage = taskUsage.getValue();
+            Platform.runLater(() -> {
+                if (usagePie != null) usagePie.getData().clear();
+                if (usageDetails != null) usageDetails.getChildren().clear();
+
+                long total = usage.stream().mapToLong(u -> u.seconds).sum();
+                if (total == 0) {
+                    Label empty = new Label("Sin uso capturado hoy.");
+                    empty.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
+                    if (usageDetails != null) usageDetails.getChildren().add(empty);
+                    return;
                 }
-            }
+
+                ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+                for (DashboardDAO.AppUsage u : usage) {
+                    double percent = (double) u.seconds / (double) total * 100.0;
+                    String label = u.appName + " (" + (int)percent + "%)";
+                    PieChart.Data d = new PieChart.Data(label, u.seconds);
+                    pieData.add(d);
+
+                    // Detalle lateral
+                    Label detail = new Label(u.appName + " — " + formatSeconds(u.seconds));
+                    detail.setStyle("-fx-text-fill: #ddd; -fx-font-size: 12px;");
+                    usageDetails.getChildren().add(detail);
+                }
+
+                if (usagePie != null) usagePie.setData(pieData);
+
+                // Interactividad: al hacer hover mostrar tooltip con tiempo
+                pieData.forEach(d -> {
+                    d.getNode().setOnMouseEntered(ev -> d.getNode().setScaleX(1.05));
+                    d.getNode().setOnMouseExited(ev -> d.getNode().setScaleX(1.0));
+                });
+            });
         });
 
         Thread t1 = new Thread(taskMisiones); t1.setDaemon(true); t1.start();
-        Thread t2 = new Thread(taskChart); t2.setDaemon(true); t2.start();
+        Thread t3 = new Thread(taskUsage); t3.setDaemon(true); t3.start();
+
+        // Cargar racha semanal (widget interactivo)
+        refreshStreakData();
+    }
+
+    @FXML
+    public void handleExportCSVReport() {
+        try {
+            javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+            fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV files", "*.csv"));
+            java.io.File dest = fc.showSaveDialog(null);
+            if (dest == null) return;
+
+            boolean ok = com.ctrlaltquest.dao.MissionsDAO.exportMissionHistoryToCSV(userId, dest);
+            javafx.application.Platform.runLater(() -> {
+                javafx.scene.control.Alert a = new javafx.scene.control.Alert(ok ? javafx.scene.control.Alert.AlertType.INFORMATION : javafx.scene.control.Alert.AlertType.ERROR);
+                a.setTitle(ok ? "Exportado" : "Error");
+                a.setHeaderText(null);
+                a.setContentText(ok ? "CSV exportado correctamente." : "No se pudo exportar el CSV.");
+                a.show();
+            });
+        } catch (Exception e) {
+            // mostrar error
+            javafx.application.Platform.runLater(() -> {
+                javafx.scene.control.Alert a = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                a.setTitle("Error"); a.setHeaderText(null); a.setContentText("No se pudo exportar: " + e.getMessage()); a.show();
+            });
+        }
+    }
+
+    @FXML
+    public void handleOpenReport() {
+        abrirReportModal();
+    }
+
+    /**
+     * Abre la modal de reporte completa con gráficas interactivas
+     */
+    private void abrirReportModal() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/views/report_modal.fxml"));
+            javafx.scene.Parent root = loader.load();
+            
+            ReportModalController reportCtrl = loader.getController();
+            reportCtrl.setData(userId, currentCharacter);
+            
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("Reporte Semanal Completo");
+            stage.setScene(new javafx.scene.Scene(root, 1000, 700));
+            stage.initStyle(javafx.stage.StageStyle.DECORATED);
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            
+            reportCtrl.setStage(stage);
+            
+            // Aplicar estilos
+            try {
+                String css = getClass().getResource("/styles/home.css").toExternalForm();
+                root.getStylesheets().add(css);
+            } catch (Exception ex) {}
+            
+            stage.show();
+        } catch (Exception e) {
+            System.err.println("Error abriendo reporte modal: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // --- GENERACIÓN DE UI DINÁMICA ---
@@ -242,50 +403,31 @@ public class DashboardViewController {
     }
 
     private void estilizarGrafica() {
-        Platform.runLater(() -> {
-            if (productivityChart == null) return;
-            
-            int delay = 0;
-            
-            // Iteramos sobre los datos reales en lugar de hacer un lookup a ciegas
-            for (XYChart.Series<String, Number> series : productivityChart.getData()) {
-                for (XYChart.Data<String, Number> data : series.getData()) {
-                    Node n = data.getNode();
-                    if (n != null) {
-                        // Color vibrante para gráfica cyberpunk
-                        n.setStyle("-fx-background-color: linear-gradient(to top, #6a1b9a, #f7d27a); " +
-                                   "-fx-background-insets: 0; " +
-                                   "-fx-background-radius: 5 5 0 0; " +
-                                   "-fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.4), 10, 0, 0, 0);");
-                        
-                        // Añadir Tooltip interactivo flotante
-                        Tooltip tooltip = new Tooltip(data.getXValue() + ": " + data.getYValue() + " XP Ganada");
-                        tooltip.setStyle("-fx-background-color: rgba(26,26,46,0.9); -fx-text-fill: #f7d27a; -fx-font-size: 13px; -fx-font-weight: bold; -fx-border-color: #f7d27a; -fx-border-radius: 5; -fx-background-radius: 5;");
-                        Tooltip.install(n, tooltip);
+        // Ya no aplicamos estilizado específico a la antigua BarChart
+    }
 
-                        // Animación de crecimiento progresivo (Estilo barras cargando)
-                        ScaleTransition st = new ScaleTransition(Duration.millis(800), n);
-                        st.setFromY(0);
-                        st.setToY(1);
-                        st.setDelay(Duration.millis(delay));
-                        st.setInterpolator(Interpolator.SPLINE(0.25, 0.1, 0.25, 1)); // Suavizado
-                        st.play();
-                        
-                        delay += 120; // Efecto escalonado
-                        
-                        // Efecto Glow y rebote ligero al pasar el mouse
-                        n.setOnMouseEntered(e -> {
-                            n.setEffect(new Glow(0.8));
-                            n.setScaleX(1.1);
-                        });
-                        n.setOnMouseExited(e -> {
-                            n.setEffect(new DropShadow(10, Color.rgb(247, 210, 122, 0.4)));
-                            n.setScaleX(1.0);
-                        });
-                    }
-                }
+    private String formatSeconds(long secs) {
+        long h = secs / 3600;
+        long m = (secs % 3600) / 60;
+        long s = secs % 60;
+        if (h > 0) return String.format("%dh %02dm", h, m);
+        if (m > 0) return String.format("%dm %02ds", m, s);
+        return String.format("%ds", s);
+    }
+
+    private void cargarAvatarPreview(Character c) {
+        try {
+            String path = "/assets/images/sprites/class_" + c.getClassId() + "_idle.png";
+            java.net.URL url = getClass().getResource(path);
+            if (url == null) {
+                path = "/assets/images/sprites/class_" + c.getClassId() + ".png";
+                url = getClass().getResource(path);
             }
-        });
+            if (url == null) url = getClass().getResource("/assets/images/sprites/class_1_idle.png");
+            if (url != null && ivProfile != null) ivProfile.setImage(new Image(url.toExternalForm()));
+        } catch (Exception ex) {
+            // no crítico
+        }
     }
 
     // --- ANIMACIONES GENERALES ---
@@ -342,5 +484,65 @@ public class DashboardViewController {
         ScaleTransition st = new ScaleTransition(Duration.millis(200), source);
         st.setToX(1.0); st.setToY(1.0); st.play();
         source.setEffect(null);
+    }
+
+    /**
+     * Aplica estilos dinámicos y animaciones al streak chart (línea con brillo)
+     */
+    private void aplicarEstilosStreakChart(XYChart.Series<String, Number> serie) {
+        if (serie == null || serie.getNode() == null) return;
+        
+        Node serieNode = serie.getNode();
+        serieNode.setStyle("-fx-stroke: #ff4757; -fx-stroke-width: 3;");
+        
+        // Efecto de brillo en la línea
+        DropShadow glow = new DropShadow(15, Color.rgb(255, 71, 87, 0.7));
+        serieNode.setEffect(glow);
+        
+        // Animar los puntos de datos (si existen)
+        for (XYChart.Data<String, Number> data : serie.getData()) {
+            Node dataNode = data.getNode();
+            if (dataNode != null) {
+                dataNode.setStyle("-fx-padding: 5;");
+                
+                // Círculos con efecto hover
+                dataNode.setOnMouseEntered(ev -> {
+                    ScaleTransition st = new ScaleTransition(Duration.millis(150), dataNode);
+                    st.setToX(1.3); st.setToY(1.3); st.play();
+                    
+                    DropShadow shadow = new DropShadow(10, Color.rgb(255, 71, 87, 0.9));
+                    dataNode.setEffect(shadow);
+                });
+                
+                dataNode.setOnMouseExited(ev -> {
+                    ScaleTransition st = new ScaleTransition(Duration.millis(150), dataNode);
+                    st.setToX(1.0); st.setToY(1.0); st.play();
+                    dataNode.setEffect(null);
+                });
+            }
+        }
+    }
+
+    /**
+     * Anima el número de racha con escala y brillo
+     */
+    private void animarNumeroRacha(Label lbl) {
+        if (lbl == null) return;
+        
+        lbl.setScaleX(0.7); lbl.setScaleY(0.7);
+        
+        ScaleTransition st = new ScaleTransition(Duration.millis(600), lbl);
+        st.setToX(1.0); st.setToY(1.0);
+        st.setInterpolator(Interpolator.EASE_OUT);
+        
+        DropShadow shadow = new DropShadow(20, Color.rgb(255, 71, 87, 0.8));
+        lbl.setEffect(shadow);
+        
+        st.play();
+        
+        // Remover efecto después de la animación
+        new Timeline(
+            new KeyFrame(Duration.millis(650), e -> lbl.setEffect(null))
+        ).play();
     }
 }
