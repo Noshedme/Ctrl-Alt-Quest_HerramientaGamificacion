@@ -170,15 +170,15 @@ public class HomeController implements XPChangeListener, EventContextualListener
     private void configurarEfectosAvatar() {
         if (imgAvatarSmall != null) {
             imgAvatarSmall.setOnMouseEntered(e -> {
-                imgAvatarSmall.setEffect(new DropShadow(15, Color.rgb(163, 53, 238, 0.8)));
+                imgAvatarSmall.setEffect(new DropShadow(12, Color.rgb(163, 53, 238, 0.7)));
                 imgAvatarSmall.setStyle("-fx-cursor: hand;");
-                ScaleTransition st = new ScaleTransition(Duration.millis(150), imgAvatarSmall);
-                st.setToX(1.05); st.setToY(1.05); st.play();
+                ScaleTransition st = new ScaleTransition(Duration.millis(120), imgAvatarSmall);
+                st.setToX(1.03); st.setToY(1.03); st.play();
             });
             
             imgAvatarSmall.setOnMouseExited(e -> {
                 imgAvatarSmall.setEffect(null);
-                ScaleTransition st = new ScaleTransition(Duration.millis(150), imgAvatarSmall);
+                ScaleTransition st = new ScaleTransition(Duration.millis(120), imgAvatarSmall);
                 st.setToX(1.0); st.setToY(1.0); st.play();
             });
         }
@@ -735,8 +735,8 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 lblXPText.setText(data.currentXP + " / " + data.xpRequired + " XP");
                 
                 if (event.xpGained > 0) {
-                    ScaleTransition scaleUp = new ScaleTransition(Duration.millis(300), xpBar);
-                    scaleUp.setToY(1.1); scaleUp.setCycleCount(2); scaleUp.setAutoReverse(true); scaleUp.play();
+                        ScaleTransition scaleUp = new ScaleTransition(Duration.millis(200), xpBar);
+                        scaleUp.setToY(1.06); scaleUp.setCycleCount(2); scaleUp.setAutoReverse(true); scaleUp.play();
                     showXPGainNotification(event.xpGained, event.source);
                 }
             } catch (Exception e) {}
@@ -764,10 +764,10 @@ public class HomeController implements XPChangeListener, EventContextualListener
     }
     
     private void playLevelUpAnimation() {
-        ScaleTransition scale = new ScaleTransition(Duration.millis(500), lblLevel);
-        scale.setToX(1.3); scale.setToY(1.3); scale.setCycleCount(2); scale.setAutoReverse(true);
-        FadeTransition fade = new FadeTransition(Duration.millis(500), lblLevel);
-        fade.setFromValue(1.0); fade.setToValue(0.7); fade.setCycleCount(2); fade.setAutoReverse(true);
+        ScaleTransition scale = new ScaleTransition(Duration.millis(350), lblLevel);
+        scale.setToX(1.12); scale.setToY(1.12); scale.setCycleCount(1); scale.setAutoReverse(true);
+        FadeTransition fade = new FadeTransition(Duration.millis(350), lblLevel);
+        fade.setFromValue(1.0); fade.setToValue(0.85); fade.setCycleCount(1); fade.setAutoReverse(true);
         scale.play(); fade.play();
     }
     
@@ -776,7 +776,7 @@ public class HomeController implements XPChangeListener, EventContextualListener
         notifLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #FFD700;");
         notifLabel.setOpacity(1.0);
         StackPane.setAlignment(notifLabel, javafx.geometry.Pos.CENTER);
-        FadeTransition fade = new FadeTransition(Duration.millis(1500), notifLabel);
+        FadeTransition fade = new FadeTransition(Duration.millis(1000), notifLabel);
         fade.setFromValue(1.0); fade.setToValue(0.0); fade.play();
     }
 

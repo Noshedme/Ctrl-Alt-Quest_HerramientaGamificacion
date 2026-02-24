@@ -1,41 +1,37 @@
 package com.ctrlaltquest.ui.controllers.views;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.dao.DashboardDAO;
 import com.ctrlaltquest.models.Character;
 
 import javafx.animation.FadeTransition;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.chart.PieChart;
 import javafx.scene.chart.LineChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.Tooltip;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Glow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -137,7 +133,6 @@ public class DashboardViewController {
     public void initialize() {
         // Ocultar elementos iniciales para la entrada dramática
         if(newsContainer != null) newsContainer.setOpacity(0);
-        if(missionsCard != null) missionsCard.setOpacity(0);
         if(chartCard != null) chartCard.setOpacity(0);
         
         if(lblName != null) lblName.setText("SINTONIZANDO...");
@@ -226,26 +221,157 @@ public class DashboardViewController {
                     return;
                 }
 
+                // Colores vibrantes y coherentes
+                String[] colors = {
+                    "#FF6B6B", "#4ECDC4", "#FFD93D", "#A335EE", "#FF8C42",
+                    "#6BCB77", "#FF006E", "#00D4FF", "#A0FF00", "#FFB6C1"
+                };
+
                 ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+                int colorIdx = 0;
+                
                 for (DashboardDAO.AppUsage u : usage) {
                     double percent = (double) u.seconds / (double) total * 100.0;
-                    String label = u.appName + " (" + (int)percent + "%)";
+                    
+                    // MOSTRAR: "App Name (15%)" EN EL GRÁFICO
+                    String label = u.appName + "\n(" + (int)percent + "%)";
                     PieChart.Data d = new PieChart.Data(label, u.seconds);
                     pieData.add(d);
 
-                    // Detalle lateral
-                    Label detail = new Label(u.appName + " — " + formatSeconds(u.seconds));
-                    detail.setStyle("-fx-text-fill: #ddd; -fx-font-size: 12px;");
-                    usageDetails.getChildren().add(detail);
+                    // PANEL DE DETALLES - MEJORADO CON COLORES Y ANIMACIONES
+                    HBox detailRow = new HBox(12);
+                    detailRow.setAlignment(Pos.CENTER_LEFT);
+                    detailRow.setStyle("-fx-padding: 12 10; -fx-background-radius: 10; -fx-background-color: rgba(0,0,0,0.15);");
+                    
+                    // Indicador de color con efecto pulsante
+                    Region colorDot = new Region();
+                    String color = colors[colorIdx % colors.length];
+                    colorDot.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 6;");
+                    colorDot.setPrefWidth(12);
+                    colorDot.setPrefHeight(12);
+                    
+                    // Nombre de app
+                    Label appName = new Label(u.appName);
+                    appName.setStyle("-fx-text-fill: #fff; -fx-font-size: 12px; -fx-font-weight: bold;");
+                    appName.setMaxWidth(110);
+                    appName.setWrapText(false);
+                    appName.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);
+                    
+                    // Tiempo y porcentaje
+                    Label timeLabel = new Label(formatSeconds(u.seconds));
+                    timeLabel.setStyle("-fx-text-fill: " + color + "; -fx-font-size: 11px; -fx-font-weight: bold;");
+                    
+                    // Barra de progreso visual
+                    ProgressBar progressBar = new ProgressBar((double) u.seconds / total);
+                    progressBar.setStyle("-fx-accent: " + color + "; -fx-control-inner-background: rgba(0,0,0,0.3);");
+                    progressBar.setPrefHeight(4);
+                    progressBar.setMaxWidth(100);
+                    HBox.setHgrow(progressBar, Priority.SOMETIMES);
+                    
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+                    
+                    detailRow.getChildren().addAll(colorDot, appName, spacer, progressBar, timeLabel);
+                    
+                    // Efecto hover en el panel de detalles con transición suave
+                    detailRow.setOnMouseEntered(ev -> {
+                        final ScaleTransition scaleHover = new ScaleTransition(Duration.millis(150), detailRow);
+                        scaleHover.setToX(1.02);
+                        scaleHover.setToY(1.02);
+                        scaleHover.play();
+                        
+                        detailRow.setStyle("-fx-padding: 12 10; -fx-background-radius: 10; -fx-background-color: rgba(" + extraerRGB(color) + ", 0.25); -fx-border-color: " + color + "; -fx-border-radius: 10; -fx-border-width: 1.5;");
+                        detailRow.setEffect(new DropShadow(15, Color.web(color, 0.5)));
+                    });
+                    
+                    detailRow.setOnMouseExited(ev -> {
+                        final ScaleTransition scaleNormal = new ScaleTransition(Duration.millis(150), detailRow);
+                        scaleNormal.setToX(1.0);
+                        scaleNormal.setToY(1.0);
+                        scaleNormal.play();
+                        
+                        detailRow.setStyle("-fx-padding: 12 10; -fx-background-radius: 10; -fx-background-color: rgba(0,0,0,0.15);");
+                        detailRow.setEffect(null);
+                    });
+                    
+                    usageDetails.getChildren().add(detailRow);
+                    colorIdx++;
                 }
 
-                if (usagePie != null) usagePie.setData(pieData);
+                if (usagePie != null) {
+                    usagePie.setData(pieData);
+                    usagePie.setStyle("-fx-font-size: 10px; -fx-text-fill: #ffffff; -fx-font-weight: bold;");
 
-                // Interactividad: al hacer hover mostrar tooltip con tiempo
-                pieData.forEach(d -> {
-                    d.getNode().setOnMouseEntered(ev -> d.getNode().setScaleX(1.05));
-                    d.getNode().setOnMouseExited(ev -> d.getNode().setScaleX(1.0));
-                });
+                    // APLICAR COLORES Y EFECTOS A LOS SEGMENTOS DEL GRÁFICO
+                    colorIdx = 0;
+                    for (PieChart.Data d : pieData) {
+                        String color = colors[colorIdx % colors.length];
+                        Node sliceNode = d.getNode();
+                        if (sliceNode != null) {
+                            sliceNode.setStyle("-fx-pie-color: " + color + ";");
+                            
+                            // Animación inicial de entrada - cada slice entra secuencialmente
+                            ScaleTransition entradaScale = new ScaleTransition(Duration.millis(700 + colorIdx * 100), sliceNode);
+                            entradaScale.setFromX(0.5);
+                            entradaScale.setFromY(0.5);
+                            entradaScale.setToX(1.0);
+                            entradaScale.setToY(1.0);
+                            entradaScale.setInterpolator(Interpolator.EASE_OUT);
+                            entradaScale.play();
+                            
+                            // Interactividad: Hover con efectos ESPECTACULARES
+                            sliceNode.setOnMouseEntered(ev -> {
+                                // Amplificar el segmento de forma suave
+                                ScaleTransition hoverScale = new ScaleTransition(Duration.millis(250), sliceNode);
+                                hoverScale.setToX(1.15);
+                                hoverScale.setToY(1.15);
+                                hoverScale.setInterpolator(Interpolator.EASE_OUT);
+                                hoverScale.play();
+                                
+                                // Sombra brillante y dinámica
+                                DropShadow brillanteShadow = new DropShadow(40, Color.web(color, 1.0));
+                                brillanteShadow.setRadius(25);
+                                sliceNode.setEffect(brillanteShadow);
+                                
+                                // Cursor de mano
+                                sliceNode.setCursor(javafx.scene.Cursor.HAND);
+                                
+                                // Mostrar información en tooltip
+                                mostrarTooltipSegmento(d, color);
+                            });
+                            
+                            sliceNode.setOnMouseExited(ev -> {
+                                // Volver al tamaño normal suavemente
+                                ScaleTransition normalScale = new ScaleTransition(Duration.millis(200), sliceNode);
+                                normalScale.setToX(1.0);
+                                normalScale.setToY(1.0);
+                                normalScale.setInterpolator(Interpolator.EASE_OUT);
+                                normalScale.play();
+                                
+                                sliceNode.setEffect(null);
+                                sliceNode.setCursor(javafx.scene.Cursor.DEFAULT);
+                            });
+                            
+                            // Click para mostrar detalles con pulso
+                            sliceNode.setOnMouseClicked(ev -> {
+                                mostrarTooltipSegmento(d, color);
+                                
+                                // Efecto de pulso al click
+                                ScaleTransition pulse1 = new ScaleTransition(Duration.millis(150), sliceNode);
+                                pulse1.setToX(1.20);
+                                pulse1.setToY(1.20);
+                                pulse1.setOnFinished(finishEvent -> {
+                                    ScaleTransition pulse2 = new ScaleTransition(Duration.millis(150), sliceNode);
+                                    pulse2.setToX(1.15);
+                                    pulse2.setToY(1.15);
+                                    pulse2.play();
+                                });
+                                pulse1.play();
+                            });
+                        }
+                        colorIdx++;
+                    }
+                }
             });
         });
 
@@ -415,6 +541,42 @@ public class DashboardViewController {
         return String.format("%ds", s);
     }
 
+    /**
+     * Extrae los valores RGB de un color hex para usarlos en estilos CSS
+     */
+    private String extraerRGB(String hexColor) {
+        String hex = hexColor.replace("#", "");
+        int r = Integer.parseInt(hex.substring(0, 2), 16);
+        int g = Integer.parseInt(hex.substring(2, 4), 16);
+        int b = Integer.parseInt(hex.substring(4, 6), 16);
+        return r + ", " + g + ", " + b;
+    }
+
+    /**
+     * Muestra un tooltip interactivo al hacer clic en un segmento del gráfico
+     * con efectos de animación profesionales
+     */
+    private void mostrarTooltipSegmento(PieChart.Data data, String color) {
+        if (data.getNode() != null) {
+            Node node = data.getNode();
+            
+            // Efecto de bounce personalizado
+            ScaleTransition scale1 = new ScaleTransition(Duration.millis(150), node);
+            scale1.setToX(1.25);
+            scale1.setToY(1.25);
+            scale1.setInterpolator(Interpolator.EASE_OUT);
+            
+            scale1.setOnFinished(e -> {
+                ScaleTransition scale2 = new ScaleTransition(Duration.millis(150), node);
+                scale2.setToX(1.20);
+                scale2.setToY(1.20);
+                scale2.play();
+            });
+            
+            scale1.play();
+        }
+    }
+
     private void cargarAvatarPreview(Character c) {
         try {
             String path = "/assets/images/sprites/class_" + c.getClassId() + "_idle.png";
@@ -449,9 +611,117 @@ public class DashboardViewController {
     }
 
     private void animarEntradaDashboard() {
-        animarElemento(newsContainer, 0, -30);
-        animarElemento(missionsCard, 200, -30);
-        animarElemento(chartCard, 400, 30);
+        // 🎆 ANIMACIÓN ÉPICA USANDO JAVAFX NATIVO 🎆
+        
+        // Entrada del nombre con efecto "bounce" personalizado
+        if (lblName != null) {
+            lblName.setOpacity(0);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(400), lblName);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.setInterpolator(Interpolator.EASE_OUT);
+            
+            // Sutil bounce: escala ligera para dar "toque" sin exagerar
+            ScaleTransition scale1 = new ScaleTransition(Duration.millis(400), lblName);
+            scale1.setFromX(0.85);
+            scale1.setFromY(0.85);
+            scale1.setToX(1.05);
+            scale1.setToY(1.05);
+            scale1.setInterpolator(Interpolator.EASE_OUT);
+            
+            Timeline bounceBack = new Timeline(
+                new KeyFrame(Duration.millis(420), ev -> {
+                    ScaleTransition scale2 = new ScaleTransition(Duration.millis(180), lblName);
+                    scale2.setToX(1.0);
+                    scale2.setToY(1.0);
+                    scale2.play();
+                })
+            );
+            
+            fadeIn.play();
+            scale1.play();
+            bounceBack.play();
+        }
+        
+        // Entrada de eventos con flip y delay
+        if (newsContainer != null) {
+            newsContainer.setOpacity(0);
+            newsContainer.setScaleX(0.5);
+            newsContainer.setScaleY(0.5);
+            
+            Timeline startFlip = new Timeline(
+                new KeyFrame(Duration.millis(200), ev -> {
+                    FadeTransition fadeNews = new FadeTransition(Duration.millis(400), newsContainer);
+                    fadeNews.setFromValue(0.0);
+                    fadeNews.setToValue(1.0);
+                    fadeNews.setInterpolator(Interpolator.EASE_OUT);
+                    
+                    ScaleTransition scaleNews = new ScaleTransition(Duration.millis(450), newsContainer);
+                    scaleNews.setFromX(0.85);
+                    scaleNews.setFromY(0.85);
+                    scaleNews.setToX(1.0);
+                    scaleNews.setToY(1.0);
+                    scaleNews.setInterpolator(Interpolator.EASE_OUT);
+                    
+                    fadeNews.play();
+                    scaleNews.play();
+                })
+            );
+            startFlip.play();
+        }
+        
+        // Entrada del gráfico con rotación + zoom - ESPECTACULAR
+        if (chartCard != null) {
+            chartCard.setOpacity(0);
+            chartCard.setScaleX(0.5);
+            chartCard.setScaleY(0.5);
+            chartCard.setRotate(0);
+            
+            Timeline startChart = new Timeline(
+                new KeyFrame(Duration.millis(400), ev -> {
+                    FadeTransition fadeChart = new FadeTransition(Duration.millis(500), chartCard);
+                    fadeChart.setFromValue(0.0);
+                    fadeChart.setToValue(1.0);
+                    fadeChart.setInterpolator(Interpolator.EASE_OUT);
+                    
+                    ScaleTransition scaleChart = new ScaleTransition(Duration.millis(500), chartCard);
+                    scaleChart.setFromX(0.9);
+                    scaleChart.setFromY(0.9);
+                    scaleChart.setToX(1.0);
+                    scaleChart.setToY(1.0);
+                    scaleChart.setInterpolator(Interpolator.EASE_OUT);
+                    
+                    // Rotación muy leve para dar dinamismo sin exagerar
+                    javafx.animation.RotateTransition rotateChart = new javafx.animation.RotateTransition(Duration.millis(500), chartCard);
+                    rotateChart.setFromAngle(0);
+                    rotateChart.setToAngle(6);
+                    rotateChart.setInterpolator(Interpolator.EASE_OUT);
+                    
+                    fadeChart.play();
+                    scaleChart.play();
+                    rotateChart.play();
+                    
+                    // Efecto de brillo más sutil
+                    Timeline glowEffect = new Timeline(
+                        new KeyFrame(Duration.millis(600), ev2 -> {
+                            DropShadow brillanteShadow = new DropShadow(18, Color.rgb(163, 53, 238, 0.65));
+                            chartCard.setEffect(brillanteShadow);
+                            
+                            // Desvanecimiento del brillo
+                            Timeline glowFade = new Timeline(
+                                new KeyFrame(Duration.millis(300), ev3 -> {
+                                    DropShadow normalGlow = new DropShadow(12, Color.rgb(163, 53, 238, 0.35));
+                                    chartCard.setEffect(normalGlow);
+                                })
+                            );
+                            glowFade.play();
+                        })
+                    );
+                    glowEffect.play();
+                })
+            );
+            startChart.play();
+        }
     }
 
     private void animarElemento(Node node, int delay, double offset) {
@@ -473,17 +743,43 @@ public class DashboardViewController {
     @FXML
     public void animarCardEntrada(MouseEvent e) {
         Node source = (Node) e.getSource();
-        ScaleTransition st = new ScaleTransition(Duration.millis(200), source);
-        st.setToX(1.04); st.setToY(1.04); st.play();
-        source.setEffect(new DropShadow(25, Color.rgb(163, 53, 238, 0.6)));
+        
+        // Animación de escala sutil
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), source);
+        st.setToX(1.03);
+        st.setToY(1.03);
+        st.setInterpolator(Interpolator.EASE_OUT);
+        
+        // Efecto de sombra ligero
+        DropShadow shadow = new DropShadow(18, Color.rgb(163, 53, 238, 0.7));
+        source.setEffect(shadow);
+        
+        // Pequeño pulso opcional, menos intenso
+        ScaleTransition pulsate = new ScaleTransition(Duration.millis(140), source);
+        pulsate.setToX(1.06);
+        pulsate.setToY(1.06);
+        pulsate.setCycleCount(1);
+        pulsate.setAutoReverse(true);
+        pulsate.play();
+        
+        st.play();
     }
 
     @FXML
     public void animarCardSalida(MouseEvent e) {
         Node source = (Node) e.getSource();
-        ScaleTransition st = new ScaleTransition(Duration.millis(200), source);
-        st.setToX(1.0); st.setToY(1.0); st.play();
-        source.setEffect(null);
+        
+        // Volver al tamaño normal
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), source);
+        st.setToX(1.0);
+        st.setToY(1.0);
+        st.setInterpolator(Interpolator.EASE_IN);
+        
+        // Sombra normal
+        DropShadow normalShadow = new DropShadow(10, Color.rgb(163, 53, 238, 0.35));
+        source.setEffect(normalShadow);
+        
+        st.play();
     }
 
     /**
@@ -507,15 +803,15 @@ public class DashboardViewController {
                 
                 // Círculos con efecto hover
                 dataNode.setOnMouseEntered(ev -> {
-                    ScaleTransition st = new ScaleTransition(Duration.millis(150), dataNode);
-                    st.setToX(1.3); st.setToY(1.3); st.play();
+                    ScaleTransition st = new ScaleTransition(Duration.millis(140), dataNode);
+                    st.setToX(1.15); st.setToY(1.15); st.play();
                     
-                    DropShadow shadow = new DropShadow(10, Color.rgb(255, 71, 87, 0.9));
+                    DropShadow shadow = new DropShadow(10, Color.rgb(255, 71, 87, 0.75));
                     dataNode.setEffect(shadow);
                 });
                 
                 dataNode.setOnMouseExited(ev -> {
-                    ScaleTransition st = new ScaleTransition(Duration.millis(150), dataNode);
+                    ScaleTransition st = new ScaleTransition(Duration.millis(140), dataNode);
                     st.setToX(1.0); st.setToY(1.0); st.play();
                     dataNode.setEffect(null);
                 });
@@ -529,20 +825,20 @@ public class DashboardViewController {
     private void animarNumeroRacha(Label lbl) {
         if (lbl == null) return;
         
-        lbl.setScaleX(0.7); lbl.setScaleY(0.7);
+        lbl.setScaleX(0.85); lbl.setScaleY(0.85);
         
-        ScaleTransition st = new ScaleTransition(Duration.millis(600), lbl);
+        ScaleTransition st = new ScaleTransition(Duration.millis(350), lbl);
         st.setToX(1.0); st.setToY(1.0);
         st.setInterpolator(Interpolator.EASE_OUT);
         
-        DropShadow shadow = new DropShadow(20, Color.rgb(255, 71, 87, 0.8));
+        DropShadow shadow = new DropShadow(12, Color.rgb(255, 71, 87, 0.6));
         lbl.setEffect(shadow);
         
         st.play();
         
         // Remover efecto después de la animación
         new Timeline(
-            new KeyFrame(Duration.millis(650), e -> lbl.setEffect(null))
+            new KeyFrame(Duration.millis(420), ev -> lbl.setEffect(null))
         ).play();
     }
 }

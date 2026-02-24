@@ -1,9 +1,10 @@
 package com.ctrlaltquest.ui.controllers;
 
-import com.ctrlaltquest.ui.utils.SoundManager;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
+
+import com.ctrlaltquest.ui.utils.SoundManager;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -20,9 +21,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -30,10 +28,10 @@ public class SplashController {
     @FXML private ProgressBar loadingBar;
     @FXML private Label loadingText;
     @FXML private StackPane root;
-    @FXML private MediaView introVideo;
+    // @FXML private MediaView introVideo; // COMENTADO: Conflicto de módulos JavaFX 21
     @FXML private ImageView splashLogo;
 
-    private MediaPlayer mediaPlayer;
+    // private MediaPlayer mediaPlayer; // COMENTADO: No se usa video
     private double progress = 0.0;
     private final int TOTAL_CYCLES = 60; // Controla la duración de la barra
 
@@ -58,7 +56,12 @@ public class SplashController {
             aplicarEfectoRespiracion();
         }
 
-        // 2. Configurar Video de Fondo
+        // 2. DESHABILITADO: VIDEO de Fondo 
+        // Comentado por conflicto de módulos en JavaFX 21
+        // que causa: java.lang.IllegalAccessError en javafx.media
+        // El splash ahora muestra solo imagen y barra de progreso
+        
+        /*
         URL videoUrl = getClass().getResource("/assets/videos/introVideo.mp4");
         if (videoUrl != null) {
             try {
@@ -72,6 +75,7 @@ public class SplashController {
                 System.err.println("No se pudo inicializar el video: " + e.getMessage());
             }
         }
+        */
 
         // 3. Iniciar barra de progreso
         Timeline timeline = new Timeline(new KeyFrame(Duration.millis(100), event -> updateProgress()));
@@ -122,11 +126,11 @@ public class SplashController {
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent termsRoot = loader.load();
             
-            // Limpiar media player para liberar recursos
-            if (mediaPlayer != null) {
-                mediaPlayer.stop();
-                mediaPlayer.dispose();
-            }
+            // COMENTADO: No hay mediaPlayer para limpiar (video deshabilitado)
+            // if (mediaPlayer != null) {
+            //     mediaPlayer.stop();
+            //     mediaPlayer.dispose();
+            // }
 
             Stage stage = (Stage) root.getScene().getWindow();
             if (stage != null) {
