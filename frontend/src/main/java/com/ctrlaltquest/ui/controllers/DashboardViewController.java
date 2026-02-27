@@ -675,7 +675,6 @@ public class DashboardViewController {
             chartCard.setOpacity(0);
             chartCard.setScaleX(0.5);
             chartCard.setScaleY(0.5);
-            chartCard.setRotate(0);
             
             Timeline startChart = new Timeline(
                 new KeyFrame(Duration.millis(400), ev -> {
@@ -694,7 +693,7 @@ public class DashboardViewController {
                     // Rotación muy leve para dar dinamismo sin exagerar
                     javafx.animation.RotateTransition rotateChart = new javafx.animation.RotateTransition(Duration.millis(500), chartCard);
                     rotateChart.setFromAngle(0);
-                    rotateChart.setToAngle(6);
+                    rotateChart.setToAngle(0);
                     rotateChart.setInterpolator(Interpolator.EASE_OUT);
                     
                     fadeChart.play();
