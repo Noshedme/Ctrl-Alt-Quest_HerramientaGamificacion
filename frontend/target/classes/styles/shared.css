@@ -1,0 +1,446 @@
+/* ==========================================================
+   SHARED.CSS - ESTILOS COMPARTIDOS PARA TODA LA APLICACIÓN
+   Basado en paleta: Dorado (#f7d27a) y Púrpura (#8a2be2)
+   ========================================================== */
+
+/* ==========================================================
+   1. COLORES Y TIPOGRAFÍA GLOBAL
+   ========================================================== */
+
+.root {
+    -fx-background-color: #0d0915;
+    -fx-font-family: "Verdana", "Segoe UI", "Arial", sans-serif;
+    
+    /* Variables de Color */
+    -color-primary: #f7d27a;      /* Dorado principal */
+    -color-primary-dark: #d4a017; /* Dorado oscuro */
+    -color-accent: #8a2be2;       /* Púrpura */
+    -color-accent-light: #a335ee; /* Púrpura claro */
+    -color-bg-dark: #0d0915;      /* Fondo oscuro */
+    -color-bg-darker: #1a0f26;    /* Más oscuro */
+    -color-bg-card: #1e162d;      /* Fondo tarjetas */
+    -color-text-primary: #ffffff; /* Texto blanco */
+    -color-text-secondary: #b5a7c6; /* Púrpura claro para texto */
+    -color-text-muted: #888888;   /* Gris para texto muted */
+    -color-border: rgba(247, 210, 122, 0.2); /* Bordes dorados semi-transparentes */
+    -color-danger: #ff6b6b;       /* Rojo peligro */
+}
+
+/* ==========================================================
+   2. TÍTULOS Y ENCABEZADOS
+   ========================================================== */
+
+.title-hero {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 32px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 6, 0, 0, 2);
+}
+
+.title-section {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 24px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 4, 0, 0, 1);
+}
+
+.title-subsection {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-text-fill: #f7d27a;
+    -fx-letter-spacing: 1px;
+}
+
+.title-small {
+    -fx-font-family: "Verdana";
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #f7d27a;
+}
+
+.title-runic {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: 900;
+    -fx-font-size: 20px;
+    -fx-text-fill: #f7d27a;
+    -fx-letter-spacing: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.4), 10, 0, 0, 0);
+}
+
+/* ==========================================================
+   3. BOTONES GENERALES
+   ========================================================== */
+
+.btn-primary {
+    -fx-background-color: linear-gradient(to bottom, #f7d27a, #d4a017);
+    -fx-background-radius: 12;
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: #1a0f26;
+    -fx-padding: 12 35;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(212, 160, 23, 0.5), 12, 0, 0, 2);
+}
+
+.btn-primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #fff4cc, #f7d27a);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #d4a017;
+    -fx-translate-y: 1;
+}
+
+.btn-secondary {
+    -fx-background-color: rgba(138, 43, 226, 0.2);
+    -fx-border-color: #8a2be2;
+    -fx-border-radius: 10;
+    -fx-border-width: 2;
+    -fx-font-family: "Verdana";
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: #a335ee;
+    -fx-padding: 10 25;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: rgba(138, 43, 226, 0.4);
+    -fx-effect: dropshadow(gaussian, #8a2be2, 10, 0, 0, 0);
+}
+
+.btn-secondary:pressed {
+    -fx-background-color: rgba(138, 43, 226, 0.3);
+    -fx-translate-y: 1;
+}
+
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-padding: 8;
+}
+
+.btn-ghost:hover {
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.6), 10, 0, 0, 0);
+}
+
+.btn-icon {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f7d27a;
+    -fx-font-size: 22px;
+    -fx-cursor: hand;
+    -fx-padding: 8;
+}
+
+.btn-icon:hover {
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, #f7d27a, 10, 0.5, 0, 0);
+    -fx-rotate: 90;
+}
+
+.btn-danger {
+    -fx-background-color: rgba(255, 107, 107, 0.1);
+    -fx-text-fill: #ff6b6b;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.btn-danger:hover {
+    -fx-background-color: rgba(255, 107, 107, 0.25);
+    -fx-text-fill: #ff4444;
+}
+
+/* ==========================================================
+   4. CAMPOS DE ENTRADA
+   ========================================================== */
+
+.input-field {
+    -fx-background-color: rgba(5, 5, 10, 0.7);
+    -fx-background-radius: 10;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px;
+    -fx-padding: 12;
+    -fx-border-color: rgba(247, 210, 122, 0.15);
+    -fx-border-radius: 10;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 0);
+}
+
+.input-field:focused {
+    -fx-border-color: rgba(247, 210, 122, 0.6);
+    -fx-background-color: rgba(0, 0, 0, 0.9);
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.4), 12, 0, 0, 2);
+}
+
+.input-label {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-text-fill: #f7d27a;
+    -fx-letter-spacing: 1px;
+}
+
+.input-error {
+    -fx-border-color: #ff6b6b;
+    -fx-background-color: rgba(255, 20, 20, 0.05);
+}
+
+/* ==========================================================
+   5. PANELES Y CONTENEDORES
+   ========================================================== */
+
+.panel-main {
+    -fx-background-color: linear-gradient(to bottom, #1e162d 0%, #0d0915 100%);
+    -fx-background-radius: 45;
+    -fx-border-color: linear-gradient(to bottom, rgba(247, 210, 122, 0.6), rgba(247, 210, 122, 0.05));
+    -fx-border-width: 2;
+    -fx-border-radius: 45;
+    -fx-padding: 45;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 50, 0, 0, 15);
+}
+
+.panel-card {
+    -fx-background-color: linear-gradient(to bottom right, #1a122b, #0d0915);
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(247, 210, 122, 0.2);
+    -fx-border-width: 1.5;
+    -fx-border-radius: 20;
+    -fx-padding: 25;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 20, 0, 0, 8);
+}
+
+.panel-card:hover {
+    -fx-border-color: rgba(247, 210, 122, 0.4);
+    -fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.3), 25, 0, 0, 10);
+}
+
+.panel-accent {
+    -fx-background-color: linear-gradient(to bottom right, rgba(138, 43, 226, 0.15), rgba(80, 20, 120, 0.08));
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(138, 43, 226, 0.4);
+    -fx-border-width: 2;
+    -fx-border-radius: 20;
+    -fx-padding: 25;
+    -fx-effect: dropshadow(three-pass-box, rgba(138, 43, 226, 0.4), 20, 0, 0, 8);
+}
+
+.panel-sidebar {
+    -fx-background-color: rgba(18, 14, 28, 0.6);
+    -fx-border-color: transparent rgba(255,255,255,0.05) transparent transparent;
+    -fx-border-width: 1;
+}
+
+/* ==========================================================
+   6. TARJETAS Y ELEMENTOS DE LISTA
+   ========================================================== */
+
+.card-event {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(163, 53, 238, 0.15), rgba(80, 20, 120, 0.1));
+    -fx-padding: 25;
+    -fx-background-radius: 18;
+    -fx-border-color: rgba(163, 53, 238, 0.4);
+    -fx-border-radius: 18;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(three-pass-box, rgba(163, 53, 238, 0.3), 15, 0, 0, 0);
+    -fx-cursor: hand;
+}
+
+.card-event:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, rgba(163, 53, 238, 0.25), rgba(80, 20, 120, 0.15));
+    -fx-effect: dropshadow(three-pass-box, rgba(163, 53, 238, 0.5), 20, 0, 0, 3);
+}
+
+.card-achievement {
+    -fx-background-color: rgba(20, 15, 35, 0.9);
+    -fx-background-radius: 15;
+    -fx-border-color: rgba(247, 210, 122, 0.2);
+    -fx-border-radius: 15;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 15, 0, 0, 4);
+}
+
+.card-achievement:hover {
+    -fx-border-color: rgba(247, 210, 122, 0.5);
+    -fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.3), 20, 0, 0, 6);
+}
+
+.card-item {
+    -fx-background-color: rgba(0,0,0,0.5);
+    -fx-background-radius: 12;
+    -fx-border-color: rgba(247, 210, 122, 0.15);
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+}
+
+.card-item:hover {
+    -fx-border-color: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.4), 10, 0, 0, 0);
+}
+
+/* ==========================================================
+   7. ETIQUETAS (LABELS Y TAGS)
+   ========================================================== */
+
+.text-primary {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 14px;
+}
+
+.text-secondary {
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 12px;
+}
+
+.text-muted {
+    -fx-text-fill: #888888;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 11px;
+}
+
+.text-accent {
+    -fx-text-fill: #a335ee;
+    -fx-font-weight: bold;
+}
+
+.text-danger {
+    -fx-text-fill: #ff6b6b;
+    -fx-font-weight: bold;
+}
+
+.text-success {
+    -fx-text-fill: #4ade80;
+    -fx-font-weight: bold;
+}
+
+.tag-status {
+    -fx-background-color: rgba(163, 53, 238, 0.3);
+    -fx-text-fill: #a335ee;
+    -fx-border-color: #a335ee;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 6 12;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(163, 53, 238, 0.4), 8, 0, 0, 0);
+}
+
+.tag-gold {
+    -fx-background-color: rgba(247, 210, 122, 0.2);
+    -fx-text-fill: #f7d27a;
+    -fx-border-color: #f7d27a;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 6 12;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+/* ==========================================================
+   8. BARRAS DE PROGRESO
+   ========================================================== */
+
+.progress-bar-gold {
+    -fx-accent: linear-gradient(to right, #f7d27a, #d4a017);
+}
+
+.progress-bar-purple {
+    -fx-accent: linear-gradient(to right, #8a2be2, #a335ee);
+}
+
+.progress-bar-green {
+    -fx-accent: linear-gradient(to right, #2d5a27, #4ade80);
+}
+
+/* ==========================================================
+   9. DIVIDERS Y SEPARADORES
+   ========================================================== */
+
+.separator-gold {
+    -fx-stroke: linear-gradient(to right, transparent, #f7d27a, transparent);
+    -fx-stroke-width: 2;
+    -fx-opacity: 0.5;
+}
+
+.separator-subtle {
+    -fx-stroke: rgba(255, 255, 255, 0.1);
+    -fx-stroke-width: 1;
+    -fx-opacity: 0.3;
+}
+
+/* ==========================================================
+   10. SCROLLBARS
+   ========================================================== */
+
+.transparent-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.transparent-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+
+.transparent-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(247, 210, 122, 0.3);
+    -fx-background-radius: 4;
+}
+
+.transparent-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: rgba(247, 210, 122, 0.6);
+}
+
+/* ==========================================================
+   11. AVATARS Y CIRCULARES
+   ========================================================== */
+
+.avatar-large {
+    -fx-background-color: radial-gradient(radius 80%, rgba(138, 43, 226, 0.4), rgba(80, 20, 120, 0.1));
+    -fx-border-color: rgba(247, 210, 122, 0.4);
+    -fx-border-radius: 50;
+    -fx-border-width: 3;
+    -fx-effect: dropshadow(three-pass-box, rgba(138, 43, 226, 0.6), 20, 0, 0, 3);
+}
+
+.avatar-medium {
+    -fx-background-color: rgba(138, 43, 226, 0.2);
+    -fx-border-color: rgba(247, 210, 122, 0.3);
+    -fx-border-radius: 50;
+    -fx-border-width: 2;
+}
+
+.avatar-small {
+    -fx-background-color: rgba(138, 43, 226, 0.15);
+    -fx-border-color: rgba(247, 210, 122, 0.2);
+    -fx-border-radius: 50;
+    -fx-border-width: 1;
+}
+
+/* ==========================================================
+   12. EFECTOS Y ANIMACIONES
+   ========================================================== */
+
+.glow-gold {
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.8), 20, 0, 0, 0);
+}
+
+.glow-purple {
+    -fx-effect: dropshadow(gaussian, rgba(138, 43, 226, 0.6), 20, 0, 0, 0);
+}
+
+.glow-danger {
+    -fx-effect: dropshadow(gaussian, rgba(255, 107, 107, 0.6), 15, 0, 0, 0);
+}

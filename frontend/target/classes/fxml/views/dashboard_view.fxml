@@ -5,12 +5,16 @@
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.geometry.Insets?>
+<?import java.net.URL?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
             fx:controller="com.ctrlaltquest.ui.controllers.views.DashboardViewController"
             fitToWidth="true" styleClass="transparent-scroll" 
-            style="-fx-background: transparent; -fx-background-color: transparent;"
-            stylesheets="@/styles/home.css">
+            style="-fx-background: transparent; -fx-background-color: transparent;">
+    <stylesheets>
+        <URL value="@/styles/shared.css" />
+        <URL value="@/styles/home.css" />
+    </stylesheets>
 
     <VBox spacing="40" style="-fx-background-color: transparent;">
         <padding><Insets top="35" right="40" bottom="45" left="40"/></padding>
@@ -78,34 +82,62 @@
         </VBox>
 
         <!-- GRÁFICO DE BIENESTAR DIGITAL - SUPER WOW -->
-        <VBox fx:id="chartCard" spacing="28" alignment="TOP_CENTER" 
-              styleClass="activity-card" style="-fx-padding: 45 55; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom, rgba(50, 30, 70, 0.95), rgba(20, 15, 30, 0.90)); -fx-border-color: rgba(163, 53, 238, 0.4); -fx-border-radius: 25; -fx-border-width: 3; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.5), 25, 0, 0, 5);">
+        <VBox fx:id="chartCard" spacing="30" alignment="TOP_CENTER" 
+              style="-fx-background-color: transparent; -fx-padding: 0;">
             
-            <!-- ENCABEZADO CON EFECTO -->
-            <HBox alignment="CENTER" spacing="25" style="-fx-padding: 0 0 10 0;">
+            <!-- ENCABEZADO PRINCIPAL -->
+            <HBox alignment="CENTER_LEFT" spacing="25" style="-fx-padding: 0 0 20 0;">
                 <Label text="🧭 BIENESTAR DIGITAL" styleClass="section-title-small" style="-fx-font-weight: 900; -fx-font-size: 24px; -fx-text-fill: #f7d27a; -fx-letter-spacing: 3px;"/>
                 <Label text="HOY" styleClass="status-tag" style="-fx-background-color: rgba(163, 53, 238, 0.4); -fx-text-fill: #00ffff; -fx-border-color: #00ffff; -fx-border-radius: 12; -fx-border-width: 2; -fx-padding: 8 16; -fx-font-size: 12px; -fx-font-weight: bold; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.4), 12, 0, 0, 0);"/>
+                <Region HBox.hgrow="ALWAYS"/>
             </HBox>
 
-            <!-- SEPARADOR VISUAL -->
-            <Separator style="-fx-border-color: rgba(163, 53, 238, 0.3); -fx-border-width: 1; -fx-padding: 5 0;"/>
-
-            <!-- CONTENEDOR GRÁFICO PRINCIPAL -->
-            <HBox spacing="35" alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 15 0;">
-                <!-- GRÁFICO CENTRADO -->
-                <VBox alignment="CENTER" HBox.hgrow="ALWAYS" prefWidth="400" style="-fx-padding: 20; -fx-background-color: rgba(0,0,0,0.2); -fx-background-radius: 20; -fx-border-color: rgba(163,53,238,0.2); -fx-border-radius: 20;">
-                    <PieChart fx:id="usagePie" labelsVisible="true" legendVisible="false" prefWidth="400" prefHeight="320" 
-                              style="-fx-background-color: transparent; -fx-font-size: 11px; -fx-text-fill: white;" VBox.vgrow="ALWAYS"/>
-                </VBox>
-
-                <!-- PANEL DE DETALLES ESTILIZADO -->
-                <VBox spacing="16" alignment="TOP_LEFT" style="-fx-padding: 30; -fx-background-color: linear-gradient(to bottom, rgba(100, 30, 150, 0.3), rgba(50, 15, 80, 0.2)); -fx-background-radius: 22; -fx-border-color: rgba(163, 53, 238, 0.35); -fx-border-radius: 22; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.25), 18, 0, 0, 0);" prefWidth="240">
-                    <VBox spacing="2">
-                        <Label text="📊 DISTRIBUCIÓN" styleClass="text-tiny-bright" style="-fx-text-fill: #f7d27a; -fx-font-size: 13px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
-                        <Label text="de Actividad" styleClass="text-tiny-bright" style="-fx-text-fill: #a335ee; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+            <!-- CONTENEDOR CON DOS COLUMNAS -->
+            <HBox spacing="30" alignment="TOP_CENTER" style="-fx-padding: 0;">
+                
+                <!-- SECCIÓN 1: GRÁFICA DE PASTEL -->
+                <VBox alignment="TOP_CENTER" spacing="15" HBox.hgrow="ALWAYS" style="-fx-padding: 35; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom right, rgba(50, 30, 70, 0.95), rgba(20, 15, 30, 0.90)); -fx-border-color: rgba(163, 53, 238, 0.4); -fx-border-radius: 25; -fx-border-width: 3; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.5), 25, 0, 0, 5);" prefWidth="450">
+                    
+                    <!-- TÍTULO DE LA GRÁFICA -->
+                    <VBox spacing="8" alignment="CENTER" style="-fx-padding: 0 0 10 0;">
+                        <Label text="📈 DISTRIBUCIÓN HORARIA" styleClass="section-title-small" style="-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #f7d27a; -fx-letter-spacing: 2px;"/>
+                        <Label text="Tiempo invertido por categoría" styleClass="text-tiny-bright" style="-fx-text-fill: #a0a0a0; -fx-font-size: 11px; -fx-opacity: 0.8;"/>
                     </VBox>
-                    <VBox fx:id="usageDetails" spacing="13" VBox.vgrow="ALWAYS" style="-fx-padding: 10 0;"/>
+                    
+                    <!-- SEPARADOR -->
+                    <Separator style="-fx-border-color: rgba(163, 53, 238, 0.3); -fx-border-width: 1;"/>
+                    
+                    <!-- GRÁFICO EN EL CENTRO -->
+                    <VBox alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 20;">
+                        <PieChart fx:id="usagePie" labelsVisible="true" legendVisible="false" prefWidth="350" prefHeight="300" 
+                                  style="-fx-background-color: transparent; -fx-font-size: 11px; -fx-text-fill: white;"/>
+                    </VBox>
                 </VBox>
+
+                <!-- SECCIÓN 2: DISTRIBUCIÓN DE ACTIVIDADES -->
+                <VBox spacing="20" alignment="TOP_LEFT" style="-fx-padding: 35; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom left, rgba(100, 30, 150, 0.3), rgba(50, 15, 80, 0.2)); -fx-border-color: rgba(163, 53, 238, 0.35); -fx-border-radius: 25; -fx-border-width: 3; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.25), 25, 0, 0, 5);" HBox.hgrow="ALWAYS" prefWidth="350">
+                    
+                    <!-- TÍTULO DE DISTRIBUCIÓN -->
+                    <VBox spacing="8" style="-fx-padding: 0 0 10 0;">
+                        <Label text="📊 DESGLOSE DE ACTIVIDAD" styleClass="text-tiny-bright" style="-fx-text-fill: #f7d27a; -fx-font-size: 14px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
+                        <Label text="Detalle por aplicación" styleClass="text-tiny-bright" style="-fx-text-fill: #a335ee; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    </VBox>
+                    
+                    <!-- SEPARADOR -->
+                    <Separator style="-fx-border-color: rgba(163, 53, 238, 0.3); -fx-border-width: 1;"/>
+                    
+                    <!-- LISTA DE ACTIVIDADES -->
+                    <VBox fx:id="usageDetails" spacing="14" VBox.vgrow="ALWAYS" style="-fx-padding: 10 0;" />
+                    
+                    <!-- FOOTER CON ESTADÍSTICA -->
+                    <Region VBox.vgrow="ALWAYS"/>
+                    <Separator style="-fx-border-color: rgba(163, 53, 238, 0.2); -fx-border-width: 1;"/>
+                    <HBox alignment="CENTER" spacing="15" style="-fx-padding: 15 0 0 0;">
+                        <Label text="⏱️ Total Registrado:" styleClass="text-tiny-bright" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                        <Label text="Hoy" styleClass="text-value-gold" style="-fx-text-fill: #4ade80; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+                    </HBox>
+                </VBox>
+
             </HBox>
         </VBox>
 

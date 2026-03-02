@@ -1,12 +1,12 @@
 /* ==========================================================
    HOME.CSS - INTERFAZ PRINCIPAL "CÓDICE OSCURO"
-   Basado en auth.css y alerts.css para consistencia visual.
+   Extiende shared.css con estilos específicos para la app principal
    ========================================================== */
 
 /* 1. CONFIGURACIÓN ROOT Y BASE */
 .root {
     -fx-background-color: #0d0915;
-    -fx-font-family: "Segoe UI", "Arial", "Georgia", sans-serif; /* Priorizar fuente legible en Windows */
+    -fx-font-family: "Verdana", "Segoe UI", "Arial", "Georgia", sans-serif;
 }
 
 /* ==========================================================
@@ -99,15 +99,30 @@
     -fx-transition: all 0.3s;
 }
 
+/* ==========================================================
+   3. BOTONES DE NAVEGACIÓN
+   ========================================================== */
+.btn-nav {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b5a7c6;
+    -fx-font-family: "Verdana";
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 15;
+    -fx-cursor: hand;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-transition: 0.2s;
+}
+
 .btn-nav:hover {
     -fx-background-color: rgba(247, 210, 122, 0.1);
     -fx-text-fill: #f7d27a;
-    -fx-border-color: #f7d27a; /* Borde izquierdo dorado al hover */
-    -fx-padding: 10 15 10 25; /* Efecto de desplazamiento a la derecha */
+    -fx-border-color: #f7d27a;
+    -fx-padding: 10 15 10 25;
 }
 
-/* Botón activo (para lógica futura si implementas "selected state") */
-.btn-nav:selected { 
+.btn-nav:selected {
     -fx-text-fill: #f7d27a;
     -fx-font-weight: bold;
     -fx-background-color: rgba(247, 210, 122, 0.15);
@@ -365,6 +380,176 @@
     -fx-font-weight: bold;
     -fx-font-family: 'Consolas', monospace;
     -fx-font-size: 10px;
+}
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: rgba(255,255,255,0.01);
+}
+
+.table-row-cell:filled:hover {
+    -fx-background-color: rgba(74, 222, 128, 0.1);
+}
+
+/* ==========================================================
+   ESTILOS MEJORADOS PARA CARDS Y PANELES
+   ========================================================== */
+
+.panel-card-golden {
+    -fx-background-color: linear-gradient(to bottom right, rgba(247, 210, 122, 0.15), rgba(212, 160, 23, 0.08));
+    -fx-background-radius: 20;
+    -fx-border-color: rgba(247, 210, 122, 0.4);
+    -fx-border-width: 2;
+    -fx-border-radius: 20;
+    -fx-padding: 25;
+    -fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.2), 15, 0, 0, 5);
+}
+
+.panel-card-golden:hover {
+    -fx-border-color: rgba(247, 210, 122, 0.6);
+    -fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.4), 20, 0, 0, 8);
+}
+
+.card-mission {
+    -fx-background-color: linear-gradient(to bottom right, rgba(74, 222, 128, 0.15), rgba(45, 90, 39, 0.08));
+    -fx-background-radius: 18;
+    -fx-border-color: rgba(74, 222, 128, 0.3);
+    -fx-border-width: 2;
+    -fx-border-radius: 18;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(74, 222, 128, 0.2), 12, 0, 0, 4);
+}
+
+.card-mission:hover {
+    -fx-border-color: rgba(74, 222, 128, 0.6);
+    -fx-effect: dropshadow(three-pass-box, rgba(74, 222, 128, 0.35), 18, 0, 0, 6);
+}
+
+.card-store-item {
+    -fx-background-color: linear-gradient(to bottom right, rgba(138, 43, 226, 0.15), rgba(80, 20, 120, 0.08));
+    -fx-background-radius: 18;
+    -fx-border-color: rgba(138, 43, 226, 0.3);
+    -fx-border-width: 2;
+    -fx-border-radius: 18;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(138, 43, 226, 0.15), 12, 0, 0, 3);
+    -fx-cursor: hand;
+}
+
+.card-store-item:hover {
+    -fx-background-color: linear-gradient(to bottom right, rgba(138, 43, 226, 0.25), rgba(80, 20, 120, 0.15));
+    -fx-border-color: rgba(138, 43, 226, 0.6);
+    -fx-effect: dropshadow(three-pass-box, rgba(138, 43, 226, 0.35), 20, 0, 0, 6);
+}
+
+/* ==========================================================
+   EFECTOS DE TEXTO Y ESTILO RÚNICO
+   ========================================================== */
+
+.text-tiny {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 10px;
+    -fx-text-fill: #999;
+    -fx-font-weight: bold;
+}
+
+.text-value-gold {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: 900;
+    -fx-font-size: 20px;
+    -fx-text-fill: #f7d27a;
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.5), 10, 0, 0, 0);
+}
+
+.text-label-gold {
+    -fx-font-family: "Verdana";
+    -fx-font-size: 10px;
+    -fx-text-fill: #f7d27a;
+    -fx-font-weight: bold;
+}
+
+.card-category-runic {
+    -fx-font-family: "Georgia";
+    -fx-font-weight: bold;
+    -fx-font-size: 20px;
+    -fx-text-fill: #f7d27a;
+}
+
+/* ==========================================================
+   LOADING Y TRANSICIONES
+   ========================================================== */
+
+.loading-overlay {
+    -fx-background-color: rgba(11, 8, 18, 0.95);
+    -fx-border-color: rgba(138, 43, 226, 0.3);
+    -fx-border-radius: 20;
+    -fx-border-width: 2;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 30, 0, 0, 10);
+}
+
+/* ==========================================================
+   TRANSICIONES Y EFECTOS ESPECIALES
+   ========================================================== */
+
+.btn-nav {
+    -fx-transition: 0.2s ease-in-out;
+}
+
+.activity-card {
+    -fx-transition: 0.3s ease-in-out;
+}
+
+/* HOVER SUAVE PARA TARJETAS */
+.activity-card:hover {
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+    -fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.3), 20, 0, 0, 5);
+}
+
+/* ==========================================================
+   ESTILOS DE PROGRESO Y SALUD
+   ========================================================== */
+
+.health-progress {
+    -fx-accent: #ff4757;
+    -fx-control-inner-background: #2a1b22;
+}
+
+.health-progress .bar {
+    -fx-background-color: linear-gradient(to right, #ff6b6b, #ff4757);
+    -fx-effect: dropshadow(gaussian, rgba(255, 68, 68, 0.5), 10, 0, 0, 0);
+    -fx-background-radius: 10;
+}
+
+/* ==========================================================
+   MODALES Y DIÁLOGOS
+   ========================================================== */
+
+.modal-panel {
+    -fx-background-color: rgba(20, 15, 30, 0.95);
+    -fx-background-radius: 25;
+    -fx-border-color: linear-gradient(to bottom, rgba(247, 210, 122, 0.5), rgba(247, 210, 122, 0.1));
+    -fx-border-width: 2;
+    -fx-border-radius: 25;
+    -fx-padding: 35;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.9), 60, 0, 0, 20);
+}
+
+/* ==========================================================
+   EFECTOS INTERACTIVOS
+   ========================================================== */
+
+.interactive-zone {
+    -fx-cursor: hand;
+}
+
+.interactive-zone:hover {
+    -fx-effect: dropshadow(gaussian, rgba(247, 210, 122, 0.3), 15, 0, 0, 0);
 }
 
 .table-row-cell {

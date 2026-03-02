@@ -6,11 +6,15 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.effect.*?>
+<?import java.net.URL?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.ctrlaltquest.ui.controllers.views.ReportModalController"
-      spacing="20" style="-fx-background-color: #0b0812;"
-      stylesheets="@/styles/home.css">
+      spacing="20" style="-fx-background-color: #0b0812;">
+    <stylesheets>
+        <URL value="@/styles/shared.css" />
+        <URL value="@/styles/home.css" />
+    </stylesheets>
     <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
 
     <!-- ENCABEZADO -->

@@ -10,14 +10,15 @@
 
 <StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
            fx:controller="com.ctrlaltquest.ui.controllers.HomeController"
-           styleClass="root" prefWidth="1280" prefHeight="720"
-           style="-fx-background-color: #0b0812;"> <stylesheets>
+           styleClass="root" prefWidth="1280" prefHeight="720">
+    <stylesheets>
+        <URL value="@/styles/shared.css" />
         <URL value="@/styles/home.css" />
     </stylesheets>
 
     <MediaView fx:id="backgroundVideo" fitWidth="1280" fitHeight="720" preserveRatio="false" />
     
-    <Region style="-fx-background-color: rgba(13, 9, 21, 0.85);" />
+    <Region style="-fx-background-color: rgba(13, 9, 21, 0.65);" />
 
     <BorderPane fx:id="mainLayout">
         

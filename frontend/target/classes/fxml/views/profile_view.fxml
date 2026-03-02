@@ -7,11 +7,16 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.effect.Glow?>
+<?import java.net.URL?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
             fx:controller="com.ctrlaltquest.ui.controllers.views.ProfileViewController"
-            fitToWidth="true" styleClass="transparent-scroll" stylesheets="@/styles/home.css"
+            fitToWidth="true" styleClass="transparent-scroll" 
             style="-fx-background: transparent; -fx-background-color: transparent;">
+    <stylesheets>
+        <URL value="@/styles/shared.css" />
+        <URL value="@/styles/home.css" />
+    </stylesheets>
 
     <VBox spacing="35" style="-fx-background-color: transparent;">
         <padding><Insets top="30" right="50" bottom="50" left="50"/></padding>

@@ -12,6 +12,7 @@
            styleClass="root" prefWidth="1280" prefHeight="720">
     
     <stylesheets>
+        <URL value="@/styles/shared.css" />
         <URL value="@/styles/auth.css" />
         <URL value="@/styles/character_selection.css" />
     </stylesheets>

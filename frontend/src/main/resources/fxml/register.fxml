@@ -11,6 +11,7 @@
            prefWidth="1280" prefHeight="720" styleClass="root">
     
     <stylesheets>
+        <URL value="@/styles/shared.css" />
         <URL value="@/styles/auth.css" />
     </stylesheets>
     

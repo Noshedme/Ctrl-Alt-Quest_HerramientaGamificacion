@@ -32,7 +32,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tooltip;
@@ -49,6 +48,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -169,6 +169,9 @@ public class HomeController implements XPChangeListener, EventContextualListener
      */
     private void configurarEfectosAvatar() {
         if (imgAvatarSmall != null) {
+            // Aplicar clip circular para bordes redondeados
+            aplicarClipCircular(imgAvatarSmall, 25);
+            
             imgAvatarSmall.setOnMouseEntered(e -> {
                 imgAvatarSmall.setEffect(new DropShadow(12, Color.rgb(163, 53, 238, 0.7)));
                 imgAvatarSmall.setStyle("-fx-cursor: hand;");
@@ -182,6 +185,18 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 st.setToX(1.0); st.setToY(1.0); st.play();
             });
         }
+    }
+    
+    /**
+     * Aplica un clip circular con bordes redondeados a la ImageView del avatar
+     * @param imageView La ImageView a clipear
+     * @param radius El radio del círculo de clip
+     */
+    private void aplicarClipCircular(ImageView imageView, double radius) {
+        Circle clip = new Circle(radius);
+        clip.setCenterX(radius);
+        clip.setCenterY(radius);
+        imageView.setClip(clip);
     }
 
     private void aplicarEstilos(Scene scene) {
@@ -266,7 +281,10 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 Image newAvatar = new Image(imageUri);
                 imgAvatarSmall.setImage(newAvatar);
                 
-                // 2. Guardar la ruta en el modelo (Asume que agregaste un campo 'avatarUrl' o similar a la clase Character)
+                // 2. Aplicar clip circular a la nueva imagen
+                aplicarClipCircular(imgAvatarSmall, 25);
+                
+                // 3. Guardar la ruta en el modelo (Asume que agregaste un campo 'avatarUrl' o similar a la clase Character)
                 // currentCharacter.setAvatarUrl(selectedFile.getAbsolutePath());
                 // CharacterDAO.saveCharacter(currentCharacter);
                 
@@ -441,7 +459,11 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 path = "/assets/images/sprites/class_" + classId + "_idle.png";
                 url = getClass().getResource(path);
             }
-            if (url != null) imgAvatarSmall.setImage(new Image(url.toExternalForm()));
+            if (url != null) {
+                imgAvatarSmall.setImage(new Image(url.toExternalForm()));
+                // Aplicar clip circular cuando se carga la imagen
+                aplicarClipCircular(imgAvatarSmall, 25);
+            }
         } catch (Exception e) {}
     }
 
@@ -638,8 +660,8 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 
                 videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                 videoPlayer.setMute(true);
-                videoPlayer.setRate(0.6);
-                backgroundVideo.setEffect(new GaussianBlur(20));
+                videoPlayer.setRate(0.5);
+                backgroundVideo.setEffect(new GaussianBlur(15));
                 
                 if (SettingsController.isVideoPaused) {
                     videoPlayer.pause();

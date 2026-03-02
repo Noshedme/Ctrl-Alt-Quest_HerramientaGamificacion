@@ -6,12 +6,16 @@
 <?import javafx.scene.shape.Line?>
 <?import javafx.scene.effect.Glow?>
 <?import javafx.scene.effect.DropShadow?>
+<?import java.net.URL?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.ctrlaltquest.ui.controllers.views.StoreViewController"
       spacing="20" styleClass="view-container" 
-      stylesheets="@/styles/home.css"
       style="-fx-background-color: transparent;">
+    <stylesheets>
+        <URL value="@/styles/shared.css" />
+        <URL value="@/styles/home.css" />
+    </stylesheets>
 
     <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
 
