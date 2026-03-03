@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+import com.ctrlaltquest.ui.utils.KeyBindingManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
 
 import javafx.application.Application;
@@ -34,6 +35,10 @@ public class AppLauncher extends Application {
             // Creamos la escena. Puedes quitar las dimensiones (960, 540) si quieres
             // que se adapte al contenido, pero dejarlas está bien como tamaño "restaurado".
             Scene scene = new Scene(loader.load()); 
+            
+            // --- INICIALIZAR GESTOR DE ATAJOS DE TECLADO GLOBALES ---
+            KeyBindingManager keyBindingManager = KeyBindingManager.getInstance();
+            keyBindingManager.initializeKeyBindings(stage, scene);
             
             // --- SONIDO DE TECLADO GLOBAL ---
             scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {

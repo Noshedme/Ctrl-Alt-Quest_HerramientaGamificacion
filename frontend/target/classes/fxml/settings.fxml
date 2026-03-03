@@ -7,13 +7,16 @@
 <VBox fx:id="mainContainer" xmlns:fx="http://javafx.com/fxml" 
       fx:controller="com.ctrlaltquest.ui.controllers.SettingsController"
       spacing="25" alignment="CENTER" styleClass="settings-pane" 
-      prefWidth="480" prefHeight="450"
+      prefWidth="680" prefHeight="700"
       stylesheets="@../styles/auth.css"> 
     <Label text="CONFIGURACIÓN" styleClass="settings-title" />
     
     <Line endX="300" styleClass="settings-divider" />
 
+    <!-- SECCIÓN 1: AUDIO Y VIDEO -->
     <VBox spacing="20" alignment="CENTER_LEFT" style="-fx-padding: 10 30 10 30;">
+        
+        <Label text="🔊 AUDIO Y VIDEO" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ff79c6;" />
         
         <HBox spacing="18" alignment="CENTER_LEFT">
             <CheckBox fx:id="checkTypingSound" styleClass="pixel-checkbox"/>
@@ -39,6 +42,62 @@
             </VBox>
         </HBox>
 
+    </VBox>
+    
+    <!-- SEPARADOR -->
+    <Line endX="300" styleClass="settings-divider" />
+    
+    <!-- SECCIÓN 2: ATAJOS DE TECLADO -->
+    <VBox spacing="15" alignment="TOP_LEFT" style="-fx-padding: 10 30 10 30;">
+        
+        <Label text="⌨️ ATAJOS DE TECLADO" style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #f1fa8c;" />
+        
+        <Label text="Puedes usar estos atajos en cualquier parte de la aplicación:" 
+               style="-fx-font-size: 11px; -fx-text-fill: #8be9fd; -fx-wrap-text: true;" 
+               wrapText="true" />
+        
+        <!-- ATAJOS PRINCIPALES RÁPIDOS -->
+        <VBox spacing="8" style="-fx-padding: 10; -fx-border-color: #44475a; -fx-border-width: 1; -fx-border-radius: 3; -fx-background-color: #21222c;">
+            
+            <HBox spacing="30">
+                <VBox prefWidth="200" spacing="5">
+                    <Label text="Alt + M" style="-fx-font-weight: bold; -fx-text-fill: #50fa7b; -fx-font-family: 'Courier New';" />
+                    <Label text="Mutear música" style="-fx-font-size: 11px; -fx-text-fill: #bfbfbf;" wrapText="true" />
+                </VBox>
+                <VBox prefWidth="200" spacing="5">
+                    <Label text="Alt + S" style="-fx-font-weight: bold; -fx-text-fill: #50fa7b; -fx-font-family: 'Courier New';" />
+                    <Label text="Mutear sonidos" style="-fx-font-size: 11px; -fx-text-fill: #bfbfbf;" wrapText="true" />
+                </VBox>
+            </HBox>
+            
+            <HBox spacing="30">
+                <VBox prefWidth="200" spacing="5">
+                    <Label text="Ctrl + M" style="-fx-font-weight: bold; -fx-text-fill: #50fa7b; -fx-font-family: 'Courier New';" />
+                    <Label text="Mutear todo" style="-fx-font-size: 11px; -fx-text-fill: #bfbfbf;" wrapText="true" />
+                </VBox>
+                <VBox prefWidth="200" spacing="5">
+                    <Label text="Espacio" style="-fx-font-weight: bold; -fx-text-fill: #50fa7b; -fx-font-family: 'Courier New';" />
+                    <Label text="Pausar/Reanudar video" style="-fx-font-size: 11px; -fx-text-fill: #bfbfbf;" wrapText="true" />
+                </VBox>
+            </HBox>
+            
+            <HBox spacing="30">
+                <VBox prefWidth="200" spacing="5">
+                    <Label text="F11" style="-fx-font-weight: bold; -fx-text-fill: #50fa7b; -fx-font-family: 'Courier New';" />
+                    <Label text="Pantalla completa" style="-fx-font-size: 11px; -fx-text-fill: #bfbfbf;" wrapText="true" />
+                </VBox>
+                <VBox prefWidth="200" spacing="5">
+                    <Label text="Ctrl + K" style="-fx-font-weight: bold; -fx-text-fill: #50fa7b; -fx-font-family: 'Courier New';" />
+                    <Label text="Ver todos los atajos" style="-fx-font-size: 11px; -fx-text-fill: #bfbfbf;" wrapText="true" />
+                </VBox>
+            </HBox>
+            
+        </VBox>
+        
+        <Button fx:id="showKeybindingsButton" text="📋 Ver todos los atajos disponibles" 
+                onAction="#handleShowKeybindings"
+                style="-fx-padding: 10 20; -fx-font-size: 12px; -fx-cursor: hand;" />
+        
     </VBox>
 
     <Region VBox.vgrow="ALWAYS" />

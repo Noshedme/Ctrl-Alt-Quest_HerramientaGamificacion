@@ -1,0 +1,113 @@
+/* Estilos para la vista de atajos de teclado */
+
+.keybindings-container {
+    -fx-padding: 20;
+    -fx-spacing: 15;
+    -fx-background-color: #282a36;
+}
+
+.keybinding-card {
+    -fx-border-color: #44475a;
+    -fx-border-width: 1;
+    -fx-border-radius: 5;
+    -fx-background-color: #1e1e2e;
+    -fx-padding: 15;
+    -fx-spacing: 8;
+}
+
+.keybinding-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f1fa8c;
+}
+
+.key-combination {
+    -fx-font-family: 'Courier New';
+    -fx-font-size: 14px;
+    -fx-text-fill: #50fa7b;
+    -fx-font-weight: bold;
+    -fx-background-color: #21222c;
+    -fx-padding: 5 10;
+    -fx-border-radius: 3;
+}
+
+.keybinding-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8be9fd;
+    -fx-wrap-text: true;
+}
+
+.keybindings-header {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f1fa8c;
+    -fx-padding: 20;
+    -fx-background-color: #1e1e2e;
+}
+
+.keybindings-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #8be9fd;
+    -fx-padding: 5 0 0 0;
+}
+
+.keybindings-footer {
+    -fx-padding: 15;
+    -fx-background-color: #1e1e2e;
+    -fx-border-color: #44475a;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Categorías de atajos */
+.bindings-category {
+    -fx-spacing: 10;
+    -fx-padding: 15 0;
+}
+
+.category-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #ff79c6;
+    -fx-border-color: #ff79c6;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 0 0 10 0;
+}
+
+/* Hover effect en tarjetas */
+.keybinding-card:hover {
+    -fx-background-color: #21222c;
+    -fx-border-color: #50fa7b;
+}
+
+/* Scroll pane styling */
+.scroll-pane {
+    -fx-background-color: #282a36;
+    -fx-padding: 0;
+}
+
+.scroll-pane:focused {
+    -fx-faint-focus-color: transparent;
+    -fx-focus-color: transparent;
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: #282a36;
+}
+
+.scroll-bar {
+    -fx-background-color: #282a36;
+}
+
+.scroll-bar:vertical .increment-button,
+.scroll-bar:vertical .decrement-button {
+    -fx-padding: 0;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: #44475a;
+    -fx-background-radius: 5;
+}
+
+.scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #8be9fd;
+}

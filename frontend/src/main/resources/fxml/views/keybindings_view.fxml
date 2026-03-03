@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane fx:id="mainPane" prefHeight="600" prefWidth="800"
+            xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.ctrlaltquest.ui.controllers.views.KeyBindingsViewController"
+            stylesheets="@/styles/shared.css,@/styles/keybindings.css">
+    
+    <!-- HEADER -->
+    <top>
+        <VBox style="-fx-padding: 20; -fx-background-color: #1e1e2e; -fx-border-color: #44475a; -fx-border-width: 0 0 1 0;">
+            <Label text="⌨️ ATAJOS DE TECLADO" 
+                   style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #f1fa8c;">
+            </Label>
+            <Label text="Presiona estos atajos en cualquier momento durante el juego"
+                   style="-fx-font-size: 12px; -fx-text-fill: #8be9fd; -fx-padding: 5 0 0 0;">
+            </Label>
+        </VBox>
+    </top>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: #282a36; -fx-padding: 0;">
+            <VBox fx:id="bindingsContainer" spacing="10" style="-fx-padding: 20;">
+                <!-- Los atajos se cargarán dinámicamente aquí -->
+            </VBox>
+        </ScrollPane>
+    </center>
+    
+    <!-- FOOTER -->
+    <bottom>
+        <HBox style="-fx-padding: 15; -fx-background-color: #1e1e2e; -fx-border-color: #44475a; -fx-border-width: 1 0 0 0;"
+              spacing="10" alignment="CENTER_RIGHT">
+            <Button fx:id="closeButton" text="Cerrar" 
+                    style="-fx-padding: 8 20; -fx-font-size: 12px;"
+                    onAction="#handleClose"/>
+        </HBox>
+    </bottom>
+    
+</BorderPane>

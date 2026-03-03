@@ -1,9 +1,15 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+
 import com.ctrlaltquest.ui.utils.SoundManager;
 
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -15,6 +21,7 @@ public class SettingsController {
     @FXML private CheckBox checkTypingSound;
     @FXML private CheckBox checkPauseVideo;
     @FXML private CheckBox checkBackgroundMusic;
+    @FXML private Button showKeybindingsButton;
 
     // Estados estáticos para que persistan entre cambios de pantalla
     public static boolean isTypingSoundEnabled = true;
@@ -111,5 +118,33 @@ public class SettingsController {
         ft.setToValue(0.0);
         ft.setOnFinished(e -> stage.close());
         ft.play();
+    }
+
+    /**
+     * Abre la ventana de atajos de teclado disponibles
+     */
+    @FXML
+    private void handleShowKeybindings() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/views/keybindings_view.fxml"));
+            Parent root = loader.load();
+            
+            Stage keybindingsStage = new Stage();
+            keybindingsStage.setTitle("⌨️ Atajos de Teclado");
+            keybindingsStage.setScene(new Scene(root));
+            keybindingsStage.setWidth(800);
+            keybindingsStage.setHeight(600);
+            keybindingsStage.setResizable(true);
+            
+            // Centrar la ventana
+            Stage parentStage = (Stage) mainContainer.getScene().getWindow();
+            keybindingsStage.initOwner(parentStage);
+            keybindingsStage.centerOnScreen();
+            
+            keybindingsStage.show();
+        } catch (IOException e) {
+            System.err.println("Error al abrir ventana de atajos: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

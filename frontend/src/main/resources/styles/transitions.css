@@ -1,0 +1,134 @@
+/* Animaciones suaves para transiciones entre vistas */
+
+/* Configuración general de transiciones de nodos */
+.root {
+    -fx-transition-duration: 400ms;
+}
+
+/* Efectos de transición para contenedores principales */
+.container-transition {
+    -fx-transition-property: opacity, -fx-scale-x, -fx-scale-y, -fx-translate-x, -fx-translate-y;
+    -fx-transition-duration: 400ms;
+    -fx-transition-timing-function: ease-in-out;
+}
+
+/* Desvanecimiento suave */
+.fade-transition {
+    -fx-opacity: 0;
+    -fx-transition-property: opacity;
+    -fx-transition-duration: 400ms;
+}
+
+.fade-transition:showing {
+    -fx-opacity: 1;
+}
+
+/* Deslizamiento desde arriba */
+.slide-down-transition {
+    -fx-translate-y: -100;
+    -fx-opacity: 0;
+    -fx-transition-property: -fx-translate-y, -fx-opacity;
+    -fx-transition-duration: 500ms;
+}
+
+.slide-down-transition:showing {
+    -fx-translate-y: 0;
+    -fx-opacity: 1;
+}
+
+/* Deslizamiento desde abajo */
+.slide-up-transition {
+    -fx-translate-y: 100;
+    -fx-opacity: 0;
+    -fx-transition-property: -fx-translate-y, -fx-opacity;
+    -fx-transition-duration: 500ms;
+}
+
+.slide-up-transition:showing {
+    -fx-translate-y: 0;
+    -fx-opacity: 1;
+}
+
+/* Zoom suave */
+.zoom-transition {
+    -fx-scale-x: 0.8;
+    -fx-scale-y: 0.8;
+    -fx-opacity: 0;
+    -fx-transition-property: -fx-scale-x, -fx-scale-y, -fx-opacity;
+    -fx-transition-duration: 300ms;
+}
+
+.zoom-transition:showing {
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+    -fx-opacity: 1;
+}
+
+/* Botones con transición suave de opacidad */
+.button-transition {
+    -fx-transition-property: -fx-opacity, -fx-scale-x, -fx-scale-y;
+    -fx-transition-duration: 200ms;
+}
+
+.button-transition:hover {
+    -fx-opacity: 0.8;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.button-transition:pressed {
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+/* Transición suave para elementos de lista */
+.list-item-transition {
+    -fx-opacity: 0;
+    -fx-translate-x: -50;
+    -fx-transition-property: -fx-opacity, -fx-translate-x;
+    -fx-transition-duration: 300ms;
+    -fx-transition-delay: 50ms;
+}
+
+.list-item-transition:showing {
+    -fx-opacity: 1;
+    -fx-translate-x: 0;
+}
+
+/* Transiciones para paneles flotantes */
+.floating-panel-transition {
+    -fx-opacity: 0;
+    -fx-scale-x: 0.9;
+    -fx-scale-y: 0.9;
+    -fx-transition-property: -fx-opacity, -fx-scale-x, -fx-scale-y;
+    -fx-transition-duration: 250ms;
+}
+
+.floating-panel-transition.open {
+    -fx-opacity: 1;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}
+
+/* Transiciones para módales */
+.modal-transition {
+    -fx-opacity: 0;
+    -fx-transition-property: -fx-opacity;
+    -fx-transition-duration: 300ms;
+}
+
+.modal-transition.visible {
+    -fx-opacity: 0.7;
+}
+
+/* Efecto suave para scroll dentro de contenedores */
+.scrollable-transition {
+    -fx-transition-property: -fx-padding;
+    -fx-transition-duration: 200ms;
+}
+
+/* Transición de color suave para elementos interactivos */
+.interactive-transition {
+    -fx-transition-property: -fx-border-color, -fx-fill, -fx-text-fill;
+    -fx-transition-duration: 200ms;
+}
