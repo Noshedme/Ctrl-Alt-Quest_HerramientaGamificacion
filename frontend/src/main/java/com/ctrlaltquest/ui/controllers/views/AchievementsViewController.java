@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.ctrlaltquest.dao.AchievementsDAO;
 import com.ctrlaltquest.models.Achievement;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -43,6 +44,18 @@ public class AchievementsViewController {
     @FXML
     public void initialize() {
         if(lblTotalUnlocked != null) lblTotalUnlocked.setText("...");
+        // inicializar Toast container
+        try {
+            StackPane root = (StackPane) lblTotalUnlocked.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
     }
 
     private void cargarLogrosReales() {
@@ -70,6 +83,7 @@ public class AchievementsViewController {
             double pct = total > 0 ? (double) unlockedCount / total : 0;
             lblCompletionPct.setText((int)(pct * 100) + "%");
             if(barCompletion != null) barCompletion.setProgress(pct);
+            Toast.info("Logros", "Logros cargados correctamente.");
 
             int delayIndex = 0;
             for (Achievement a : logros) {

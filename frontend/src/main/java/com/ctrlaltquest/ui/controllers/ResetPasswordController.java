@@ -1,28 +1,30 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+import java.net.URL;
+import java.sql.SQLException;
+
 import com.ctrlaltquest.dao.AuthDAO;
 import com.ctrlaltquest.services.AuditService;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
+
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import java.io.IOException;
-import java.net.URL;
-import java.sql.SQLException;
 
 public class ResetPasswordController {
 
@@ -43,6 +45,22 @@ public class ResetPasswordController {
         if (backgroundVideo != null) {
             backgroundVideo.setEffect(new GaussianBlur(15));
             configurarVideo();
+        }
+
+        // inicializar Toast container
+        try {
+            StackPane root = (StackPane) codeField.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            toastContainer.setMouseTransparent(true);
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al inicializar Toast: " + e.getMessage());
         }
 
         // --- SONIDOS Y EVENTOS ---
@@ -88,19 +106,19 @@ public class ResetPasswordController {
 
         if (code.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
             SoundManager.playErrorSound();
-            showSimpleAlert("Campos Vacíos", "Por favor, completa todos los campos del ritual.");
+            showToast("Campos Vacíos", "Por favor, completa todos los campos del ritual.", Toast.ToastType.WARNING);
             return;
         }
 
         if (newPass.length() < 6) {
             SoundManager.playErrorSound();
-            showSimpleAlert("Contraseña Débil", "La nueva credencial debe tener al menos 6 caracteres.");
+            showToast("Contraseña Débil", "La nueva credencial debe tener al menos 6 caracteres.", Toast.ToastType.WARNING);
             return;
         }
 
         if (!newPass.equals(confirmPass)) {
             SoundManager.playErrorSound();
-            showSimpleAlert("Error de Coincidencia", "Las llaves no coinciden en el altar.");
+            showToast("Error de Coincidencia", "Las llaves no coinciden en el altar.", Toast.ToastType.ERROR);
             return;
         }
 
@@ -116,7 +134,7 @@ public class ResetPasswordController {
                         
                         Platform.runLater(() -> {
                             loadingLayer.setVisible(false);
-                            showSimpleAlert("¡Éxito!", "Tu nueva llave ha sido forjada correctamente.");
+                            showToast("¡Éxito!", "Tu nueva llave ha sido forjada correctamente.", Toast.ToastType.SUCCESS);
                             regresarAlLoginGlobal();
                         });
                     }
@@ -125,14 +143,14 @@ public class ResetPasswordController {
                         loadingLayer.setVisible(false);
                         btnReset.setDisable(false);
                         SoundManager.playErrorSound();
-                        showSimpleAlert("Código Inválido", "El código es incorrecto o se ha desvanecido.");
+                        showToast("Código Inválido", "El código es incorrecto o se ha desvanecido.", Toast.ToastType.ERROR);
                     });
                 }
             } catch (SQLException e) {
                 Platform.runLater(() -> {
                     loadingLayer.setVisible(false);
                     btnReset.setDisable(false);
-                    showSimpleAlert("Error de BD", "El servidor no responde: " + e.getMessage());
+                    showToast("Error de BD", "El servidor no responde: " + e.getMessage(), Toast.ToastType.ERROR);
                 });
             }
         }).start();
@@ -176,26 +194,20 @@ public class ResetPasswordController {
         }
     }
 
-    private void showSimpleAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Sistema Central");
-        alert.setHeaderText(title);
-        alert.setContentText(content);
-        
-        try {
-            DialogPane dialogPane = alert.getDialogPane();
-            dialogPane.getStylesheets().add(getClass().getResource("/styles/alerts.css").toExternalForm());
-            dialogPane.getStyleClass().add("custom-alert");
-
-            Stage stage = (Stage) dialogPane.getScene().getWindow();
-            stage.initStyle(StageStyle.TRANSPARENT);
-            dialogPane.getScene().setFill(Color.TRANSPARENT);
-            
-            if (codeField.getScene() != null) {
-                alert.initOwner(codeField.getScene().getWindow());
-            }
-        } catch (Exception e) { /* Fallback */ }
-        
-        alert.showAndWait();
+    private void showToast(String title, String message, Toast.ToastType type) {
+        switch (type) {
+            case SUCCESS:
+                Toast.success(title, message);
+                break;
+            case ERROR:
+                Toast.error(title, message);
+                break;
+            case WARNING:
+                Toast.warning(title, message);
+                break;
+            default:
+                Toast.info(title, message);
+                break;
+        }
     }
 }

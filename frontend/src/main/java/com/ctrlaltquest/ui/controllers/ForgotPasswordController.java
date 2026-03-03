@@ -1,29 +1,32 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.regex.Pattern;
+
 import com.ctrlaltquest.dao.AuthDAO;
-import com.ctrlaltquest.services.EmailService;
 import com.ctrlaltquest.services.AuditService;
+import com.ctrlaltquest.services.EmailService;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
+
 import javafx.animation.FadeTransition;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.regex.Pattern;
 
 public class ForgotPasswordController {
 
@@ -44,6 +47,19 @@ public class ForgotPasswordController {
             backgroundVideo.setEffect(new GaussianBlur(15));
             configurarVideo();
         }
+
+        // inicializar Toast container
+        try {
+            StackPane root = (StackPane) emailField.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
 
         // --- SONIDOS ---
         emailField.setOnKeyTyped(e -> SoundManager.playKeyClick());
@@ -201,26 +217,6 @@ public class ForgotPasswordController {
     }
 
     private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Sistema de Seguridad");
-        alert.setHeaderText(title);
-        alert.setContentText(content);
-
-        try {
-            DialogPane dialogPane = alert.getDialogPane();
-            dialogPane.getStylesheets().add(getClass().getResource("/styles/alerts.css").toExternalForm());
-            dialogPane.getStyleClass().add("custom-alert");
-            
-            Stage stage = (Stage) dialogPane.getScene().getWindow();
-            stage.initStyle(StageStyle.TRANSPARENT);
-            dialogPane.getScene().setFill(Color.TRANSPARENT);
-        } catch (Exception e) {
-            // Fallback
-        }
-        
-        if (emailField.getScene() != null) {
-            alert.initOwner(emailField.getScene().getWindow());
-        }
-        alert.showAndWait();
+        Toast.info(title, content);
     }
 }

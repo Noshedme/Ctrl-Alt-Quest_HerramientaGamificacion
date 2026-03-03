@@ -5,6 +5,7 @@ import java.util.List;
 import com.ctrlaltquest.dao.MissionsDAO;
 import com.ctrlaltquest.models.Mission;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -46,6 +47,19 @@ public class MissionsViewController {
     public void initialize() {
         limpiarContenedores();
         if(lblActiveMissions != null) lblActiveMissions.setText("---");
+        
+        // inicializar Toast (debe añadirse al root de la escena si es posible)
+        try {
+            StackPane root = (StackPane) dailyContainer.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
     }
 
     private void cargarMisionesReales() {
@@ -103,6 +117,7 @@ public class MissionsViewController {
         task.setOnFailed(e -> {
             limpiarContenedores();
             mostrarMensajeVacio(dailyContainer, "Error de conexión con la base de datos.");
+            Toast.error("Error", "No se pudieron cargar las misiones.");
         });
 
         new Thread(task).start();
@@ -235,13 +250,8 @@ public class MissionsViewController {
                     iconLabel.setTextFill(Color.web("#4ade80"));
                     circle.setEffect(null);
                     
-                    // Actualizar contador global si es necesario
-                    if(lblActiveMissions != null) {
-                        try {
-                            int current = Integer.parseInt(lblActiveMissions.getText());
-                            lblActiveMissions.setText(String.valueOf(Math.max(0, current - 1)));
-                        } catch (Exception ex) {}
-                    }
+                    // Mostrar toast de recompensa
+                    Toast.success("Misión Completada", "Has ganado " + m.getXpReward() + " XP y " + m.getCoinReward() + " monedas.");
                 });
                 
                 new Thread(claimTask).start();

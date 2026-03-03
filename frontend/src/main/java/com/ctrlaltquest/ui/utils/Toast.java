@@ -6,13 +6,9 @@ import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.stage.Screen;
 import javafx.util.Duration;
 
 /**
@@ -129,6 +125,12 @@ public class Toast {
         toastBox.getStyleClass().add("toast-container");
         String typeClass = "toast-" + type.name().toLowerCase();
         toastBox.getStyleClass().add(typeClass);
+        // Estilos inline para asegurar visibilidad sin CSS externo
+        toastBox.setStyle("-fx-background-color: " + type.color + "cc; " + // Color con 80% opacidad
+                          "-fx-padding: 15; " +
+                          "-fx-border-radius: 8; " +
+                          "-fx-background-radius: 8; " +
+                          "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 2);");
         
         // Icono y título en horizontal
         HBox headerBox = new HBox();
@@ -137,10 +139,11 @@ public class Toast {
         
         Label iconLabel = new Label(type.icon);
         iconLabel.getStyleClass().add("icon");
-        iconLabel.setStyle("-fx-font-weight: bold;");
+        iconLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;");
         
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("title");
+        titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
         titleLabel.setWrapText(true);
         
         headerBox.getChildren().addAll(iconLabel, titleLabel);
@@ -148,6 +151,7 @@ public class Toast {
         // Mensaje
         Label messageLabel = new Label(message);
         messageLabel.getStyleClass().add("message");
+        messageLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
         messageLabel.setWrapText(true);
         messageLabel.setMaxWidth(320);
         

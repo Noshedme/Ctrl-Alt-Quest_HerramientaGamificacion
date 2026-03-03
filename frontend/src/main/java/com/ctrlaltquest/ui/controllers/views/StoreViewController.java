@@ -7,6 +7,7 @@ import com.ctrlaltquest.dao.UserDAO;
 import com.ctrlaltquest.models.StoreOffer;
 import com.ctrlaltquest.services.SessionManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -44,6 +45,19 @@ public class StoreViewController {
         this.currentUserId = SessionManager.getInstance().getUserId();
         actualizarSaldoVisual();
         cargarOfertas();
+        
+        // inicializar Toast container
+        try {
+            StackPane root = (StackPane) lblUserBalance.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
         
         // Animación suave del scroll al cargar
         if(scrollContainer != null) {
@@ -220,6 +234,7 @@ public class StoreViewController {
             if (purchaseTask.getValue()) {
                 SoundManager.playSuccessSound();
                 actualizarSaldoVisual();
+                Toast.success("Compra Exitosa", "Has comprado: " + offer.getTitle());
                 
                 // Animación de éxito en la tarjeta
                 btn.setText("¡COMPRADO!");
@@ -235,6 +250,7 @@ public class StoreViewController {
                 
             } else {
                 SoundManager.playErrorSound();
+                Toast.error("Fondos Insuficientes", "No tienes suficientes monedas para " + offer.getTitle());
                 
                 // Animación de error (vibración)
                 TranslateTransition tt = new TranslateTransition(Duration.millis(50), card);

@@ -8,19 +8,18 @@ import com.ctrlaltquest.dao.AuthDAO;
 import com.ctrlaltquest.services.AuditService;
 import com.ctrlaltquest.services.EmailService;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -72,6 +71,36 @@ public class RegisterController {
         // Sincronización de campos ocultos/visibles
         passwordShown.textProperty().bindBidirectional(passwordField.textProperty());
         confirmPasswordShown.textProperty().bindBidirectional(confirmPasswordField.textProperty());
+        
+        // Inicializar Toast cuando la escena esté lista
+        usernameField.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                initializeToast();
+            }
+        });
+    }
+    
+    private void initializeToast() {
+        try {
+            StackPane root = (StackPane) usernameField.getScene().getRoot();
+            
+            // Crear contenedor de Toast
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            toastContainer.setMouseTransparent(true);
+            
+            // Inicializar el sistema de Toast
+            Toast.initialize(toastContainer);
+            
+            // Añadir al root
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al inicializar Toast: " + e.getMessage());
+        }
     }
 
     private void configurarVideo() {
@@ -181,6 +210,7 @@ public class RegisterController {
     public void handleBackToLogin() {
         Parent currentRoot = usernameField.getScene().getRoot();
         Stage stage = (Stage) usernameField.getScene().getWindow();
+        Toast.info("Regresando", "Volviendo a la pantalla de inicio...");
 
         FadeTransition fadeOut = new FadeTransition(Duration.millis(500), currentRoot);
         fadeOut.setFromValue(1.0);
@@ -201,6 +231,7 @@ public class RegisterController {
                 fadeIn.play();
             } catch (IOException ex) {
                 System.err.println("Error al regresar al Login: " + ex.getMessage());
+                Toast.error("Error", "No se pudo regresar a la pantalla de inicio.");
             }
         });
         fadeOut.play();
@@ -216,19 +247,19 @@ public class RegisterController {
 
         // 1. Validación de campos vacíos
         if (user.isEmpty() || pass.isEmpty() || email.isEmpty()) {
-            showAlert("Campos Incompletos", "Debes llenar todos los datos del formulario.");
+            Toast.warning("Campos Incompletos", "Debes llenar todos los datos del formulario.");
             return;
         }
 
         // 2. Validación de formato de email
         if (!isValidEmail(email)) {
-            showAlert("Correo Inválido", "El correo no tiene un formato válido.");
+            Toast.error("Correo Inválido", "El correo no tiene un formato válido.");
             return;
         }
 
         // 3. SEGURIDAD: Validación de robustez de contraseña
         if (!isValidPassword(pass)) {
-            showAlert("Contraseña Insegura", 
+            Toast.warning("Contraseña Insegura", 
                 "Por seguridad, tu contraseña debe tener:\n" +
                 "• Entre 8 y 16 caracteres.\n" +
                 "• Al menos una letra mayúscula.\n" +
@@ -239,11 +270,12 @@ public class RegisterController {
 
         // 4. Validación de coincidencia de contraseñas
         if (!pass.equals(confirm)) {
-            showAlert("Error de Contraseña", "Las contraseñas no coinciden.");
+            Toast.error("Error de Contraseña", "Las contraseñas no coinciden.");
             return;
         }
 
         AuditService.log(null, "INTENTO_REGISTRO", "Usuario: " + user + " | Email: " + email);
+        Toast.info("Registrando", "Verificando disponibilidad del usuario...");
 
         if(btnRegister != null) btnRegister.setDisable(true);
         if(loadingLayer != null) loadingLayer.setVisible(true);
@@ -267,6 +299,7 @@ public class RegisterController {
             
             String registeredEmail = registerTask.getValue();
             AuditService.log(null, "REGISTRO_PENDIENTE", "Código enviado a: " + registeredEmail);
+            Toast.success("¡Registro Exitoso!", "Se envió un código de verificación a tu correo.");
 
             abrirVentanaVerificacion(registeredEmail);
         });
@@ -276,7 +309,7 @@ public class RegisterController {
             if(loadingLayer != null) loadingLayer.setVisible(false);
             
             Throwable error = registerTask.getException();
-            showAlert("Error en el Registro", error.getMessage());
+            Toast.error("Error en el Registro", error.getMessage());
             AuditService.log(null, "REGISTRO_FALLIDO", "Error: " + error.getMessage());
         });
 
@@ -301,7 +334,7 @@ public class RegisterController {
             stage.show();
 
         } catch (IOException e) {
-            showAlert("Error de Interfaz", "No se pudo abrir la ventana de verificación.");
+            Toast.error("Error de Interfaz", "No se pudo abrir la ventana de verificación.");
             e.printStackTrace();
         }
     }
@@ -316,30 +349,4 @@ public class RegisterController {
         return Pattern.compile(passwordRegex).matcher(password).matches();
     }
 
-    private void showAlert(String title, String content) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Ctrl + Alt + Quest");
-            alert.setHeaderText(title);
-            alert.setContentText(content);
-
-            DialogPane dialogPane = alert.getDialogPane();
-            try {
-                dialogPane.getStylesheets().add(getClass().getResource("/styles/alerts.css").toExternalForm());
-                dialogPane.getStyleClass().add("custom-alert");
-                
-                Stage stage = (Stage) dialogPane.getScene().getWindow();
-                stage.initStyle(StageStyle.TRANSPARENT);
-                dialogPane.getScene().setFill(Color.TRANSPARENT);
-            } catch (Exception e) {
-                System.err.println("⚠️ Estilo de alerta fallido.");
-            }
-
-            if (usernameField.getScene() != null) {
-                alert.initOwner(usernameField.getScene().getWindow());
-            }
-
-            alert.showAndWait();
-        });
-    }
 }

@@ -6,10 +6,9 @@ import com.ctrlaltquest.dao.MissionsDAO;
 import com.ctrlaltquest.dao.UserDAO;
 import com.ctrlaltquest.models.Mission; 
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.stage.StageStyle;
 
 public class GameService {
 
@@ -65,23 +64,13 @@ public class GameService {
             // 1. Sonido
             SoundManager.playSuccessSound();
             
-            // 2. Alerta Visual (Simple)
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.initStyle(StageStyle.UTILITY);
-            alert.setTitle("¡Misión Completada!");
-            alert.setHeaderText(mission.getTitle());
-            alert.setContentText("Recompensa: +" + mission.getXpReward() + " XP, " + mission.getCoinReward() + " Monedas.");
-            alert.show();
+            // 2. Notificación visual con Toast
+            Toast.success("¡Misión Completada!", mission.getTitle() + "\nRecompensa: +" + mission.getXpReward() + " XP, " + mission.getCoinReward() + " Monedas.");
 
             // 3. Manejo de Subida de Nivel
             if (levelUp) {
                 SoundManager.playLevelUpSound();
-                
-                Alert lvlAlert = new Alert(Alert.AlertType.INFORMATION);
-                lvlAlert.setTitle("¡LEVEL UP!");
-                lvlAlert.setHeaderText("¡HAS SUBIDO DE NIVEL!");
-                lvlAlert.setContentText("Tus atributos han aumentado. ¡Sigue programando!");
-                lvlAlert.show();
+                Toast.success("¡LEVEL UP!", "¡HAS SUBIDO DE NIVEL! Tus atributos han aumentado. ¡Sigue programando!");
             }
         });
     }

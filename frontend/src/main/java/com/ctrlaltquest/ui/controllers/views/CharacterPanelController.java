@@ -7,6 +7,7 @@ import java.util.List;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.models.Item;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.ScaleTransition;
@@ -23,6 +24,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
@@ -60,6 +62,19 @@ public class CharacterPanelController {
 
         resetDetalles();
         cargarInventarioSimulado();
+        // inicializar Toast container
+        try {
+            StackPane root = (StackPane) inventoryGrid.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
+        Toast.info("Inventario", "Panel de personaje listo.");
     }
     
     private void installTooltip(StackPane node, String text) {
@@ -194,6 +209,7 @@ public class CharacterPanelController {
         bigIcon.setStyle("-fx-font-size: 40px; -fx-text-fill: " + color + ";");
         selectedItemPreview.getChildren().add(bigIcon);
         selectedItemPreview.setStyle("-fx-border-color: " + color + "; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8; -fx-background-color: rgba(0,0,0,0.3);");
+        Toast.info("Item Seleccionado", item.getName() + " listo para usar.");
 
         boolean isConsumable = "CONSUMABLE".equals(item.getType());
         btnUse.setDisable(!isConsumable);

@@ -1,8 +1,15 @@
 package com.ctrlaltquest.ui.controllers;
 
-import com.ctrlaltquest.models.Character;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Map;
+
 import com.ctrlaltquest.dao.CharacterDAO;
+import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
@@ -10,13 +17,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -25,11 +32,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Map;
-import java.util.Optional;
 
 public class CharacterSelectionController {
 
@@ -54,6 +56,36 @@ public class CharacterSelectionController {
         }
         setupHoverAnimations();
         SoundManager.getInstance().synchronizeMusic();
+        
+        // Inicializar Toast cuando la escena esté lista
+        slot1.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                initializeToast();
+            }
+        });
+    }
+
+    private void initializeToast() {
+        try {
+            StackPane root = (StackPane) slot1.getScene().getRoot();
+            
+            // Crear contenedor de Toast
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            toastContainer.setMouseTransparent(true);
+            
+            // Inicializar el sistema de Toast
+            Toast.initialize(toastContainer);
+            
+            // Añadir al root
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al inicializar Toast: " + e.getMessage());
+        }
     }
 
     private void setupBackground() {
@@ -74,6 +106,7 @@ public class CharacterSelectionController {
                 }
             } catch (Exception e) {
                 System.err.println("⚠️ Error video selección: " + e.getMessage());
+                Toast.error("Error de Video", "No se pudo cargar el fondo de video.");
             }
         }
     }
@@ -114,6 +147,8 @@ public class CharacterSelectionController {
         actualizarSlot(1, personajes.get(1), name1, detail1, container1, btnDelete1);
         actualizarSlot(2, personajes.get(2), name2, detail2, container2, btnDelete2);
         actualizarSlot(3, personajes.get(3), name3, detail3, container3, btnDelete3);
+        // saludo amistoso
+        Toast.info("Bienvenido, " + currentUsername + "", "Elige un personaje o crea uno nuevo.");
     }
 
     private void actualizarSlot(int index, Character c, Label lblName, Label lblDetail, StackPane container, Button btnDelete) {
@@ -153,6 +188,7 @@ public class CharacterSelectionController {
             // Fallback si la imagen específica no existe (ej. error de escritura)
             if (is == null) {
                 System.err.println("⚠️ Sprite no encontrado: " + path + ". Usando default.");
+                Toast.warning("Sprite no Encontrado", "Usando sprite por defecto para el personaje.");
                 path = "/assets/images/sprites/bases/body_female.png"; 
                 is = getClass().getResourceAsStream(path);
             }
@@ -170,6 +206,7 @@ public class CharacterSelectionController {
             }
         } catch (Exception e) {
             System.err.println("❌ Error render sprite: " + e.getMessage());
+            Toast.error("Error de Renderizado", "No se pudo cargar el sprite del personaje.");
         }
     }
 
@@ -190,8 +227,10 @@ public class CharacterSelectionController {
         SoundManager.playKeyClick();
         Character seleccionado = personajes.get(slotIndex);
         if (seleccionado == null) {
+            Toast.info("Slot " + slotIndex, "Creando un nuevo personaje...");
             cambiarEscena("/fxml/character_editor.fxml", slotIndex);
         } else {
+            Toast.success("Personaje seleccionado", "¡Vamos, " + seleccionado.getName() + "!");
             cambiarEscena("/fxml/home.fxml", seleccionado);
         }
     }
@@ -205,27 +244,54 @@ public class CharacterSelectionController {
         Character c = personajes.get(slotIndex);
         if (c == null) return;
 
-        showConfirmAlert("Eliminar Perfil", "¿Estás seguro de borrar a " + c.getName() + "?", () -> {
+        showConfirmDialog("Eliminar Perfil", "¿Estás seguro de borrar a " + c.getName() + "?", () -> {
             if (CharacterDAO.deleteCharacter(c.getId())) {
+                Toast.warning("Perfil Eliminado", c.getName() + " ha sido borrado.");
                 cargarPersonajes();
             }
         });
     }
 
-    private void showConfirmAlert(String title, String content, Runnable onConfirm) {
+    private void showConfirmDialog(String title, String content, Runnable onConfirm) {
         Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Ctrl + Alt + Quest");
-            alert.setHeaderText(title);
-            alert.setContentText(content);
-            
-            // Estilo transparente si tienes el CSS cargado en la alerta
-            alert.initStyle(StageStyle.UTILITY);
-            
-            Optional<ButtonType> result = alert.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
+            Stage dialogStage = new Stage();
+            dialogStage.initModality(Modality.APPLICATION_MODAL);
+            dialogStage.initOwner(slot1.getScene().getWindow());
+            dialogStage.initStyle(StageStyle.TRANSPARENT);
+
+            VBox dialogVBox = new VBox(20);
+            dialogVBox.setStyle("-fx-background-color: rgba(0, 0, 0, 0.8); -fx-padding: 20; -fx-border-radius: 10; -fx-background-radius: 10;");
+            dialogVBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+            Label titleLabel = new Label(title);
+            titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+
+            Label contentLabel = new Label(content);
+            contentLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
+            contentLabel.setWrapText(true);
+
+            HBox buttonBox = new HBox(10);
+            buttonBox.setAlignment(javafx.geometry.Pos.CENTER);
+
+            Button yesButton = new Button("Sí");
+            yesButton.setStyle("-fx-background-color: #4ade80; -fx-text-fill: white; -fx-padding: 10; -fx-border-radius: 5;");
+            yesButton.setOnAction(e -> {
                 onConfirm.run();
-            }
+                dialogStage.close();
+            });
+
+            Button noButton = new Button("No");
+            noButton.setStyle("-fx-background-color: #ff6b6b; -fx-text-fill: white; -fx-padding: 10; -fx-border-radius: 5;");
+            noButton.setOnAction(e -> dialogStage.close());
+
+            buttonBox.getChildren().addAll(yesButton, noButton);
+
+            dialogVBox.getChildren().addAll(titleLabel, contentLabel, buttonBox);
+
+            Scene dialogScene = new Scene(dialogVBox);
+            dialogScene.setFill(Color.TRANSPARENT);
+            dialogStage.setScene(dialogScene);
+            dialogStage.show();
         });
     }
 
@@ -246,6 +312,7 @@ public class CharacterSelectionController {
             settingsStage.show();
         } catch (IOException e) {
             System.err.println("❌ Error ajustes: " + e.getMessage());
+            Toast.error("Error de Ajustes", "No se pudo abrir la ventana de ajustes.");
         }
     }
 
@@ -286,11 +353,13 @@ public class CharacterSelectionController {
         } catch (Exception e) {
             System.err.println("❌ Error crítico al cambiar escena: " + e.getMessage());
             e.printStackTrace();
+            Toast.error("Error de Navegación", "No se pudo cambiar a la siguiente escena.");
         }
     }
 
     @FXML private void handleBack() {
         SoundManager.playKeyClick();
+        Toast.info("Cerrando Sesión", "Volvemos a la pantalla de login...");
         cambiarEscena("/fxml/login.fxml", null);
     }
 }

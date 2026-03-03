@@ -12,6 +12,7 @@ com\ctrlaltquest\ui\controllers\views\MissionsViewController.class
 com\ctrlaltquest\models\EventType$InteractionType.class
 com\ctrlaltquest\ui\utils\ExampleControllerWithToast.class
 com\ctrlaltquest\ui\controllers\CharacterEditorController.class
+com\ctrlaltquest\ui\controllers\views\ProfileViewController$6.class
 com\ctrlaltquest\dao\DashboardDAO.class
 com\ctrlaltquest\ui\examples\KeyBindingsExamples$1.class
 com\ctrlaltquest\ui\controllers\views\StoreViewController.class
@@ -88,11 +89,13 @@ com\ctrlaltquest\ui\controllers\views\ProfileViewController$5.class
 com\ctrlaltquest\ui\navigation\SceneRouter.class
 com\ctrlaltquest\services\EventContextualService$1.class
 com\ctrlaltquest\ui\controllers\views\DashboardViewController$4.class
+com\ctrlaltquest\ui\controllers\VerifyController$1.class
 com\ctrlaltquest\services\XPSyncService$XPChangeEvent.class
 com\ctrlaltquest\dao\DashboardDAO$AppUsage.class
 com\ctrlaltquest\services\EventContextualService.class
 com\ctrlaltquest\ui\controllers\views\AchievementsViewController$1.class
 com\ctrlaltquest\services\BoostService$BoostInfo.class
+com\ctrlaltquest\ui\controllers\ResetPasswordController$1.class
 com\ctrlaltquest\ui\controllers\LoginController.class
 com\ctrlaltquest\ui\controllers\views\DashboardViewController$2.class
 com\ctrlaltquest\ui\controllers\views\ReportModalController$3.class
@@ -105,7 +108,6 @@ com\ctrlaltquest\services\SessionManager.class
 com\ctrlaltquest\ui\controllers\RegisterController.class
 com\ctrlaltquest\models\ActivityLog.class
 com\ctrlaltquest\ui\app\AppLauncher.class
-com\ctrlaltquest\dao\PaymentProductDAO.class
 com\ctrlaltquest\models\Item.class
 com\ctrlaltquest\models\Character.class
 com\ctrlaltquest\services\XPChangeListener.class

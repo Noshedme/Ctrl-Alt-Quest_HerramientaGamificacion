@@ -3,6 +3,7 @@ package com.ctrlaltquest.ui.controllers;
 import java.io.IOException;
 
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
@@ -11,6 +12,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -48,6 +50,19 @@ public class SettingsController {
             ft.setToValue(1.0);
             ft.play();
         }
+        // inicializar Toast
+        try {
+            StackPane root = (StackPane) mainContainer.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
+        Toast.info("Configuración", "Opciones cargadas.");
     }
 
     // --- MÉTODOS SETTER PARA INYECCIÓN DE CONTROLADORES ---
@@ -91,6 +106,7 @@ public class SettingsController {
         if (selectionController != null) selectionController.setVideoPlaying(shouldPlay);
         if (editorController != null) editorController.setVideoPlaying(shouldPlay);
         if (homeController != null) homeController.setVideoPlaying(shouldPlay);
+        Toast.info("Video", isVideoPaused ? "Video pausado" : "Video reanudado");
     }
 
     @FXML
@@ -98,12 +114,14 @@ public class SettingsController {
         isMusicEnabled = checkBackgroundMusic.isSelected();
         // Sincronización inmediata a través del Singleton
         SoundManager.getInstance().synchronizeMusic();
+        Toast.info("Música", isMusicEnabled ? "Música activada" : "Música desactivada");
     }
 
     @FXML
     private void handleToggleTypingSound() {
         isTypingSoundEnabled = checkTypingSound.isSelected();
         // SoundManager consultará esta variable estática en la próxima pulsación
+        Toast.info("Teclado", isTypingSoundEnabled ? "Sonidos activados" : "Sonidos desactivados");
     }
 
     @FXML
@@ -142,6 +160,7 @@ public class SettingsController {
             keybindingsStage.centerOnScreen();
             
             keybindingsStage.show();
+            Toast.info("Atajos", "Ventana de atajos abierta.");
         } catch (IOException e) {
             System.err.println("Error al abrir ventana de atajos: " + e.getMessage());
             e.printStackTrace();

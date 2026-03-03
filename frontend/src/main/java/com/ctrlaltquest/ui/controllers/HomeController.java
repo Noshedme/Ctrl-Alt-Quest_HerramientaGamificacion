@@ -22,6 +22,7 @@ import com.ctrlaltquest.services.XPChangeListener;
 import com.ctrlaltquest.services.XPSyncService;
 import com.ctrlaltquest.ui.utils.EventContextualUI;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -31,7 +32,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Tooltip;
@@ -136,12 +136,31 @@ public class HomeController implements XPChangeListener, EventContextualListener
         iniciarMonitoreoActividad();
         configurarEfectosAvatar(); // <-- NUEVO: Prepara el avatar para ser interactivo
         
+        // inicializar Toast
+        VBox toastContainer = new VBox();
+        toastContainer.setPrefSize(400, 600);
+        toastContainer.setStyle("-fx-background-color: transparent;");
+        toastContainer.setMouseTransparent(true);
+        Toast.initialize(toastContainer);
+        Platform.runLater(() -> {
+            try {
+                StackPane root = (StackPane) mainLayout.getScene().getRoot();
+                if (root != null && !root.getChildren().contains(toastContainer)) {
+                    root.getChildren().add(toastContainer);
+                    StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+                }
+            } catch (Exception e) {
+                System.err.println("Error al inicializar Toast: " + e.getMessage());
+            }
+        });
+        
         try {
             SoundManager.getInstance().synchronizeMusic();
         } catch (Exception e) {}
 
         Platform.runLater(() -> {
             loadView("dashboard_view");
+            Toast.success("Bienvenido al Hub", "¡Controla tu aventura desde aquí!");
             
             if (mainLayout.getScene() != null) {
                 setupInputListeners(mainLayout.getScene());
@@ -288,11 +307,11 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 // currentCharacter.setAvatarUrl(selectedFile.getAbsolutePath());
                 // CharacterDAO.saveCharacter(currentCharacter);
                 
-                mostrarNotificacion("¡Genial!", "Tu foto de perfil ha sido actualizada.");
+                Toast.success("¡Genial!", "Tu foto de perfil ha sido actualizada.");
                 
             } catch (Exception ex) {
                 System.err.println("❌ Error al cargar la nueva imagen: " + ex.getMessage());
-                mostrarNotificacion("Error", "No se pudo cargar la imagen seleccionada.");
+                Toast.error("Error", "No se pudo cargar la imagen seleccionada.");
             }
         }
     }
@@ -312,7 +331,7 @@ public class HomeController implements XPChangeListener, EventContextualListener
             currentCharacter.setCoins(currentCharacter.getCoins() + 500);
             CharacterDAO.saveCharacter(currentCharacter);
             actualizarUI();
-            mostrarNotificacion("¡BONUS!", "+500 monedas por descubrir el Konami Code!");
+            Toast.gold("¡BONUS!", "+500 monedas por descubrir el Konami Code!");
         }
     }
 
@@ -330,33 +349,13 @@ public class HomeController implements XPChangeListener, EventContextualListener
     }
 
     private void mostrarAlertaLogro(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("🏆 SECRET UNLOCKED!");
-        alert.setHeaderText("🏆 " + title);
-        alert.setContentText(content);
-        alert.initStyle(StageStyle.UTILITY);
-        try {
-            alert.getDialogPane().getStylesheets().add(getClass().getResource("/styles/home.css").toExternalForm());
-        } catch (Exception e) {}
-        alert.show();
+        // Use gold toast for secret unlocks
+        Toast.gold("🏆 " + title, content);
     }
 
     private void mostrarNotificacion(String titulo, String mensaje) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(titulo);
-        alert.setHeaderText(null);
-        alert.setContentText(mensaje);
-        alert.initStyle(StageStyle.UTILITY);
-        alert.show();
-        
-        new Thread(() -> {
-            try {
-                Thread.sleep(3000);
-                Platform.runLater(alert::close);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }).start();
+        // Redirigido a Toast para consistencia
+        Toast.info(titulo, mensaje);
     }
 
     // ==========================================
@@ -563,13 +562,13 @@ public class HomeController implements XPChangeListener, EventContextualListener
         try { SoundManager.playClickSound(); } catch(Exception e){}
     }
 
-    @FXML private void showDashboard() { playClick(); loadView("dashboard_view"); }
-    @FXML private void showActivity() { playClick(); loadView("activity_view"); }
-    @FXML private void showMissions() { playClick(); loadView("missions_view"); }
-    @FXML private void showStore() { playClick(); loadView("store_view"); }
-    @FXML private void showInventory() { playClick(); loadView("character_panel"); }
-    @FXML private void showStats() { playClick(); loadView("achievements_view"); }
-    @FXML private void showProfile() { playClick(); loadView("profile_view"); }
+    @FXML private void showDashboard() { playClick(); Toast.info("Dashboard", "Mostrando tablero de control"); loadView("dashboard_view"); }
+    @FXML private void showActivity() { playClick(); Toast.info("Actividad", "Revisando tu progreso de uso"); loadView("activity_view"); }
+    @FXML private void showMissions() { playClick(); Toast.info("Misiones", "Aquí están tus misiones actuales"); loadView("missions_view"); }
+    @FXML private void showStore() { playClick(); Toast.info("Tienda", "Explora objetos y recompensas"); loadView("store_view"); }
+    @FXML private void showInventory() { playClick(); Toast.info("Inventario", "Revisa tu equipo y objetos"); loadView("character_panel"); }
+    @FXML private void showStats() { playClick(); Toast.info("Logros", "Consulta tus logros desbloqueados"); loadView("achievements_view"); }
+    @FXML private void showProfile() { playClick(); Toast.info("Perfil", "Edita tus datos y preferencias"); loadView("profile_view"); }
 
     @FXML
     private void resumeTracking() {
@@ -780,7 +779,7 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 
                 playLevelUpAnimation();
                 try { SoundManager.playLevelUpSound(); } catch (Exception e) {}
-                mostrarNotificacion("🎉 ¡SUBIDA DE NIVEL!", "¡Felicidades! Acabas de alcanzar NIVEL " + newLevel + "! 🎊");
+                Toast.success("🎉 ¡SUBIDA DE NIVEL!", "¡Felicidades! Acabas de alcanzar NIVEL " + newLevel + "! 🎊");
             } catch (Exception e) {}
         });
     }
@@ -800,6 +799,7 @@ public class HomeController implements XPChangeListener, EventContextualListener
         StackPane.setAlignment(notifLabel, javafx.geometry.Pos.CENTER);
         FadeTransition fade = new FadeTransition(Duration.millis(1000), notifLabel);
         fade.setFromValue(1.0); fade.setToValue(0.0); fade.play();
+        Toast.success("XP Ganado", "+" + xpAmount + " XP de " + source);
     }
 
     // ==========================================
@@ -810,19 +810,26 @@ public class HomeController implements XPChangeListener, EventContextualListener
     public void onEventGenerated(int userId, EventContextualService.ContextualEvent event) { }
 
     @Override
-    public void onEventStarted(int userId, EventContextualService.ContextualEvent event) { }
+    public void onEventStarted(int userId, EventContextualService.ContextualEvent event) { 
+        Toast.info("Evento Iniciado", "Nuevo evento iniciado");
+    }
 
     @Override
     public void onEventProgressUpdated(int userId, EventContextualService.ContextualEvent event, int currentProgress, int target) { }
 
     @Override
-    public void onEventCriticalPhase(int userId, EventContextualService.ContextualEvent event) { }
+    public void onEventCriticalPhase(int userId, EventContextualService.ContextualEvent event) { 
+        Toast.warning("Fase Crítica", "¡Atención! Fase crítica en evento");
+    }
 
     @Override
     public void onEventCompleted(int userId, EventContextualService.ContextualEvent event, CompletionStatus status, int xpReward, int coinReward) {
         // Al terminar un evento, pedimos a la BD que actualice la interfaz por si ganamos oro o nivel.
         if (status == CompletionStatus.VICTORY) {
             refreshCharacterData();
+            Toast.success("Evento Completado", "¡Victoria! +" + xpReward + " XP y +" + coinReward + " monedas");
+        } else {
+            Toast.error("Evento Fallido", "Evento fallido");
         }
     }
 }

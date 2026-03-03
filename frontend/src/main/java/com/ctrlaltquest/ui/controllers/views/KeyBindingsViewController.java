@@ -1,14 +1,14 @@
 package com.ctrlaltquest.ui.controllers.views;
 
 import com.ctrlaltquest.ui.utils.KeyBindings;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
@@ -24,6 +24,19 @@ public class KeyBindingsViewController {
     @FXML
     public void initialize() {
         loadKeyBindings();
+        // inicializar Toast container
+        try {
+            StackPane root = (StackPane) mainPane.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
+        Toast.info("Atajos", "Lista de atajos cargada.");
     }
     
     /**
@@ -66,6 +79,7 @@ public class KeyBindingsViewController {
     
     @FXML
     private void handleClose() {
+        Toast.info("Atajos", "Cerrando vista de atajos.");
         Stage stage = (Stage) mainPane.getScene().getWindow();
         stage.close();
     }

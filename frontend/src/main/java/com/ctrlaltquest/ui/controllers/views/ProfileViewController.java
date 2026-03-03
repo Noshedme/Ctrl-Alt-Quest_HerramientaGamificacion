@@ -9,6 +9,7 @@ import com.ctrlaltquest.dao.UserDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.services.SessionManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
@@ -16,7 +17,6 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -24,6 +24,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
@@ -57,12 +58,42 @@ public class ProfileViewController {
         
         cargarDatosUsuario();
         
+        // Inicializar Toast cuando la escena esté lista
+        lblUsernameHeader.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                initializeToast();
+            }
+        });
+        
         prepararAnimacion(headerCard);
         prepararAnimacion(configCard);
         prepararAnimacion(securityCard);
         prepararAnimacion(footerContainer);
         
         animarEntrada();
+    }
+
+    private void initializeToast() {
+        try {
+            StackPane root = (StackPane) lblUsernameHeader.getScene().getRoot();
+            
+            // Crear contenedor de Toast
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            toastContainer.setMouseTransparent(true);
+            
+            // Inicializar el sistema de Toast
+            Toast.initialize(toastContainer);
+            
+            // Añadir al root
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al inicializar Toast: " + e.getMessage());
+        }
     }
 
     private void cargarDatosUsuario() {
@@ -141,11 +172,11 @@ public class ProfileViewController {
 
         updateTask.setOnSucceeded(e -> {
             if (updateTask.getValue()) {
-                mostrarAlerta(Alert.AlertType.INFORMATION, "IMAGEN ACTUALIZADA", "Tu apariencia base ha cambiado a la Variante " + nextClass);
+                Toast.success("IMAGEN ACTUALIZADA", "Tu apariencia base ha cambiado a la Variante " + nextClass);
                 // Aquí el HomeController debería detectar el cambio en la siguiente recarga, 
                 // pero si quieres instantáneo, se recomienda usar un EventBus o similar.
             } else {
-                mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "No se guardó el cambio de imagen.");
+                Toast.error("ERROR", "No se guardó el cambio de imagen.");
             }
         });
 
@@ -160,7 +191,7 @@ public class ProfileViewController {
         String newName = txtUsername.getText().trim();
         
         if (newName.length() < 3) {
-            mostrarAlerta(Alert.AlertType.WARNING, "ERROR", "El nombre debe tener al menos 3 caracteres.");
+            Toast.warning("ERROR", "El nombre debe tener al menos 3 caracteres.");
             return;
         }
         
@@ -176,9 +207,9 @@ public class ProfileViewController {
                 lblUsernameHeader.setText(newName.toUpperCase());
                 characterData.setName(newName);
                 SoundManager.playSuccessSound();
-                mostrarAlerta(Alert.AlertType.INFORMATION, "GUARDADO", "Perfil actualizado correctamente.");
+                Toast.success("GUARDADO", "Perfil actualizado correctamente.");
             } else {
-                mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Fallo al guardar en la base de datos.");
+                Toast.error("ERROR", "Fallo al guardar en la base de datos.");
             }
         });
         
@@ -193,7 +224,7 @@ public class ProfileViewController {
         String p2 = txtConfirmPass.getText();
         
         if (p1.isEmpty() || !p1.equals(p2)) {
-            mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Las contraseñas no coinciden o están vacías.");
+            Toast.error("ERROR", "Las contraseñas no coinciden o están vacías.");
             return;
         }
         
@@ -202,11 +233,11 @@ public class ProfileViewController {
         };
         t.setOnSucceeded(e -> {
             if(t.getValue()) {
-                mostrarAlerta(Alert.AlertType.INFORMATION, "ÉXITO", "Contraseña de seguridad actualizada.");
+                Toast.success("ÉXITO", "Contraseña de seguridad actualizada.");
                 txtNewPass.clear(); 
                 txtConfirmPass.clear();
             } else {
-                mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "No se pudo actualizar la contraseña.");
+                Toast.error("ERROR", "No se pudo actualizar la contraseña.");
             }
         });
         Thread th = new Thread(t);
@@ -228,8 +259,8 @@ public class ProfileViewController {
                 @Override protected Boolean call() { return MissionsDAO.exportMissionHistoryToCSV(userId, file); }
             };
             t.setOnSucceeded(e -> {
-                if(t.getValue()) mostrarAlerta(Alert.AlertType.INFORMATION, "EXPORTADO", "Archivo CSV generado con éxito en tu equipo.");
-                else mostrarAlerta(Alert.AlertType.ERROR, "ERROR", "Fallo al intentar exportar el archivo.");
+                if(t.getValue()) Toast.success("EXPORTADO", "Archivo CSV generado con éxito en tu equipo.");
+                else Toast.error("ERROR", "Fallo al intentar exportar el archivo.");
             });
             Thread th = new Thread(t);
             th.setDaemon(true);
@@ -240,7 +271,8 @@ public class ProfileViewController {
     @FXML
     private void handleDeleteAccount() {
         // Lógica de borrado (sin cambios respecto a lo que ya funcionaba)
-        mostrarAlerta(Alert.AlertType.WARNING, "PELIGRO", "Esta función borrará todos tus datos. Contáctate con el Admin.");
+        Toast.warning("PELIGRO", "Esta función borrará todos tus datos. Contáctate con el Admin.");
+
     }
 
     // --- Animaciones y Alertas ---
@@ -267,19 +299,21 @@ public class ProfileViewController {
         tt.play(); ft.play();
     }
     
-    private void mostrarAlerta(Alert.AlertType type, String title, String content) {
+    private void mostrarAlerta(javafx.scene.control.Alert.AlertType type, String title, String content) {
         Platform.runLater(() -> {
-            Alert alert = new Alert(type);
-            alert.setTitle(title);
-            alert.setHeaderText(null);
-            alert.setContentText(content);
-            alert.showAndWait();
+            switch (type) {
+                case INFORMATION -> Toast.info(title, content);
+                case ERROR -> Toast.error(title, content);
+                case WARNING -> Toast.warning(title, content);
+                case CONFIRMATION -> Toast.info(title, content);
+                default -> Toast.info(title, content);
+            }
         });
     }
     
     @FXML 
     private void handleExportPDF() { 
         SoundManager.playClickSound();
-        mostrarAlerta(Alert.AlertType.INFORMATION, "INFO", "Generación de PDF en desarrollo. Usa CSV por ahora."); 
+        Toast.info("INFO", "Generación de PDF en desarrollo. Usa CSV por ahora."); 
     }
 }

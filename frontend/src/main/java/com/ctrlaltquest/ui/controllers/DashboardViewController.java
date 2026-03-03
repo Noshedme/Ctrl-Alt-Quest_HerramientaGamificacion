@@ -8,6 +8,7 @@ import java.util.Map;
 import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.dao.DashboardDAO;
 import com.ctrlaltquest.models.Character;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
@@ -36,6 +37,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -55,6 +57,7 @@ public class DashboardViewController {
     @FXML private VBox reportHeaderBox;
     @FXML private javafx.scene.control.Button btnExportReport;
     @FXML private javafx.scene.control.Button btnOpenReport;
+    @FXML private javafx.scene.layout.BorderPane mainLayout;
     
     // Contenedores principales para animar
     @FXML private HBox newsContainer;
@@ -101,6 +104,7 @@ public class DashboardViewController {
                                     animarNumeroRacha(lblStreakNumber);
                                 }
                             }
+                            Toast.info("Actualizado", "Datos de racha actualizados.");
                         } catch (Exception ex) {}
                     });
                 } catch (Exception ex) {
@@ -139,6 +143,22 @@ public class DashboardViewController {
         if (lblDate != null) {
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("EEEE, d MMM");
             lblDate.setText(LocalDate.now().format(fmt).toUpperCase());
+        }
+        
+        // inicializar Toast container si aún no
+        try {
+            StackPane root = (StackPane) mainLayout.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            toastContainer.setMouseTransparent(true);
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al inicializar Toast: " + e.getMessage());
         }
         
         // Evitar animaciones por defecto de JavaFX que chocan con las nuestras
@@ -392,17 +412,16 @@ public class DashboardViewController {
 
             boolean ok = com.ctrlaltquest.dao.MissionsDAO.exportMissionHistoryToCSV(userId, dest);
             javafx.application.Platform.runLater(() -> {
-                javafx.scene.control.Alert a = new javafx.scene.control.Alert(ok ? javafx.scene.control.Alert.AlertType.INFORMATION : javafx.scene.control.Alert.AlertType.ERROR);
-                a.setTitle(ok ? "Exportado" : "Error");
-                a.setHeaderText(null);
-                a.setContentText(ok ? "CSV exportado correctamente." : "No se pudo exportar el CSV.");
-                a.show();
+                if (ok) {
+                    Toast.success("Exportado", "CSV exportado correctamente.");
+                } else {
+                    Toast.error("Error", "No se pudo exportar el CSV.");
+                }
             });
         } catch (Exception e) {
             // mostrar error
             javafx.application.Platform.runLater(() -> {
-                javafx.scene.control.Alert a = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
-                a.setTitle("Error"); a.setHeaderText(null); a.setContentText("No se pudo exportar: " + e.getMessage()); a.show();
+                Toast.error("Error", "No se pudo exportar: " + e.getMessage());
             });
         }
     }

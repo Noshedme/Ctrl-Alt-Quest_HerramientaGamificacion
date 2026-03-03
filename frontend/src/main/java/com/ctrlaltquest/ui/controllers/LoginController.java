@@ -11,21 +11,19 @@ import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.services.AuditService;
 import com.ctrlaltquest.services.SessionManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -76,6 +74,36 @@ public class LoginController {
         
         // Sincronizar texto inicial por si acaso
         passwordShown.textProperty().bindBidirectional(passwordHidden.textProperty());
+        
+        // Inicializar Toast cuando la escena esté lista
+        usernameField.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                initializeToast();
+            }
+        });
+    }
+    
+    private void initializeToast() {
+        try {
+            StackPane root = (StackPane) usernameField.getScene().getRoot();
+            
+            // Crear contenedor de Toast
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            toastContainer.setMouseTransparent(true);
+            
+            // Inicializar el sistema de Toast
+            Toast.initialize(toastContainer);
+            
+            // Añadir al root
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al inicializar Toast: " + e.getMessage());
+        }
     }
 
     private void configurarVideo() {
@@ -192,11 +220,12 @@ public class LoginController {
 
         if (user.isEmpty() || pass.isEmpty()) {
             SoundManager.playErrorSound();
-            showAlert("Campos Incompletos", "Debes ingresar tu identidad para cruzar el umbral.");
+            Toast.warning("Campos Incompletos", "Debes ingresar tu identidad para cruzar el umbral.");
             return;
         }
 
         if (loadingLayer != null) loadingLayer.setVisible(true);
+        Toast.info("Iniciando Sesión", "Verificando tus credenciales...");
 
         Task<Boolean> loginTask = new Task<>() {
             @Override
@@ -212,6 +241,8 @@ public class LoginController {
                 String finalUsername = SessionManager.getInstance().getUsername();
                 Map<Integer, Character> personajes = CharacterDAO.getCharactersByUser(userId);
 
+                Toast.success("¡Bienvenido!", "Acceso concedido, " + finalUsername + "!");
+                
                 if (personajes.isEmpty()) {
                     navigateToEditor(userId, finalUsername);
                 } else {
@@ -221,14 +252,14 @@ public class LoginController {
             } else {
                 if (loadingLayer != null) loadingLayer.setVisible(false);
                 SoundManager.playErrorSound();
-                showAlert("Credenciales Inválidas", "El usuario o contraseña no coinciden con nuestros registros.");
+                Toast.error("Credenciales Inválidas", "El usuario o contraseña no coinciden con nuestros registros.");
             }
         });
 
         loginTask.setOnFailed(e -> {
             if (loadingLayer != null) loadingLayer.setVisible(false);
             SoundManager.playErrorSound();
-            showAlert("Error de Conexión", "No se pudo establecer contacto con la base de datos.");
+            Toast.error("Error de Conexión", "No se pudo establecer contacto con la base de datos.");
         });
 
         new Thread(loginTask).start();
@@ -238,6 +269,7 @@ public class LoginController {
     public void handleForgotPassword() { 
         try {
             SoundManager.playClickSound();
+            Toast.info("Recuperación", "Abriendo formulario de recuperación...");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/forgot_password.fxml"));
             Parent root = loader.load();
             
@@ -259,7 +291,7 @@ public class LoginController {
             
         } catch (IOException e) {
             e.printStackTrace();
-            showAlert("Error", "No se pudo cargar la interfaz de recuperación.");
+            Toast.error("Error", "No se pudo cargar la interfaz de recuperación.");
         }
     }
 
@@ -340,22 +372,26 @@ public class LoginController {
     public void handleGoToRegister() { 
         try {
             SoundManager.playClickSound();
+            Toast.info("Registro", "Abriendo formulario de registro...");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/register.fxml"));
             Parent registerRoot = loader.load();
             Stage stage = (Stage) usernameField.getScene().getWindow();
             
             FadeTransition fadeOut = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
-            fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
                 limpiarRecursos();
                 stage.getScene().setRoot(registerRoot);
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(400), registerRoot);
-                fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0);
+                fadeIn.setFromValue(0.0);
+                fadeIn.setToValue(1.0);
                 fadeIn.play();
             });
             fadeOut.play();
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.error("Error", "No se pudo cargar el formulario de registro.");
         }
     }
 
@@ -366,36 +402,7 @@ public class LoginController {
         }
     }
 
-    private void showAlert(String title, String content) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Ctrl + Alt + Quest");
-            alert.setHeaderText(title);
-            alert.setContentText(content);
-            
-            DialogPane dialogPane = alert.getDialogPane();
-            try {
-                URL cssUrl = getClass().getResource("/styles/alerts.css");
-                if (cssUrl != null) {
-                    dialogPane.getStylesheets().add(cssUrl.toExternalForm());
-                    dialogPane.getStyleClass().add("custom-alert");
-                    
-                    Stage alertStage = (Stage) dialogPane.getScene().getWindow();
-                    if (alertStage.getStyle() != StageStyle.UNDECORATED) {
-                        alertStage.initStyle(StageStyle.UNDECORATED);
-                    }
-                    
-                    dialogPane.setOpacity(0);
-                    FadeTransition ft = new FadeTransition(Duration.millis(300), dialogPane);
-                    ft.setToValue(1.0);
-                    ft.play();
-                }
-            } catch (Exception e) {
-                System.err.println("⚠️ Estilo de alerta fallido.");
-            }
-            alert.showAndWait();
-        });
-    }
+
 
     public void setVideoPlaying(boolean play) {
         if (videoPlayer != null) {

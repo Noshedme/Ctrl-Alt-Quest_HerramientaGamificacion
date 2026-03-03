@@ -9,6 +9,7 @@ import com.ctrlaltquest.dao.UserDAO;
 import com.ctrlaltquest.models.ActivityLog;
 import com.ctrlaltquest.services.ActivityMonitorService;
 import com.ctrlaltquest.ui.controllers.HomeController; // Import necesario
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -31,6 +32,8 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.Glow;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -88,6 +91,18 @@ public class ActivityViewController {
         }
         
         stopTrackingUI();
+        // inicializar Toast container
+        try {
+            StackPane root = (StackPane) btnToggleMonitor.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
     }
 
     public void setUserId(int userId) {
@@ -151,8 +166,10 @@ public class ActivityViewController {
     private void handleToggleMonitor() {
         if (btnToggleMonitor.isSelected()) {
             startTracking();
+            Toast.info("Monitor", "Rastreo de actividad iniciado.");
         } else {
             stopTracking();
+            Toast.info("Monitor", "Rastreo de actividad detenido.");
         }
     }
 
@@ -177,6 +194,7 @@ public class ActivityViewController {
         
         String timeNow = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
         logs.add(0, new ActivityLog(timeNow, "MANUAL: " + title, productive ? "PRODUCTIVO" : "OCIO", "-"));
+        Toast.success("Actividad", "Registro manual guardado.");
     }
 
     private void startTracking() {

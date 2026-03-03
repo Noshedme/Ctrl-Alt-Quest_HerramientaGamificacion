@@ -1,18 +1,21 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+
 import com.ctrlaltquest.dao.AuthDAO;
 import com.ctrlaltquest.services.AuditService;
+import com.ctrlaltquest.ui.utils.Toast;
+
 import javafx.animation.FadeTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import java.io.IOException;
 
 public class VerifyController {
 
@@ -27,11 +30,30 @@ public class VerifyController {
     }
 
     @FXML
+    public void initialize() {
+        // init toast container if available
+        try {
+            StackPane root = (StackPane) codeField.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            toastContainer.setMouseTransparent(true);
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al inicializar Toast: " + e.getMessage());
+        }
+    }
+
+    @FXML
     private void handleVerify() {
         String code = codeField.getText().trim();
 
         if (code.isEmpty()) {
-            showSimpleAlert("Campo Vacío", "Debes ingresar el código de verificación.");
+            showToast("Campo Vacío", "Debes ingresar el código de verificación.", Toast.ToastType.WARNING);
             return;
         }
 
@@ -43,7 +65,7 @@ public class VerifyController {
                 // 🛡️ AUDITORÍA: Éxito en la validación
                 AuditService.log(null, "CUENTA_ACTIVADA", "Correo verificado: " + userEmail);
                 
-                showSimpleAlert("¡Verificación Completada!", "Tu cuenta ha sido activada. Volviendo al inicio...");
+                showToast("¡Verificación Completada!", "Tu cuenta ha sido activada. Volviendo al inicio...", Toast.ToastType.SUCCESS);
                 
                 // 2. Cerrar el overlay actual
                 closeWindow();
@@ -53,10 +75,10 @@ public class VerifyController {
             } else {
                 // 🛡️ AUDITORÍA: Intento fallido
                 AuditService.log(null, "VERIFICACION_FALLIDA", "Código incorrecto para: " + userEmail);
-                showSimpleAlert("Código Inválido", "El código no coincide con el enviado a tu correo.");
+                showToast("Código Inválido", "El código no coincide con el enviado a tu correo.", Toast.ToastType.ERROR);
             }
         } catch (Exception e) {
-            showSimpleAlert("Error en la Validación", "Ocurrió un error al verificar el código: " + e.getMessage());
+            showToast("Error en la Validación", "Ocurrió un error al verificar el código: " + e.getMessage(), Toast.ToastType.ERROR);
         }
     }
 
@@ -99,17 +121,20 @@ public class VerifyController {
         stage.close();
     }
 
-    private void showSimpleAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Ctrl + Alt + Quest");
-        alert.setHeaderText(title);
-        alert.setContentText(content);
-        
-        // Intentar centrar la alerta en el modal
-        if (codeField.getScene() != null) {
-            alert.initOwner(codeField.getScene().getWindow());
+    private void showToast(String title, String message, Toast.ToastType type) {
+        switch (type) {
+            case SUCCESS:
+                Toast.success(title, message);
+                break;
+            case ERROR:
+                Toast.error(title, message);
+                break;
+            case WARNING:
+                Toast.warning(title, message);
+                break;
+            default:
+                Toast.info(title, message);
+                break;
         }
-        
-        alert.showAndWait();
     }
 }

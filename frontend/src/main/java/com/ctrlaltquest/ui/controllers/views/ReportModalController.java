@@ -6,6 +6,7 @@ import java.util.Map;
 import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.dao.DashboardDAO;
 import com.ctrlaltquest.models.Character;
+import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -19,6 +20,7 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -63,6 +65,18 @@ public class ReportModalController {
             usageBreakdownPie.setAnimated(true);
             usageBreakdownPie.setLegendVisible(false);
         }
+        // inicializar Toast container para la modal
+        try {
+            StackPane root = (StackPane) usageBreakdownPie.getScene().getRoot();
+            VBox toastContainer = new VBox();
+            toastContainer.setPrefSize(400, 600);
+            toastContainer.setStyle("-fx-background-color: transparent;");
+            Toast.initialize(toastContainer);
+            if (root != null && !root.getChildren().contains(toastContainer)) {
+                root.getChildren().add(toastContainer);
+                StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
+            }
+        } catch (Exception ignored) {}
     }
 
     /**
@@ -229,11 +243,7 @@ public class ReportModalController {
      */
     private void mostrarMensaje(String titulo, String contenido) {
         Platform.runLater(() -> {
-            javafx.scene.control.Alert a = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
-            a.setTitle(titulo);
-            a.setHeaderText(null);
-            a.setContentText(contenido);
-            a.show();
+            Toast.info(titulo, contenido);
         });
     }
 
