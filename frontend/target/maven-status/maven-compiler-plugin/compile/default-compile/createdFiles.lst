@@ -12,6 +12,7 @@ com\ctrlaltquest\ui\examples\KeyBindingsExamples.class
 com\ctrlaltquest\ui\controllers\views\MissionsViewController.class
 com\ctrlaltquest\models\EventType$InteractionType.class
 com\ctrlaltquest\ui\utils\ExampleControllerWithToast.class
+com\ctrlaltquest\ui\controllers\views\ProfileViewController$7.class
 com\ctrlaltquest\ui\controllers\CharacterEditorController.class
 com\ctrlaltquest\ui\controllers\views\ProfileViewController$6.class
 com\ctrlaltquest\ui\controllers\views\ChartExpandedModalController.class

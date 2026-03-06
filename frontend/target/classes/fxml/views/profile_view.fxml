@@ -37,9 +37,23 @@
                            StackPane.alignment="BOTTOM_CENTER" translateY="12"/>
                 </StackPane>
                 
-                <Button fx:id="btnChangeAvatar" text="↻ CAMBIAR CLASE" onAction="#handleChangeAvatar" 
+                <Button fx:id="btnChangeAvatar" text="↻ CICLAR CLASE" onAction="#handleChangeAvatar" 
                         styleClass="btn-nav" 
                         style="-fx-font-size: 10px; -fx-padding: 5 15; -fx-cursor: hand;"/>
+                
+                <!-- Selector de thumbnails para las 10 clases -->
+                <HBox spacing="5" alignment="CENTER" style="-fx-padding: 5 0;">
+                    <ImageView fx:id="thumb1" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb2" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb3" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb4" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb5" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb6" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb7" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb8" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb9" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                    <ImageView fx:id="thumb10" fitWidth="30" fitHeight="30" preserveRatio="true" style="-fx-cursor: hand;"/>
+                </HBox>
             </VBox>
 
             <VBox spacing="5" HBox.hgrow="ALWAYS" alignment="CENTER_LEFT">

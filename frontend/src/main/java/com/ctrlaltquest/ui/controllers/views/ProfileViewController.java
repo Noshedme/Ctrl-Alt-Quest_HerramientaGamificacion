@@ -13,18 +13,23 @@ import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.RotateTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -51,6 +56,18 @@ public class ProfileViewController {
     @FXML private VBox securityCard;
     @FXML private HBox footerContainer;
 
+    // Thumbnails para las 10 clases
+    @FXML private ImageView thumb1;
+    @FXML private ImageView thumb2;
+    @FXML private ImageView thumb3;
+    @FXML private ImageView thumb4;
+    @FXML private ImageView thumb5;
+    @FXML private ImageView thumb6;
+    @FXML private ImageView thumb7;
+    @FXML private ImageView thumb8;
+    @FXML private ImageView thumb9;
+    @FXML private ImageView thumb10;
+
     private Character characterData;
     private int userId;
 
@@ -61,10 +78,13 @@ public class ProfileViewController {
         
         cargarDatosUsuario();
         
-        // Inicializar Toast cuando la escena esté lista
+        // Inicializar Toast y efectos cuando la escena esté lista
         lblUsernameHeader.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {
                 initializeToast();
+                agregarHoverEffects();
+                agregarTooltips();
+                cargarThumbnails(); // Cargar thumbnails cuando la escena esté lista
             }
         });
         
@@ -160,25 +180,100 @@ public class ProfileViewController {
         }
     }
 
+    // Método para cargar thumbnails
+    private void cargarThumbnails() {
+        thumb1.setImage(new Image(getClass().getResource("/assets/images/sprites/class_1_idle.png").toExternalForm()));
+        thumb2.setImage(new Image(getClass().getResource("/assets/images/sprites/class_2_idle.png").toExternalForm()));
+        thumb3.setImage(new Image(getClass().getResource("/assets/images/sprites/class_3_idle.png").toExternalForm()));
+        thumb4.setImage(new Image(getClass().getResource("/assets/images/sprites/class_4_idle.png").toExternalForm()));
+        thumb5.setImage(new Image(getClass().getResource("/assets/images/sprites/class_5_idle.png").toExternalForm()));
+        thumb6.setImage(new Image(getClass().getResource("/assets/images/sprites/class_6_idle.png").toExternalForm()));
+        thumb7.setImage(new Image(getClass().getResource("/assets/images/sprites/class_7_idle.png").toExternalForm()));
+        thumb8.setImage(new Image(getClass().getResource("/assets/images/sprites/class_8_idle.png").toExternalForm()));
+        thumb9.setImage(new Image(getClass().getResource("/assets/images/sprites/class_9_idle.png").toExternalForm()));
+        thumb10.setImage(new Image(getClass().getResource("/assets/images/sprites/class_10_idle.png").toExternalForm()));
+
+        // Añadir hover y click a cada thumbnail
+        agregarThumbHover(thumb1, 1);
+        agregarThumbHover(thumb2, 2);
+        agregarThumbHover(thumb3, 3);
+        agregarThumbHover(thumb4, 4);
+        agregarThumbHover(thumb5, 5);
+        agregarThumbHover(thumb6, 6);
+        agregarThumbHover(thumb7, 7);
+        agregarThumbHover(thumb8, 8);
+        agregarThumbHover(thumb9, 9);
+        agregarThumbHover(thumb10, 10);
+    }
+
+    private void agregarThumbHover(ImageView thumb, int classId) {
+        thumb.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), thumb);
+            st.setToX(1.2); st.setToY(1.2);
+            st.play();
+            thumb.setEffect(new Glow(0.5));
+        });
+        thumb.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), thumb);
+            st.setToX(1.0); st.setToY(1.0);
+            st.play();
+            thumb.setEffect(null);
+        });
+        thumb.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> selectClass(classId));
+    }
+
+    private void selectClass(int classId) {
+        if (characterData == null) return;
+        SoundManager.playClickSound();
+        // Animaciones como en handleChangeAvatar()
+        RotateTransition rotate = new RotateTransition(Duration.millis(500), imgAvatar);
+        rotate.setByAngle(360);
+        ScaleTransition scale = new ScaleTransition(Duration.millis(500), imgAvatar);
+        scale.setFromX(1.0); scale.setFromY(1.0);
+        scale.setToX(0.5); scale.setToY(0.5);
+        scale.setAutoReverse(true); scale.setCycleCount(2);
+        rotate.setOnFinished(event -> {
+            characterData.setClassId(classId);
+            cargarAvatar(classId);
+        });
+        rotate.play(); scale.play();
+        // Guardar en BD
+        Task<Boolean> updateTask = new Task<>() {
+            @Override protected Boolean call() { return CharacterDAO.updateCharacterClass(characterData.getId(), classId); }
+        };
+        updateTask.setOnSucceeded(e -> {
+            if (updateTask.getValue()) Toast.success("IMAGEN ACTUALIZADA", "Seleccionaste la Variante " + classId);
+            else Toast.error("ERROR", "No se guardó el cambio.");
+        });
+        new Thread(updateTask).start();
+    }
+
     @FXML
     private void handleChangeAvatar() {
+        // Este método ya no es necesario con thumbnails, pero lo mantenemos por compatibilidad o como ciclo fallback si quieres
         if (characterData == null) return;
         SoundManager.playClickSound();
 
         int currentClass = characterData.getClassId();
-        int nextClass = (currentClass % 3) + 1; // Ciclo de clases 1 -> 2 -> 3 -> 1
+        int nextClass = (currentClass % 10) + 1; // Ciclo de 10 clases
 
-        // Animación de rotación para cambio de avatar (más visual)
         RotateTransition rotate = new RotateTransition(Duration.millis(500), imgAvatar);
         rotate.setByAngle(360);
+        
+        ScaleTransition scale = new ScaleTransition(Duration.millis(500), imgAvatar);
+        scale.setFromX(1.0); scale.setFromY(1.0);
+        scale.setToX(0.5); scale.setToY(0.5);
+        scale.setAutoReverse(true);
+        scale.setCycleCount(2);
+
         rotate.setOnFinished(event -> {
-            // 1. Actualizar Visual Instantáneamente
             characterData.setClassId(nextClass);
             cargarAvatar(nextClass);
         });
+        
         rotate.play();
+        scale.play();
 
-        // 2. Guardar en BD usando el nuevo método DAO
         Task<Boolean> updateTask = new Task<>() {
             @Override
             protected Boolean call() {
@@ -189,8 +284,6 @@ public class ProfileViewController {
         updateTask.setOnSucceeded(e -> {
             if (updateTask.getValue()) {
                 Toast.success("IMAGEN ACTUALIZADA", "Tu apariencia base ha cambiado a la Variante " + nextClass);
-                // Aquí el HomeController debería detectar el cambio en la siguiente recarga, 
-                // pero si quieres instantáneo, se recomienda usar un EventBus o similar.
             } else {
                 Toast.error("ERROR", "No se guardó el cambio de imagen.");
             }
@@ -224,6 +317,8 @@ public class ProfileViewController {
                 characterData.setName(newName);
                 SoundManager.playSuccessSound();
                 Toast.success("GUARDADO", "Perfil actualizado correctamente.");
+                // Animación de confirmación en el header
+                animarConfirmacion(lblUsernameHeader);
             } else {
                 Toast.error("ERROR", "Fallo al guardar en la base de datos.");
             }
@@ -252,6 +347,8 @@ public class ProfileViewController {
                 Toast.success("ÉXITO", "Contraseña de seguridad actualizada.");
                 txtNewPass.clear(); 
                 txtConfirmPass.clear();
+                // Animación de confirmación en la sección de seguridad
+                animarConfirmacion(securityCard);
             } else {
                 Toast.error("ERROR", "No se pudo actualizar la contraseña.");
             }
@@ -331,5 +428,140 @@ public class ProfileViewController {
     private void handleExportPDF() { 
         SoundManager.playClickSound();
         Toast.info("INFO", "Generación de PDF en desarrollo. Usa CSV por ahora."); 
+    }
+
+    // Nuevas mejoras: Hover effects para dinamismo
+    private void agregarHoverEffects() {
+        // Hover en botones
+        agregarHover(btnChangeAvatar);
+        agregarHover(findButtonByText("GUARDAR CAMBIOS"));
+        agregarHover(findButtonByText("ACTUALIZAR"));
+        agregarHover(findButtonByText("📄 CSV"));
+        agregarHover(findButtonByText("📊 PDF"));
+        agregarHover(findButtonByText("ELIMINAR CUENTA"));
+
+        // Hover en campos de texto para resaltar
+        agregarFieldHover(txtUsername);
+        agregarFieldHover(txtNewPass);
+        agregarFieldHover(txtConfirmPass);
+
+        // Hover en avatar para efecto de escala
+        imgAvatar.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), imgAvatar);
+            st.setToX(1.1); st.setToY(1.1);
+            st.play();
+        });
+        imgAvatar.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), imgAvatar);
+            st.setToX(1.0); st.setToY(1.0);
+            st.play();
+        });
+    }
+
+    private void agregarHover(Button button) {
+        if (button == null) return;
+        Glow glow = new Glow(0.5);
+        button.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
+            button.setEffect(glow);
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), button);
+            st.setToX(1.05); st.setToY(1.05);
+            st.play();
+        });
+        button.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
+            button.setEffect(null);
+            ScaleTransition st = new ScaleTransition(Duration.millis(200), button);
+            st.setToX(1.0); st.setToY(1.0);
+            st.play();
+        });
+    }
+
+    private void agregarFieldHover(TextField field) {
+        if (field == null) return;
+        field.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                field.setStyle(field.getStyle() + "; -fx-border-color: #f7d27a; -fx-background-color: rgba(247, 210, 122, 0.1);");
+            } else {
+                field.setStyle(field.getStyle() + "; -fx-border-color: transparent; -fx-background-color: transparent;");
+            }
+        });
+    }
+
+    private void agregarFieldHover(PasswordField field) {
+        if (field == null) return;
+        field.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal) {
+                field.setStyle(field.getStyle() + "; -fx-border-color: #f7d27a; -fx-background-color: rgba(247, 210, 122, 0.1);");
+            } else {
+                field.setStyle(field.getStyle() + "; -fx-border-color: transparent; -fx-background-color: transparent;");
+            }
+        });
+    }
+
+    // Helper para encontrar botones por texto (ya que no tienen IDs)
+    private Button findButtonByText(String text) {
+        // Buscar en la escena, esto es aproximado; ajusta si es necesario
+        for (Node node : lblUsernameHeader.getScene().getRoot().getChildrenUnmodifiable()) {
+            if (node instanceof ScrollPane) {
+                Node contentNode = ((ScrollPane) node).getContent();
+                if (contentNode instanceof Parent) {
+                    for (Node child : ((Parent) contentNode).getChildrenUnmodifiable()) {
+                        if (child instanceof Button && ((Button) child).getText().equals(text)) {
+                            return (Button) child;
+                        } else if (child instanceof Parent) {
+                            Button btn = findButtonInContainer(child, text);
+                            if (btn != null) return btn;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private Button findButtonInContainer(Node container, String text) {
+        if (container instanceof Parent) {
+            for (Node child : ((Parent) container).getChildrenUnmodifiable()) {
+                if (child instanceof Button && ((Button) child).getText().equals(text)) {
+                    return (Button) child;
+                } else if (child instanceof Parent) {
+                    return findButtonInContainer(child, text);
+                }
+            }
+        }
+        return null;
+    }
+
+    // Agregar tooltips para interactividad
+    private void agregarTooltips() {
+        Tooltip.install(btnChangeAvatar, new Tooltip("Cambia la clase de tu avatar ciclando entre variantes."));
+        Tooltip.install(txtUsername, new Tooltip("Ingresa un nuevo alias para tu agente."));
+        Tooltip.install(txtEmail, new Tooltip("El correo no se puede editar."));
+        Tooltip.install(txtNewPass, new Tooltip("Ingresa una nueva contraseña segura."));
+        Tooltip.install(txtConfirmPass, new Tooltip("Confirma la nueva contraseña."));
+        Tooltip.install(findButtonByText("📄 CSV"), new Tooltip("Exporta tu historial de misiones en formato CSV."));
+        Tooltip.install(findButtonByText("📊 PDF"), new Tooltip("Exporta en PDF (en desarrollo)."));
+        Tooltip.install(findButtonByText("ELIMINAR CUENTA"), new Tooltip("Elimina permanentemente tu cuenta. ¡Cuidado!"));
+
+        // Tooltips para thumbnails
+        Tooltip.install(thumb1, new Tooltip("Variante 1"));
+        Tooltip.install(thumb2, new Tooltip("Variante 2"));
+        Tooltip.install(thumb3, new Tooltip("Variante 3"));
+        Tooltip.install(thumb4, new Tooltip("Variante 4"));
+        Tooltip.install(thumb5, new Tooltip("Variante 5"));
+        Tooltip.install(thumb6, new Tooltip("Variante 6"));
+        Tooltip.install(thumb7, new Tooltip("Variante 7"));
+        Tooltip.install(thumb8, new Tooltip("Variante 8"));
+        Tooltip.install(thumb9, new Tooltip("Variante 9"));
+        Tooltip.install(thumb10, new Tooltip("Variante 10"));
+    }
+
+    // Animación de confirmación para más dinamismo
+    private void animarConfirmacion(Node node) {
+        FadeTransition ft = new FadeTransition(Duration.millis(300), node);
+        ft.setFromValue(1.0);
+        ft.setToValue(0.5);
+        ft.setAutoReverse(true);
+        ft.setCycleCount(2);
+        ft.play();
     }
 }
