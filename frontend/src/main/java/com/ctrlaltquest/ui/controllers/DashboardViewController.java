@@ -63,9 +63,18 @@ public class DashboardViewController {
     @FXML private HBox newsContainer;
     @FXML private VBox missionsCard;
     @FXML private VBox chartCard;
+    
+    // Nuevos elementos para recuadros expandibles
+    @FXML private VBox chartCardContainer;
+    @FXML private VBox usageCardContainer;
+    @FXML private javafx.scene.control.Button btnExpandChart;
+    @FXML private javafx.scene.control.Button btnExpandList;
 
     private int userId = -1;
     private Character currentCharacter;
+    
+    // Almacenar datos para pasar a modales
+    private List<DashboardDAO.AppUsage> currentUsageData;
 
     public void setUserId(int userId) {
         this.userId = userId;
@@ -229,6 +238,8 @@ public class DashboardViewController {
 
         taskUsage.setOnSucceeded(e -> {
             List<DashboardDAO.AppUsage> usage = taskUsage.getValue();
+            // Guardar datos para los modales expandibles
+            currentUsageData = usage;
             Platform.runLater(() -> {
                 if (usagePie != null) usagePie.getData().clear();
                 if (usageDetails != null) usageDetails.getChildren().clear();
@@ -858,5 +869,143 @@ public class DashboardViewController {
         new Timeline(
             new KeyFrame(Duration.millis(420), ev -> lbl.setEffect(null))
         ).play();
+    }
+
+    // --- MÉTODOS PARA RECUADROS EXPANDIBLES ---
+
+    /**
+     * Abre el modal expandido del gráfico de distribución horaria
+     */
+    @FXML
+    public void abrirGraficoExpandido() {
+        if (currentUsageData == null || currentUsageData.isEmpty()) {
+            Toast.warning("Aviso", "Sin datos de uso disponibles.");
+            return;
+        }
+
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/views/chart_expanded_modal.fxml"));
+            javafx.scene.Parent root = loader.load();
+            
+            ChartExpandedModalController chartCtrl = loader.getController();
+            chartCtrl.setData(userId, currentUsageData);
+            
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("📈 Distribución Horaria Detallada");
+            stage.setScene(new javafx.scene.Scene(root, 1000, 800));
+            stage.initStyle(javafx.stage.StageStyle.DECORATED);
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            
+            chartCtrl.setStage(stage);
+            
+            // Aplicar estilos
+            try {
+                String css = getClass().getResource("/styles/home.css").toExternalForm();
+                root.getStylesheets().add(css);
+            } catch (Exception ex) {}
+            
+            // Animación de entrada
+            root.setOpacity(0);
+            FadeTransition fade = new FadeTransition(Duration.millis(300), root);
+            fade.setFromValue(0.0);
+            fade.setToValue(1.0);
+            stage.showingProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal) fade.play();
+            });
+            
+            stage.show();
+        } catch (Exception e) {
+            System.err.println("Error abriendo gráfico expandido: " + e.getMessage());
+            e.printStackTrace();
+            Toast.error("Error", "No se pudo abrir el gráfico expandido.");
+        }
+    }
+
+    /**
+     * Abre el modal expandido de la lista de aplicaciones
+     */
+    @FXML
+    public void abrirListaExpandida() {
+        if (currentUsageData == null || currentUsageData.isEmpty()) {
+            Toast.warning("Aviso", "Sin datos de uso disponibles.");
+            return;
+        }
+
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/views/list_expanded_modal.fxml"));
+            javafx.scene.Parent root = loader.load();
+            
+            ListExpandedModalController listCtrl = loader.getController();
+            listCtrl.setData(userId, currentUsageData);
+            
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("📊 Desglose Completo de Actividades");
+            stage.setScene(new javafx.scene.Scene(root, 900, 750));
+            stage.initStyle(javafx.stage.StageStyle.DECORATED);
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            
+            listCtrl.setStage(stage);
+            
+            // Aplicar estilos
+            try {
+                String css = getClass().getResource("/styles/home.css").toExternalForm();
+                root.getStylesheets().add(css);
+            } catch (Exception ex) {}
+            
+            // Animación de entrada
+            root.setOpacity(0);
+            FadeTransition fade = new FadeTransition(Duration.millis(300), root);
+            fade.setFromValue(0.0);
+            fade.setToValue(1.0);
+            stage.showingProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal) fade.play();
+            });
+            
+            stage.show();
+        } catch (Exception e) {
+            System.err.println("Error abriendo lista expandida: " + e.getMessage());
+            e.printStackTrace();
+            Toast.error("Error", "No se pudo abrir la lista expandida.");
+        }
+    }
+
+    /**
+     * Anima los recuadros de la tabla al pasar el mouse
+     */
+    @FXML
+    public void animarCardTablaEntrada(javafx.scene.input.MouseEvent e) {
+        Node source = (Node) e.getSource();
+        if (source == null) return;
+
+        ScaleTransition st = new ScaleTransition(Duration.millis(150), source);
+        st.setToX(1.02);
+        st.setToY(1.02);
+        st.setInterpolator(Interpolator.EASE_OUT);
+
+        DropShadow shadow = new DropShadow(25, Color.rgb(163, 53, 238, 0.8));
+        source.setEffect(shadow);
+        
+        source.setCursor(javafx.scene.Cursor.HAND);
+        st.play();
+    }
+
+    /**
+     * Anima los recuadros de la tabla al salir del mouse
+     */
+    @FXML
+    public void animarCardTablaSalida(javafx.scene.input.MouseEvent e) {
+        Node source = (Node) e.getSource();
+        if (source == null) return;
+
+        ScaleTransition st = new ScaleTransition(Duration.millis(150), source);
+        st.setToX(1.0);
+        st.setToY(1.0);
+        st.setInterpolator(Interpolator.EASE_IN);
+
+        DropShadow normalShadow = new DropShadow(15, Color.rgb(163, 53, 238, 0.4));
+        source.setEffect(normalShadow);
+        
+        source.setCursor(javafx.scene.Cursor.DEFAULT);
+        st.play();
     }
 }

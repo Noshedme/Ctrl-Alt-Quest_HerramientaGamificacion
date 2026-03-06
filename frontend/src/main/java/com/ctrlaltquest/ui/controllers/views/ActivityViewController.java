@@ -13,9 +13,12 @@ import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
+import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -65,8 +68,19 @@ public class ActivityViewController {
     @FXML private TableColumn<ActivityLog, String> colStatus;
     @FXML private TableColumn<ActivityLog, String> colDuration;
 
+    // Animated Visual Bars
+    @FXML private Rectangle bar1;
+    @FXML private Rectangle bar2;
+    @FXML private Rectangle bar3;
+    @FXML private Rectangle bar4;
+    @FXML private Rectangle bar5;
+    @FXML private Rectangle bar6;
+    @FXML private Rectangle bar7;
+    @FXML private Rectangle bar8;
+
     private final ActivityMonitorService monitorService = new ActivityMonitorService();
     private ObservableList<ActivityLog> logs = FXCollections.observableArrayList();
+    private Animation barsAnimation;
     
     private boolean isTracking = false;
     private Thread trackingThread;
@@ -159,6 +173,34 @@ public class ActivityViewController {
             scan.setAutoReverse(true);
             scan.setCycleCount(Animation.INDEFINITE);
             scan.play();
+        }
+        
+        // ✅ ANIMATE VISUAL BARS
+        startBarAnimation();
+    }
+    
+    private void startBarAnimation() {
+        Rectangle[] bars = {bar1, bar2, bar3, bar4, bar5, bar6, bar7, bar8};
+        
+        for (int i = 0; i < bars.length; i++) {
+            Rectangle bar = bars[i];
+            if (bar == null) continue;
+            
+            // Create animation for each bar
+            double delaySeconds = i * 0.1;
+            double durationSeconds = 0.5 + (Math.random() * 0.7);
+            
+            Timeline animation = new Timeline(
+                new KeyFrame(javafx.util.Duration.seconds(0), 
+                    new KeyValue(bar.scaleYProperty(), 0.5)),
+                new KeyFrame(javafx.util.Duration.seconds(durationSeconds), 
+                    new KeyValue(bar.scaleYProperty(), 1.0 + Math.random() * 0.5))
+            );
+            
+            animation.setDelay(javafx.util.Duration.seconds(delaySeconds));
+            animation.setCycleCount(Animation.INDEFINITE);
+            animation.setAutoReverse(true);
+            animation.play();
         }
     }
 

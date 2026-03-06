@@ -526,6 +526,8 @@ public class HomeController implements XPChangeListener, EventContextualListener
             activityCtrl.setHomeController(this);
         } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.AchievementsViewController) {
             ((com.ctrlaltquest.ui.controllers.views.AchievementsViewController) controller).setUserId(userId);
+        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.TutorialViewController) {
+            ((com.ctrlaltquest.ui.controllers.views.TutorialViewController) controller).setHomeController(this);
         }
     }
 
@@ -562,27 +564,17 @@ public class HomeController implements XPChangeListener, EventContextualListener
         try { SoundManager.playClickSound(); } catch(Exception e){}
     }
 
-    @FXML private void showDashboard() { playClick(); Toast.info("Dashboard", "Mostrando tablero de control"); loadView("dashboard_view"); }
-    @FXML private void showActivity() { playClick(); Toast.info("Actividad", "Revisando tu progreso de uso"); loadView("activity_view"); }
-    @FXML private void showMissions() { playClick(); Toast.info("Misiones", "Aquí están tus misiones actuales"); loadView("missions_view"); }
-    @FXML private void showStore() { playClick(); Toast.info("Tienda", "Explora objetos y recompensas"); loadView("store_view"); }
-    @FXML private void showInventory() { playClick(); Toast.info("Inventario", "Revisa tu equipo y objetos"); loadView("character_panel"); }
-    @FXML private void showStats() { playClick(); Toast.info("Logros", "Consulta tus logros desbloqueados"); loadView("achievements_view"); }
-    @FXML private void showProfile() { playClick(); Toast.info("Perfil", "Edita tus datos y preferencias"); loadView("profile_view"); }
+    @FXML public void showDashboard() { playClick(); Toast.info("Dashboard", "Mostrando tablero de control"); loadView("dashboard_view"); }
+    @FXML public void showActivity() { playClick(); Toast.info("Actividad", "Revisando tu progreso de uso"); loadView("activity_view"); }
+    @FXML public void showMissions() { playClick(); Toast.info("Misiones", "Aquí están tus misiones actuales"); loadView("missions_view"); }
+    @FXML public void showStore() { playClick(); Toast.info("Tienda", "Explora objetos y recompensas"); loadView("store_view"); }
+    @FXML public void showInventory() { playClick(); Toast.info("Inventario", "Revisa tu equipo y objetos"); loadView("character_panel"); }
+    @FXML public void showStats() { playClick(); Toast.info("Logros", "Consulta tus logros desbloqueados"); loadView("achievements_view"); }
+    @FXML public void showProfile() { playClick(); Toast.info("Perfil", "Edita tus datos y preferencias"); loadView("profile_view"); }
+    @FXML public void showTutorial() { playClick(); Toast.info("Tutorial", "Aprende a usar la aplicación"); loadView("tutorial_view"); }
 
     @FXML
-    private void resumeTracking() {
-        playClick();
-        isMonitoring = true;
-        
-        // Si el thread se detuvo, reiniciarlo
-        if (monitorThread == null || !monitorThread.isAlive()) {
-            iniciarMonitoreoActividad();
-        }
-    }
-
-    @FXML
-    private void showSettingsModal() {
+    public void showSettingsModal() {
         try {
             playClick();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
@@ -600,7 +592,20 @@ public class HomeController implements XPChangeListener, EventContextualListener
             settingsStage.setScene(scene);
             settingsStage.setTitle("Ajustes");
             settingsStage.show();
-        } catch (IOException e) {}
+        } catch (IOException e) {
+            System.err.println("Error al cargar settings: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void resumeTracking() {
+        playClick();
+        isMonitoring = true;
+        
+        // Si el thread se detuvo, reiniciarlo
+        if (monitorThread == null || !monitorThread.isAlive()) {
+            iniciarMonitoreoActividad();
+        }
     }
 
     // ==========================================
@@ -684,7 +689,7 @@ public class HomeController implements XPChangeListener, EventContextualListener
     // ==========================================
 
     @FXML
-    private void handleLogout() {
+    public void handleLogout() {
         playClick();
         if (loadingLayer != null) {
             loadingLayer.setVisible(true);

@@ -1,19 +1,21 @@
 package com.ctrlaltquest.ui.controllers;
 
+import java.io.IOException;
+
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.WindowManager;
+
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import java.io.IOException;
 
 public class TermsController {
 
@@ -52,7 +54,6 @@ public class TermsController {
             // Cargar el Login con transición suave
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
             Parent loginRoot = loader.load();
-            Stage stage = (Stage) btnContinue.getScene().getWindow();
 
             // Efecto de desvanecimiento de salida (Fade Out)
             FadeTransition fadeOut = new FadeTransition(Duration.millis(500), btnContinue.getScene().getRoot());
@@ -60,13 +61,14 @@ public class TermsController {
             fadeOut.setToValue(0.0);
             
             fadeOut.setOnFinished(e -> {
-                // Cambiar escena
-                Scene loginScene = new Scene(loginRoot, 1280, 720);
+                // Usar WindowManager para cambiar escena y mantener maximizado
+                WindowManager.getInstance().changeScene(loginRoot);
                 
-                // Re-aplicar sonidos globales
-                loginScene.addEventFilter(KeyEvent.KEY_PRESSED, event -> SoundManager.playKeyClick());
-                
-                stage.setScene(loginScene);
+                // Ahora obtener la Scene y añadir el event filter
+                Stage stage = WindowManager.getInstance().getPrimaryStage();
+                if (stage != null && stage.getScene() != null) {
+                    stage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, event -> SoundManager.playKeyClick());
+                }
                 
                 // Efecto de entrada (Fade In)
                 loginRoot.setOpacity(0);

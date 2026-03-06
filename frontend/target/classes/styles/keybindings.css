@@ -1,60 +1,76 @@
-/* Estilos para la vista de atajos de teclado */
+/* ==========================================================
+   KEYBINDINGS.CSS - VISTA DE ATAJOS DE TECLADO
+   Consistente con paleta: Dorado (#f7d27a) y Púrpura (#8a2be2)
+   ========================================================== */
+
+.root {
+    -fx-background-color: #0d0915;
+    -fx-font-family: "Verdana", "Georgia", sans-serif;
+}
 
 .keybindings-container {
     -fx-padding: 20;
     -fx-spacing: 15;
-    -fx-background-color: #282a36;
+    -fx-background-color: transparent;
 }
 
 .keybinding-card {
-    -fx-border-color: #44475a;
+    -fx-border-color: rgba(247, 210, 122, 0.15);
     -fx-border-width: 1;
-    -fx-border-radius: 5;
-    -fx-background-color: #1e1e2e;
+    -fx-border-radius: 12;
+    -fx-background-color: rgba(20, 15, 35, 0.85);
     -fx-padding: 15;
     -fx-spacing: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 4);
 }
 
 .keybinding-name {
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-text-fill: #f1fa8c;
+    -fx-text-fill: #f7d27a;
+    -fx-font-family: "Georgia";
 }
 
 .key-combination {
-    -fx-font-family: 'Courier New';
+    -fx-font-family: "Verdana";
     -fx-font-size: 14px;
-    -fx-text-fill: #50fa7b;
+    -fx-text-fill: #ffffff;
     -fx-font-weight: bold;
-    -fx-background-color: #21222c;
+    -fx-background-color: rgba(0, 0, 0, 0.4);
     -fx-padding: 5 10;
-    -fx-border-radius: 3;
+    -fx-border-radius: 6;
+    -fx-border-color: rgba(247, 210, 122, 0.2);
+    -fx-border-width: 1;
 }
 
 .keybinding-description {
     -fx-font-size: 12px;
-    -fx-text-fill: #8be9fd;
+    -fx-text-fill: #b5a7c6;
     -fx-wrap-text: true;
+    -fx-font-family: "Verdana";
 }
 
 .keybindings-header {
-    -fx-font-size: 24px;
+    -fx-font-size: 26px;
     -fx-font-weight: bold;
-    -fx-text-fill: #f1fa8c;
+    -fx-text-fill: #f7d27a;
     -fx-padding: 20;
-    -fx-background-color: #1e1e2e;
+    -fx-background-color: transparent;
+    -fx-font-family: "Georgia";
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.8), 2, 0, 0, 1);
 }
 
 .keybindings-subtitle {
     -fx-font-size: 12px;
-    -fx-text-fill: #8be9fd;
+    -fx-text-fill: #b5a7c6;
     -fx-padding: 5 0 0 0;
+    -fx-font-family: "Verdana";
 }
 
 .keybindings-footer {
     -fx-padding: 15;
-    -fx-background-color: #1e1e2e;
-    -fx-border-color: #44475a;
+    -fx-background-color: rgba(20, 15, 35, 0.8);
+    -fx-border-color: rgba(247, 210, 122, 0.1);
     -fx-border-width: 1 0 0 0;
 }
 
@@ -67,21 +83,23 @@
 .category-title {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-text-fill: #ff79c6;
-    -fx-border-color: #ff79c6;
-    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: #f7d27a;
+    -fx-border-color: rgba(247, 210, 122, 0.3);
+    -fx-border-width: 0 0 2 0;
     -fx-padding: 0 0 10 0;
+    -fx-font-family: "Georgia";
 }
 
 /* Hover effect en tarjetas */
 .keybinding-card:hover {
-    -fx-background-color: #21222c;
-    -fx-border-color: #50fa7b;
+    -fx-background-color: rgba(30, 22, 45, 0.95);
+    -fx-border-color: rgba(247, 210, 122, 0.4);
+    -fx-effect: dropshadow(three-pass-box, rgba(247, 210, 122, 0.2), 15, 0, 0, 5);
 }
 
 /* Scroll pane styling */
 .scroll-pane {
-    -fx-background-color: #282a36;
+    -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
@@ -91,11 +109,16 @@
 }
 
 .scroll-pane .viewport {
-    -fx-background-color: #282a36;
+    -fx-background-color: transparent;
 }
 
 .scroll-bar {
-    -fx-background-color: #282a36;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(247, 210, 122, 0.3);
+    -fx-background-radius: 5;
 }
 
 .scroll-bar:vertical .increment-button,

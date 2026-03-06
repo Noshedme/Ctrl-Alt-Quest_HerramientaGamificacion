@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.media.MediaView?>
+<?import java.net.URL?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml" 
+           fx:controller="com.ctrlaltquest.ui.controllers.views.TutorialViewController"
+           styleClass="root" prefWidth="1280" prefHeight="720">
+    
+    <stylesheets>
+        <URL value="@/styles/shared.css" />
+        <URL value="@/styles/auth.css" />
+    </stylesheets>
+    
+    <MediaView fx:id="backgroundVideo" fitWidth="1280" fitHeight="720" preserveRatio="false" />
+
+    <Region style="-fx-background-color: rgba(13, 9, 21, 0.65);" />
+
+    <BorderPane styleClass="main-container">
+        
+        <left>
+            <VBox spacing="0" styleClass="side-menu" prefWidth="240"
+                  style="-fx-background-color: rgba(18, 14, 28, 0.6); -fx-border-color: transparent rgba(255,255,255,0.05) transparent transparent; -fx-border-width: 1;">
+                <padding><Insets top="40" right="15" bottom="30" left="15"/></padding>
+                
+                <Label text="N E X U S" 
+                       styleClass="section-title-small" 
+                       style="-fx-padding: 0 0 20 15; -fx-font-size: 12px; -fx-text-fill: #777; -fx-letter-spacing: 2px;"/>
+                
+                <VBox spacing="8">
+                    <Button text="🏠  Inicio" onAction="#showDashboard" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                        <tooltip><Tooltip text="Panel de control principal"/></tooltip>
+                    </Button>
+                    <Button text="📜  Misiones" onAction="#showMissions" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                        <tooltip><Tooltip text="Misiones y Tareas activas"/></tooltip>
+                    </Button>
+                    <Button text="📡  Rastreador" onAction="#showActivity" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                        <tooltip><Tooltip text="Registro de Actividad en vivo"/></tooltip>
+                    </Button>
+                    <Button text="🛒  Mercado" onAction="#showStore" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                        <tooltip><Tooltip text="Comprar skins y mejoras"/></tooltip>
+                    </Button>
+                    <Button text="🎒  Arsenal" onAction="#showInventory" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;" visible="false" managed="false">
+                        <tooltip><Tooltip text="Tus objetos adquiridos"/></tooltip>
+                    </Button>
+                    <Button text="🏆  Trofeos" onAction="#showStats" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                        <tooltip><Tooltip text="Logros desbloqueados"/></tooltip>
+                    </Button>
+                    <Button text="📚  Tutorial" onAction="#showTutorial" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                        <tooltip><Tooltip text="Aprende a usar la aplicación"/></tooltip>
+                    </Button>
+                </VBox>
+                
+                <Region VBox.vgrow="ALWAYS"/>
+                
+                <VBox spacing="8">
+                    <Separator styleClass="menu-separator" style="-fx-opacity: 0.1; -fx-padding: 10 0;"/>
+                    <Button text="👤  Identidad" onAction="#showProfile" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                        <tooltip><Tooltip text="Tu tarjeta de jugador"/></tooltip>
+                    </Button>
+                    <Button text="⏏  Desconectar" onAction="#handleLogout" styleClass="btn-nav-danger" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8; -fx-text-fill: #ff6b6b;">
+                        <tooltip><Tooltip text="Cerrar sesión y salir"/></tooltip>
+                    </Button>
+                </VBox>
+            </VBox>
+        </left>
+        
+        <center>
+            <VBox spacing="25" alignment="CENTER" style="-fx-padding: 50;">
+                <!-- Título -->
+                <VBox spacing="10" alignment="CENTER">
+                    <Label text="📚 TUTORIAL INTERACTIVO" 
+                           styleClass="auth-title-hero" 
+                           wrapText="true" textAlignment="CENTER" maxWidth="Infinity" />
+                    <Label text="Aprende a dominar Ctrl+Alt+Quest" 
+                           styleClass="settings-sublabel" 
+                           style="-fx-text-fill: #b5a7c6; -fx-font-size: 14px;"/>
+                </VBox>
+
+                <!-- Contenedor del Carrusel -->
+                <StackPane VBox.vgrow="ALWAYS" style="-fx-background-color: rgba(26, 15, 38, 0.9); -fx-background-radius: 40; -fx-border-color: #f7d27a; -fx-border-radius: 40; -fx-border-width: 2; -fx-padding: 30;">
+                    <!-- Contenedor de Diapositivas (Carousel) -->
+                    <VBox fx:id="slideContainer" spacing="20" alignment="CENTER" maxWidth="800" maxHeight="450">
+                        <!-- Las diapositivas se cargarán dinámicamente aquí -->
+                        <ProgressIndicator style="-fx-progress-color: #f7d27a;" />
+                    </VBox>
+                </StackPane>
+
+                <!-- Controles Inferiores -->
+                <HBox spacing="15" alignment="CENTER" style="-fx-padding: 20; -fx-background-color: rgba(26, 15, 38, 0.9); -fx-background-radius: 40; -fx-border-color: #f7d27a; -fx-border-radius: 40; -fx-border-width: 2;">
+                    <!-- Botón Anterior -->
+                    <Button text="◀ ANTERIOR" onAction="#previousSlide" 
+                            styleClass="link-button-clean" 
+                            focusTraversable="false">
+                        <tooltip>
+                            <Tooltip text="Ver la diapositiva anterior"/>
+                        </tooltip>
+                    </Button>
+
+                    <!-- Indicadores de Página -->
+                    <VBox spacing="0" alignment="CENTER" HBox.hgrow="ALWAYS">
+                        <HBox fx:id="dotsContainer" spacing="8" alignment="CENTER"/>
+                        <Label fx:id="pageLabel" text="Diapositiva 1/1" 
+                               styleClass="settings-sublabel" 
+                               style="-fx-text-fill: #b5a7c6; -fx-font-size: 12px;"/>
+                    </VBox>
+
+                    <!-- Botón Siguiente -->
+                    <Button text="SIGUIENTE ▶" onAction="#nextSlide" 
+                            styleClass="link-button-clean" 
+                            focusTraversable="false">
+                        <tooltip>
+                            <Tooltip text="Ver la siguiente diapositiva"/>
+                        </tooltip>
+                    </Button>
+                </HBox>
+
+                <!-- Sección de Info Rápida -->
+                <VBox spacing="10" style="-fx-background-color: rgba(26, 15, 38, 0.9); -fx-background-radius: 40; -fx-border-color: #f7d27a; -fx-border-radius: 40; -fx-border-width: 2; -fx-padding: 15;">
+                    <Label text="💡 CONSEJO RÁPIDO" 
+                           styleClass="input-label-runic-gold"/>
+                    <Label fx:id="quickTip" text="Usa el tutorial para familiarizarte con el sistema de juego." 
+                           wrapText="true"
+                           styleClass="card-text-pixel"/>
+                </VBox>
+            </VBox>
+        </center>
+    </BorderPane>
+</StackPane>

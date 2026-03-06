@@ -12,6 +12,7 @@ import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.RotateTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -21,11 +22,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
 
@@ -71,6 +74,13 @@ public class ProfileViewController {
         prepararAnimacion(footerContainer);
         
         animarEntrada();
+
+        // Hacer el avatar circular
+        if (imgAvatar != null) {
+            Circle clip = new Circle(55, 55, 55); // Radio basado en fitWidth/2 = 110/2
+            imgAvatar.setClip(clip);
+            imgAvatar.setEffect(new Glow(0.3)); // Añadir un glow sutil para más visual
+        }
     }
 
     private void initializeToast() {
@@ -158,9 +168,15 @@ public class ProfileViewController {
         int currentClass = characterData.getClassId();
         int nextClass = (currentClass % 3) + 1; // Ciclo de clases 1 -> 2 -> 3 -> 1
 
-        // 1. Actualizar Visual Instantáneamente
-        characterData.setClassId(nextClass);
-        cargarAvatar(nextClass);
+        // Animación de rotación para cambio de avatar (más visual)
+        RotateTransition rotate = new RotateTransition(Duration.millis(500), imgAvatar);
+        rotate.setByAngle(360);
+        rotate.setOnFinished(event -> {
+            // 1. Actualizar Visual Instantáneamente
+            characterData.setClassId(nextClass);
+            cargarAvatar(nextClass);
+        });
+        rotate.play();
 
         // 2. Guardar en BD usando el nuevo método DAO
         Task<Boolean> updateTask = new Task<>() {

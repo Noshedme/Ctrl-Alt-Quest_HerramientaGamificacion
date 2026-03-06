@@ -29,7 +29,7 @@
             
             <VBox alignment="CENTER" spacing="10">
                 <StackPane>
-                    <StackPane style="-fx-border-color: #f7d27a; -fx-border-radius: 100; -fx-border-width: 3; -fx-padding: 5;">
+                    <StackPane style="-fx-border-color: #f7d27a; -fx-border-radius: 100; -fx-border-width: 3; -fx-padding: 5; -fx-background-color: rgba(247, 210, 122, 0.1); -fx-background-radius: 100;">
                         <effect><Glow level="0.4"/></effect>
                         <ImageView fx:id="imgAvatar" fitHeight="110" fitWidth="110" preserveRatio="true" smooth="true"/>
                     </StackPane>

@@ -6,6 +6,7 @@ import java.net.URL;
 
 import com.ctrlaltquest.ui.utils.KeyBindingManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.WindowManager;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -50,6 +51,10 @@ public class AppLauncher extends Application {
             
             // Permitir redimensión es obligatorio para que funcione el maximizado
             stage.setResizable(true);
+            
+            // Inicializar WindowManager (mantiene la ventana maximizada siempre)
+            WindowManager windowManager = WindowManager.getInstance();
+            windowManager.initialize(stage);
             
             // 3. MOSTRAR Y MAXIMIZAR
             // Importante: show() debe ir ANTES de setMaximized(true) para asegurar

@@ -117,11 +117,14 @@
                     <Button text="🛒  Mercado" onAction="#showStore" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
                         <tooltip><Tooltip text="Comprar skins y mejoras"/></tooltip>
                     </Button>
-                    <Button text="🎒  Arsenal" onAction="#showInventory" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                    <Button text="🎒  Arsenal" onAction="#showInventory" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;" visible="false" managed="false">
                         <tooltip><Tooltip text="Tus objetos adquiridos"/></tooltip>
                     </Button>
                     <Button text="🏆  Trofeos" onAction="#showStats" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
                         <tooltip><Tooltip text="Logros desbloqueados"/></tooltip>
+                    </Button>
+                    <Button text="📚  Tutorial" onAction="#showTutorial" styleClass="btn-nav" maxWidth="Infinity" alignment="BASELINE_LEFT" style="-fx-padding: 12 20; -fx-font-size: 14px; -fx-background-radius: 8;">
+                        <tooltip><Tooltip text="Aprende a usar la aplicación"/></tooltip>
                     </Button>
                 </VBox>
                 

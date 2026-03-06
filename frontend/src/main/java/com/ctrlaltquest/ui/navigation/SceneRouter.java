@@ -3,10 +3,10 @@ package com.ctrlaltquest.ui.navigation;
 import java.io.IOException;
 
 import com.ctrlaltquest.ui.utils.AnimationManager;
+import com.ctrlaltquest.ui.utils.WindowManager;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
@@ -47,9 +47,9 @@ public class SceneRouter {
         
         applyTransition(oldRoot, newRoot, transitionType);
         
-        Scene scene = new Scene(newRoot);
         stage.setTitle(title);
-        stage.setScene(scene);
+        // Usar WindowManager para cambiar escena y mantener maximizado
+        WindowManager.getInstance().changeScene(newRoot);
         stage.show();
     }
     

@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.Random;
 
 import com.ctrlaltquest.ui.utils.SoundManager;
+import com.ctrlaltquest.ui.utils.WindowManager;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -14,7 +15,6 @@ import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
@@ -126,29 +126,22 @@ public class SplashController {
             FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Parent termsRoot = loader.load();
             
-            // COMENTADO: No hay mediaPlayer para limpiar (video deshabilitado)
-            // if (mediaPlayer != null) {
-            //     mediaPlayer.stop();
-            //     mediaPlayer.dispose();
-            // }
-
-            Stage stage = (Stage) root.getScene().getWindow();
-            if (stage != null) {
-                Scene scene = new Scene(termsRoot, 1280, 720);
-                
-                // Inyectar sonido de teclado global
-                scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> SoundManager.playKeyClick());
-
-                termsRoot.setOpacity(0.0);
-                stage.setScene(scene);
-                stage.centerOnScreen();
-                
-                // Transición de entrada suave para la nueva ventana
-                FadeTransition fadeIn = new FadeTransition(Duration.millis(800), termsRoot);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                fadeIn.play();
+            termsRoot.setOpacity(0.0);
+            
+            // Usar WindowManager para cambiar escena y mantener maximizado
+            WindowManager.getInstance().changeScene(termsRoot);
+            
+            // Ahora obtener la Scene y añadir el event filter
+            Stage stage = WindowManager.getInstance().getPrimaryStage();
+            if (stage != null && stage.getScene() != null) {
+                stage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, event -> SoundManager.playKeyClick());
             }
+            
+            // Transición de entrada suave para la nueva ventana
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(800), termsRoot);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.play();
         } catch (IOException e) {
             System.err.println("❌ Fallo crítico cargando términos: " + e.getMessage());
             e.printStackTrace();
@@ -159,11 +152,14 @@ public class SplashController {
     private void loadLoginDirectly() {
         try {
             Parent loginRoot = FXMLLoader.load(getClass().getResource("/fxml/login.fxml"));
-            Stage stage = (Stage) root.getScene().getWindow();
-            if (stage != null) {
-                Scene scene = new Scene(loginRoot, 1280, 720);
-                scene.addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
-                stage.setScene(scene);
+            
+            // Usar WindowManager para cambiar escena y mantener maximizado
+            WindowManager.getInstance().changeScene(loginRoot);
+            
+            // Ahora obtener la Scene y añadir el event filter
+            Stage stage = WindowManager.getInstance().getPrimaryStage();
+            if (stage != null && stage.getScene() != null) {
+                stage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
             }
         } catch (IOException ex) {
             System.err.println("❌ Fallo total: No se pudo cargar ni Términos ni Login.");

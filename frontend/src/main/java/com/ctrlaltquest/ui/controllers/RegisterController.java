@@ -9,6 +9,7 @@ import com.ctrlaltquest.services.AuditService;
 import com.ctrlaltquest.services.EmailService;
 import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
+import com.ctrlaltquest.ui.utils.WindowManager;
 
 import javafx.animation.FadeTransition;
 import javafx.concurrent.Task;
@@ -19,6 +20,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
@@ -223,7 +225,15 @@ public class RegisterController {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
                 Parent loginRoot = loader.load();
                 loginRoot.setOpacity(0);
-                stage.getScene().setRoot(loginRoot);
+                
+                // Usar WindowManager para cambiar escena y mantener maximizado
+                WindowManager.getInstance().changeScene(loginRoot);
+                
+                // Inyectar sonidos globales después de cambiar la escena
+                Stage newStage = WindowManager.getInstance().getPrimaryStage();
+                if (newStage != null && newStage.getScene() != null) {
+                    newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, event -> SoundManager.playKeyClick());
+                }
 
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(500), loginRoot);
                 fadeIn.setFromValue(0.0);

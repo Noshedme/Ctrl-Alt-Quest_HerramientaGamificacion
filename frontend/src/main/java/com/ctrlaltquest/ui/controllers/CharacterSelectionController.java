@@ -9,6 +9,7 @@ import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
+import com.ctrlaltquest.ui.utils.WindowManager;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -21,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -340,10 +342,17 @@ public class CharacterSelectionController {
                     mediaPlayer.dispose();
                 }
                 
-                Scene scene = new Scene(root, 1280, 720);
-                stage.setScene(scene);
-                
                 root.setOpacity(0);
+                
+                // Usar WindowManager para cambiar escena y mantener maximizado
+                WindowManager.getInstance().changeScene(root);
+                
+                // Inyectar sonidos globales después de cambiar la escena
+                Stage newStage = WindowManager.getInstance().getPrimaryStage();
+                if (newStage != null && newStage.getScene() != null) {
+                    newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e2 -> SoundManager.playKeyClick());
+                }
+                
                 FadeTransition fi = new FadeTransition(Duration.millis(500), root);
                 fi.setToValue(1.0);
                 fi.play();

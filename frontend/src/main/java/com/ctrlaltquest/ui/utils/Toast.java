@@ -1,5 +1,8 @@
 package com.ctrlaltquest.ui.utils;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
@@ -28,6 +31,8 @@ public class Toast {
     private static final double SCREEN_OFFSET_Y = 20;
     private static final double TOAST_DURATION = 4000; // 4 segundos
     private static final double ANIMATION_DURATION = 500; // 0.5 segundos
+    private static final int MAX_VISIBLE_TOASTS = 5; // Máximo de toasts visibles
+    private static final long DUPLICATE_CHECK_TIME = 500; // 500ms para evitar duplicados
     
     public enum ToastType {
         SUCCESS("#4ade80", "✓"),
@@ -46,6 +51,7 @@ public class Toast {
     }
     
     private static VBox toastContainer;
+    private static final Map<String, Long> recentToasts = new HashMap<>(); // Control de duplicados
     
     /**
      * Inicializa el contenedor de Toasts (llamar al inicio de la aplicación)
@@ -95,11 +101,42 @@ public class Toast {
     
     /**
      * Muestra un toast con tipo personalizado
+     * Incluye control de duplicados y límite máximo de toasts visibles
      */
     private static void show(String title, String message, ToastType type) {
         if (toastContainer == null) {
             System.err.println("Toast no inicializado. Llamar Toast.initialize() al inicio.");
             return;
+        }
+        
+        // Crear clave única para el mensaje
+        String toastKey = title + "|" + message;
+        long currentTime = System.currentTimeMillis();
+        
+        // Verificar si este mismo toast se mostró recientemente (evitar duplicados)
+        if (recentToasts.containsKey(toastKey)) {
+            long lastShowTime = recentToasts.get(toastKey);
+            if (currentTime - lastShowTime < DUPLICATE_CHECK_TIME) {
+                return; // Ignorar si es un duplicado muy reciente
+            }
+        }
+        
+        // Registrar este toast como mostrado recientemente
+        recentToasts.put(toastKey, currentTime);
+        
+        // Limpiar el mapa de duplicados después de un tiempo
+        if (recentToasts.size() > 100) {
+            recentToasts.entrySet().removeIf(entry -> 
+                currentTime - entry.getValue() > DUPLICATE_CHECK_TIME * 2
+            );
+        }
+        
+        // Limitar el número máximo de toasts visibles
+        if (toastContainer.getChildren().size() >= MAX_VISIBLE_TOASTS) {
+            // Remover el toast más antiguo (primero de la lista)
+            if (!toastContainer.getChildren().isEmpty()) {
+                toastContainer.getChildren().remove(0);
+            }
         }
         
         // Crear el componente Toast
@@ -256,6 +293,29 @@ public class Toast {
         if (toastContainer == null) {
             System.err.println("Toast no inicializado. Llamar Toast.initialize() al inicio.");
             return;
+        }
+        
+        // Crear clave única para el mensaje
+        String toastKey = title + "|" + message + "|epic";
+        long currentTime = System.currentTimeMillis();
+        
+        // Verificar si este mismo toast se mostró recientemente (evitar duplicados)
+        if (recentToasts.containsKey(toastKey)) {
+            long lastShowTime = recentToasts.get(toastKey);
+            if (currentTime - lastShowTime < DUPLICATE_CHECK_TIME) {
+                return; // Ignorar si es un duplicado muy reciente
+            }
+        }
+        
+        // Registrar este toast como mostrado recientemente
+        recentToasts.put(toastKey, currentTime);
+        
+        // Limitar el número máximo de toasts visibles
+        if (toastContainer.getChildren().size() >= MAX_VISIBLE_TOASTS) {
+            // Remover el toast más antiguo (primero de la lista)
+            if (!toastContainer.getChildren().isEmpty()) {
+                toastContainer.getChildren().remove(0);
+            }
         }
         
         VBox toast = createToastUI(title, message, ToastType.GOLD);

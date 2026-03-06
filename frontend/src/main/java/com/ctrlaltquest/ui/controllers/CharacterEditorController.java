@@ -10,6 +10,7 @@ import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
+import com.ctrlaltquest.ui.utils.WindowManager;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -27,6 +28,7 @@ import javafx.scene.effect.GaussianBlur;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
@@ -393,9 +395,17 @@ public class CharacterEditorController {
             fadeOut.setFromValue(1.0);
             fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(e -> {
-                Scene nextScene = new Scene(root, 1280, 720);
-                stage.setScene(nextScene);
                 root.setOpacity(0);
+                
+                // Usar WindowManager para cambiar escena y mantener maximizado
+                WindowManager.getInstance().changeScene(root);
+                
+                // Inyectar sonidos globales después de cambiar la escena
+                Stage newStage = WindowManager.getInstance().getPrimaryStage();
+                if (newStage != null && newStage.getScene() != null) {
+                    newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e2 -> SoundManager.playKeyClick());
+                }
+                
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(500), root);
                 fadeIn.setToValue(1.0);
                 fadeIn.play();

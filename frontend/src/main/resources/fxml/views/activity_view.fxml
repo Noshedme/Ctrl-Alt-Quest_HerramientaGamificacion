@@ -6,11 +6,12 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.effect.Glow?>
 <?import javafx.scene.effect.DropShadow?>
+<?import javafx.animation.Timeline?>
 <?import java.net.URL?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
       fx:controller="com.ctrlaltquest.ui.controllers.views.ActivityViewController"
-      spacing="20" styleClass="view-container" 
+      spacing="10" styleClass="view-container" 
       style="-fx-background-color: transparent;">
     <stylesheets>
         <URL value="@/styles/shared.css" />
@@ -19,108 +20,77 @@
 
     <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
 
-    <HBox spacing="25" alignment="CENTER_LEFT" 
-          style="-fx-padding: 20; -fx-background-color: rgba(10, 10, 15, 0.85); -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 12;">
-        
-        <effect><DropShadow color="rgba(0,0,0,0.5)" radius="20"/></effect>
-        
-        <StackPane>
-            <Circle fx:id="radarPulse" radius="22" fill="TRANSPARENT" stroke="#4ade80" strokeWidth="1" opacity="0.0"/>
-            <Circle fx:id="statusIndicator" radius="6" fill="#555" stroke="WHITE" strokeWidth="1"/>
-        </StackPane>
+    <!-- TOP CONTROL PANEL -->
+    <HBox spacing="20" alignment="CENTER_LEFT" 
+          style="-fx-background-color: linear-gradient(to right, rgba(30, 22, 45, 0.7), rgba(13, 9, 21, 0.7)); -fx-background-radius: 25; -fx-border-color: rgba(247, 210, 122, 0.25); -fx-border-width: 1.5; -fx-border-radius: 25; -fx-padding: 15 30;">
+        <effect><DropShadow color="rgba(0,0,0,0.6)" radius="20" offsetY="3"/></effect>
 
-        <VBox spacing="4">
-            <Label text="MONITOR DE ACTIVIDAD" styleClass="section-title-small" style="-fx-text-fill: #f7d27a; -fx-font-weight: bold;"/>
-            <HBox spacing="5" alignment="CENTER_LEFT">
-                <Label text="ESTADO:" styleClass="text-tiny" style="-fx-text-fill: #888;"/>
-                <Label fx:id="lblMonitorStatus" text="OFFLINE" styleClass="text-tiny-bright" style="-fx-font-family: 'Consolas';"/>
-            </HBox>
-        </VBox>
-
+        <Label text="📡 MONITOREO DE ACTIVIDAD" 
+               style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #f7d27a; -fx-letter-spacing: 1px;"/>
+        
         <Region HBox.hgrow="ALWAYS"/>
 
-        <HBox spacing="15">
-            <Button fx:id="btnCaptureActivity" text="[ O ] CAPTURA SNAPSHOT" 
-                    styleClass="btn-nav" 
-                    style="-fx-font-family: 'Consolas'; -fx-font-size: 11px; -fx-background-color: rgba(255,255,255,0.05);"/>
+        <HBox spacing="15" alignment="CENTER_RIGHT">
+            <Button fx:id="btnCaptureActivity" text="📸 CAPTURAR" 
+                    style="-fx-background-color: linear-gradient(to bottom, rgba(247, 210, 122, 0.3), rgba(247, 210, 122, 0.15)); -fx-background-radius: 15; -fx-text-fill: #f7d27a; -fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 8 18; -fx-border-color: rgba(247, 210, 122, 0.4); -fx-border-radius: 15; -fx-cursor: hand;"/>
             
-            <ToggleButton fx:id="btnToggleMonitor" text="▶ INICIAR RASTREO" onAction="#handleToggleMonitor" 
-                          styleClass="btn-nav"
-                          style="-fx-font-family: 'Consolas'; -fx-font-weight: bold; -fx-background-radius: 5;"/>
+            <ToggleButton fx:id="btnToggleMonitor" text="▶ INICIAR" onAction="#handleToggleMonitor" 
+                          style="-fx-background-color: linear-gradient(to bottom, #4ade80, #2d7a52); -fx-background-radius: 15; -fx-text-fill: white; -fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 11px; -fx-padding: 8 18; -fx-cursor: hand;"/>
         </HBox>
     </HBox>
 
-    <HBox spacing="25" VBox.vgrow="ALWAYS">
+    <!-- ANIMATED VISUAL BAR -->
+    <VBox spacing="2" prefHeight="40" maxHeight="40"
+          style="-fx-background-color: transparent;">
+        <HBox alignment="CENTER" spacing="3" prefHeight="30" maxHeight="30">
+            <Rectangle fx:id="bar1" width="18" height="15" fill="rgba(74, 222, 128, 0.5)" arcWidth="2" arcHeight="2"/>
+            <Rectangle fx:id="bar2" width="18" height="20" fill="rgba(74, 222, 128, 0.6)" arcWidth="2" arcHeight="2"/>
+            <Rectangle fx:id="bar3" width="18" height="12" fill="rgba(74, 222, 128, 0.4)" arcWidth="2" arcHeight="2"/>
+            <Rectangle fx:id="bar4" width="18" height="25" fill="rgba(74, 222, 128, 0.7)" arcWidth="2" arcHeight="2"/>
+            <Rectangle fx:id="bar5" width="18" height="18" fill="rgba(74, 222, 128, 0.55)" arcWidth="2" arcHeight="2"/>
+            <Rectangle fx:id="bar6" width="18" height="22" fill="rgba(74, 222, 128, 0.65)" arcWidth="2" arcHeight="2"/>
+            <Rectangle fx:id="bar7" width="18" height="14" fill="rgba(74, 222, 128, 0.45)" arcWidth="2" arcHeight="2"/>
+            <Rectangle fx:id="bar8" width="18" height="19" fill="rgba(74, 222, 128, 0.58)" arcWidth="2" arcHeight="2"/>
+        </HBox>
+        <Label text="⚡ FLUJO DE ACTIVIDAD" 
+               style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 9px; -fx-text-fill: #4ade80; -fx-text-alignment: center;" maxHeight="10"/>
+    </VBox>
+
+    <!-- ACTIVITY TABLE -->
+    <VBox spacing="0" VBox.vgrow="ALWAYS"
+          style="-fx-background-color: linear-gradient(to bottom, rgba(30, 22, 45, 0.6), rgba(13, 9, 21, 0.6)); -fx-background-radius: 25; -fx-border-color: rgba(247, 210, 122, 0.2); -fx-border-width: 1.5; -fx-border-radius: 25; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 20, 0, 0, 5);">
         
-        <VBox spacing="20" prefWidth="380">
-            
-            <VBox spacing="0" styleClass="activity-card" style="-fx-padding: 0; -fx-border-color: rgba(255,255,255,0.1); -fx-border-width: 1;">
-                <HBox style="-fx-background-color: rgba(255,255,255,0.05); -fx-padding: 8 15;">
-                    <Label text="OBJETIVO EN FOCO" styleClass="text-tiny" style="-fx-font-weight: bold;"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Rectangle fx:id="decorationLine" width="40" height="2" fill="#4ade80"/>
-                </HBox>
-                
-                <VBox alignment="CENTER" spacing="15" VBox.vgrow="ALWAYS" style="-fx-padding: 30;">
-                    <Label fx:id="lblCurrentWindow" text="---" 
-                           styleClass="text-app-name" wrapText="true" textAlignment="CENTER" 
-                           style="-fx-font-size: 16px; -fx-font-family: 'Consolas'; -fx-text-fill: white;"/>
-                    
-                    <Label fx:id="lblProductivity" text="OFFLINE" 
-                           style="-fx-padding: 5 15; -fx-background-color: #333; -fx-text-fill: #aaa; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;"/>
-                </VBox>
-            </VBox>
+        <!-- HEADER -->
+        <HBox style="-fx-padding: 15 20; -fx-border-color: transparent transparent rgba(247, 210, 122, 0.15) transparent; -fx-border-width: 0 0 1 0;">
+            <Label text="📱 APLICACIONES RASTREADAS" 
+                   style="-fx-font-family: 'Georgia'; -fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #f7d27a;"/>
+        </HBox>
+        
+        <!-- TABLE -->
+        <TableView fx:id="tableLog" VBox.vgrow="ALWAYS" 
+                   style="-fx-background-color: transparent; -fx-font-family: 'Verdana'; -fx-font-size: 11px;">
+            <placeholder>
+                <Label text="👁 Captura actividad para ver las aplicaciones rastreadas..." 
+                       style="-fx-text-fill: #666; -fx-font-family: 'Verdana'; -fx-font-size: 11px;"/>
+            </placeholder>
+            <columns>
+                <TableColumn fx:id="colTime" text="⏰ HORA" prefWidth="80" style="-fx-alignment: CENTER-LEFT; -fx-text-fill: #888;"/>
+                <TableColumn fx:id="colApp" text="📱 APLICACIÓN" prefWidth="220" style="-fx-text-fill: #ddd;"/>
+                <TableColumn fx:id="colStatus" text="✓ ESTADO" prefWidth="100" style="-fx-alignment: CENTER;"/>
+                <TableColumn fx:id="colDuration" text="⏱ DURACIÓN" prefWidth="80" style="-fx-alignment: CENTER-RIGHT; -fx-text-fill: #888;"/>
+            </columns>
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
+        </TableView>
+    </VBox>
 
-            <GridPane hgap="15" vgap="15">
-                <columnConstraints>
-                    <ColumnConstraints percentWidth="50"/>
-                    <ColumnConstraints percentWidth="50"/>
-                </columnConstraints>
-                
-                <VBox alignment="CENTER" GridPane.columnIndex="0" spacing="5" 
-                      style="-fx-background-color: rgba(255,255,255,0.03); -fx-padding: 15; -fx-background-radius: 8;">
-                    <Label text="TIEMPO SESIÓN" styleClass="text-tiny" style="-fx-text-fill: #888;"/>
-                    <Label fx:id="lblSessionTime" text="00:00:00" style="-fx-font-size: 20px; -fx-font-family: 'Consolas'; -fx-text-fill: white;"/>
-                </VBox>
-                
-                <VBox alignment="CENTER" GridPane.columnIndex="1" spacing="5"
-                      style="-fx-background-color: rgba(255,255,255,0.03); -fx-padding: 15; -fx-background-radius: 8;">
-                    <Label text="XP GENERADA" styleClass="text-tiny" style="-fx-text-fill: #888;"/>
-                    <Label fx:id="lblSessionXP" text="+0 XP" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #ffd700;">
-                        <effect><Glow level="0.5"/></effect>
-                    </Label>
-                </VBox>
-            </GridPane>
-            
-            <VBox style="-fx-padding: 10; -fx-background-color: rgba(0,0,0,0.2); -fx-background-radius: 8;">
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <Label text="CPU / NET" styleClass="text-tiny" style="-fx-font-family: 'Consolas';"/>
-                    <ProgressBar fx:id="signalBar" progress="0.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" 
-                                 style="-fx-accent: #4ade80; -fx-control-inner-background: rgba(0,0,0,0.8); -fx-pref-height: 6;"/>
-                </HBox>
-            </VBox>
-        </VBox>
-
-        <VBox spacing="0" HBox.hgrow="ALWAYS" 
-              style="-fx-background-color: rgba(10, 12, 16, 0.9); -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 8; -fx-background-radius: 8;">
-            
-            <HBox style="-fx-padding: 12 20; -fx-border-color: transparent transparent rgba(255,255,255,0.05) transparent; -fx-border-width: 0 0 1 0;">
-                <Label text=">_ SYSTEM LOG" styleClass="text-tiny" style="-fx-font-family: 'Consolas'; -fx-text-fill: #4ade80;"/>
-            </HBox>
-            
-            <TableView fx:id="tableLog" VBox.vgrow="ALWAYS" 
-                       style="-fx-background-color: transparent; -fx-font-family: 'Consolas'; -fx-font-size: 11px;">
-                <placeholder>
-                    <Label text="Esperando flujo de datos..." style="-fx-text-fill: #444; -fx-font-family: 'Consolas';"/>
-                </placeholder>
-                <columns>
-                    <TableColumn fx:id="colTime" text="TIME" prefWidth="90" style="-fx-alignment: CENTER-LEFT; -fx-text-fill: #888;"/>
-                    <TableColumn fx:id="colApp" text="PROCESO DETECTADO" prefWidth="280" style="-fx-text-fill: #ddd;"/>
-                    <TableColumn fx:id="colStatus" text="STATUS" prefWidth="120" style="-fx-alignment: CENTER;"/>
-                    <TableColumn fx:id="colDuration" text="INFO" prefWidth="100" style="-fx-alignment: CENTER-RIGHT; -fx-text-fill: #888;"/>
-                </columns>
-                <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/></columnResizePolicy>
-            </TableView>
-        </VBox>
-    </HBox>
+    <!-- HIDDEN ELEMENTS REQUIRED BY CONTROLLER -->
+    <Circle fx:id="statusIndicator" radius="1" fill="#4ade80" visible="false" managed="false"/>
+    <Circle fx:id="radarPulse" radius="1" fill="TRANSPARENT" stroke="#4ade80" strokeWidth="1" opacity="0.0" visible="false" managed="false"/>
+    <Rectangle fx:id="decorationLine" width="1" height="1" fill="#4ade80" visible="false" managed="false"/>
+    <Label fx:id="lblMonitorStatus" text="OFFLINE" visible="false" managed="false"/>
+    <Label fx:id="lblCurrentWindow" text="---" visible="false" managed="false"/>
+    <Label fx:id="lblProductivity" text="OFFLINE" visible="false" managed="false"/>
+    <Label fx:id="lblSessionTime" text="00:00:00" visible="false" managed="false"/>
+    <Label fx:id="lblSessionXP" text="+0 XP" visible="false" managed="false"/>
+    <ProgressBar fx:id="signalBar" progress="0.0" visible="false" managed="false"/>
 </VBox>

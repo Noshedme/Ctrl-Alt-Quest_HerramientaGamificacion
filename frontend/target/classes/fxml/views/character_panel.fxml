@@ -98,7 +98,7 @@
                 </VBox>
             </Tab>
 
-            <Tab text="MOCHILA">
+            <Tab text="MOCHILA" visible="false">
                 <VBox spacing="15" style="-fx-padding: 20;">
                     <HBox alignment="CENTER_LEFT">
                         <Label text="OBJETOS" styleClass="section-title-small" style="-fx-text-fill: #d4af37;"/>

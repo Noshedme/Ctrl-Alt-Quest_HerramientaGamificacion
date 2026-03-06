@@ -12,6 +12,7 @@ import com.ctrlaltquest.services.AuditService;
 import com.ctrlaltquest.services.SessionManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
+import com.ctrlaltquest.ui.utils.WindowManager;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -279,8 +280,16 @@ public class LoginController {
             fadeOut.setFromValue(1.0);
             fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
-                limpiarRecursos(); 
-                stage.getScene().setRoot(root);
+                limpiarRecursos();
+                
+                // Usar WindowManager para cambiar escena y mantener maximizado
+                WindowManager.getInstance().changeScene(root);
+                
+                // Inyectar sonidos globales después de cambiar la escena
+                Stage newStage = WindowManager.getInstance().getPrimaryStage();
+                if (newStage != null && newStage.getScene() != null) {
+                    newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
+                }
                 
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(400), root);
                 fadeIn.setFromValue(0.0);
@@ -326,10 +335,16 @@ public class LoginController {
         
         fadeOut.setOnFinished(event -> {
             limpiarRecursos();
-            Scene nextScene = new Scene(nextRoot, 1280, 720);
-            nextScene.addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
-            stage.setScene(nextScene);
-            stage.centerOnScreen();
+            
+            // Usar WindowManager para cambiar escena y mantener maximizado
+            WindowManager.getInstance().changeScene(nextRoot);
+            
+            // Inyectar sonidos globales después de cambiar la escena
+            Stage newStage = WindowManager.getInstance().getPrimaryStage();
+            if (newStage != null && newStage.getScene() != null) {
+                newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
+            }
+            
             nextRoot.setOpacity(0);
             FadeTransition fadeIn = new FadeTransition(Duration.millis(500), nextRoot);
             fadeIn.setToValue(1.0); fadeIn.play();
@@ -382,11 +397,15 @@ public class LoginController {
             fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
                 limpiarRecursos();
-                stage.getScene().setRoot(registerRoot);
-                FadeTransition fadeIn = new FadeTransition(Duration.millis(400), registerRoot);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                fadeIn.play();
+                
+                // Usar WindowManager para cambiar escena y mantener maximizado
+                WindowManager.getInstance().changeScene(registerRoot);
+                
+                // Inyectar sonidos globales después de cambiar la escena
+                Stage newStage = WindowManager.getInstance().getPrimaryStage();
+                if (newStage != null && newStage.getScene() != null) {
+                    newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
+                }
             });
             fadeOut.play();
         } catch (IOException e) {

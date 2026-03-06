@@ -56,21 +56,19 @@ public class KeyBindingsViewController {
      */
     private VBox createBindingCard(KeyBindings.KeyBindingInfo binding) {
         VBox card = new VBox(8);
-        card.setStyle("-fx-border-color: #44475a; -fx-border-width: 1; -fx-border-radius: 5; " +
-                      "-fx-background-color: #282a36; -fx-padding: 15;");
+        card.getStyleClass().add("keybinding-card");
         
         // Nombre del atajo
         Label nameLabel = new Label(binding.name);
-        nameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #f1fa8c;");
+        nameLabel.getStyleClass().add("keybinding-name");
         
         // Combinación de teclas
         Label keyLabel = new Label(binding.keyCombination);
-        keyLabel.setStyle("-fx-font-family: 'Courier New'; -fx-font-size: 14px; " +
-                         "-fx-text-fill: #50fa7b; -fx-font-weight: bold;");
+        keyLabel.getStyleClass().add("key-combination");
         
         // Descripción
         Label descLabel = new Label(binding.description);
-        descLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #8be9fd; -fx-wrap-text: true;");
+        descLabel.getStyleClass().add("keybinding-description");
         descLabel.setWrapText(true);
         
         card.getChildren().addAll(nameLabel, keyLabel, descLabel);

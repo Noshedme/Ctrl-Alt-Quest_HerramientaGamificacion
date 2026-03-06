@@ -9,22 +9,22 @@ import com.ctrlaltquest.services.AuditService;
 import com.ctrlaltquest.services.EmailService;
 import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
+import com.ctrlaltquest.ui.utils.WindowManager;
 
 import javafx.animation.FadeTransition;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.GaussianBlur;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -155,14 +155,18 @@ public class ForgotPasswordController {
             ResetPasswordController resetCtrl = loader.getController();
             resetCtrl.setEmail(email);
 
-            Stage stage = (Stage) emailField.getScene().getWindow();
-            Scene scene = new Scene(root);
-            scene.setFill(Color.TRANSPARENT);
+            root.setOpacity(0);
             
-            stage.setScene(scene);
+            // Usar WindowManager para cambiar escena y mantener maximizado
+            WindowManager.getInstance().changeScene(root);
+            
+            // Inyectar sonidos globales después de cambiar la escena
+            Stage stage = WindowManager.getInstance().getPrimaryStage();
+            if (stage != null && stage.getScene() != null) {
+                stage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
+            }
             
             // Animación de entrada
-            root.setOpacity(0);
             FadeTransition ft = new FadeTransition(Duration.millis(600), root);
             ft.setFromValue(0.0);
             ft.setToValue(1.0);
@@ -191,7 +195,15 @@ public class ForgotPasswordController {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
                 Parent loginRoot = loader.load();
                 loginRoot.setOpacity(0);
-                stage.getScene().setRoot(loginRoot);
+                
+                // Usar WindowManager para cambiar escena y mantener maximizado
+                WindowManager.getInstance().changeScene(loginRoot);
+                
+                // Inyectar sonidos globales después de cambiar la escena
+                Stage newStage = WindowManager.getInstance().getPrimaryStage();
+                if (newStage != null && newStage.getScene() != null) {
+                    newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, event -> SoundManager.playKeyClick());
+                }
 
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(500), loginRoot);
                 fadeIn.setFromValue(0.0);
