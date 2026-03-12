@@ -10,7 +10,6 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.chart.PieChart;
@@ -55,11 +54,11 @@ public class ChartExpandedModalController {
             if (chartExpanded == null) return;
 
             long total = usageData.stream().mapToLong(u -> u.seconds).sum();
-            
-            // Colores vibrantes
+
+            // Colores vibrantes y contrastados sobre fondo oscuro
             String[] colors = {
-                "#FF6B6B", "#4ECDC4", "#FFD93D", "#A335EE", "#FF8C42",
-                "#6BCB77", "#FF006E", "#00D4FF", "#A0FF00", "#FFB6C1"
+                "#FF3D3D", "#00C9B1", "#FFB800", "#C840FF", "#FF6000",
+                "#00E676", "#FF0066", "#00B0FF", "#AAFF00", "#FF80AB"
             };
 
             ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
@@ -79,9 +78,9 @@ public class ChartExpandedModalController {
             }
 
             chartExpanded.setData(pieData);
-            chartExpanded.setStyle("-fx-font-size: 12px; -fx-text-fill: #ffffff; -fx-font-weight: bold;");
+            chartExpanded.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
 
-            // Aplicar colores y animaciones
+            // Aplicar colores y animaciones a los slices
             colorIdx = 0;
             for (PieChart.Data d : pieData) {
                 String color = colors[colorIdx % colors.length];
@@ -126,13 +125,52 @@ public class ChartExpandedModalController {
                 colorIdx++;
             }
 
+            // ── Estilos oscuros para leyenda y etiquetas ──────────────────────
+            // Se hace en un segundo Platform.runLater porque JavaFX crea los
+            // nodos de leyenda/labels DESPUÉS de procesar setData(), y no
+            // estarán disponibles en el mismo frame de render.
+            Platform.runLater(() -> {
+                // Etiquetas flotantes sobre cada rebanada (nombre + %)
+                chartExpanded.lookupAll(".chart-pie-label").forEach(n ->
+                    n.setStyle("-fx-fill: #f0f0f0; -fx-font-size: 12px; -fx-font-weight: bold;")
+                );
+
+                // Líneas que conectan etiqueta con rebanada
+                chartExpanded.lookupAll(".chart-pie-label-line").forEach(n ->
+                    n.setStyle("-fx-stroke: #a0a0a0; -fx-stroke-width: 1;")
+                );
+
+                // Fondo del cuadro de leyenda — eliminar el blanco
+                chartExpanded.lookupAll(".chart-legend").forEach(n ->
+                    n.setStyle(
+                        "-fx-background-color: rgba(20, 10, 40, 0.85);" +
+                        "-fx-border-color: #a335ee;" +
+                        "-fx-border-width: 1;" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 12;"
+                    )
+                );
+
+                // Texto de cada ítem en la leyenda
+                chartExpanded.lookupAll(".chart-legend-item").forEach(n ->
+                    n.setStyle("-fx-text-fill: #d0d0d0; -fx-font-size: 12px; -fx-font-weight: bold;")
+                );
+
+                // Clase interna del label dentro del ítem (doble selector por si acaso)
+                chartExpanded.lookupAll(".chart-legend-item-label").forEach(n ->
+                    n.setStyle("-fx-text-fill: #d0d0d0; -fx-font-size: 12px;")
+                );
+            });
+            // ─────────────────────────────────────────────────────────────────
+
             // Actualizar etiquetas de estadísticas
             lblTotalTime.setText(formatSeconds(total));
             lblCategoryCount.setText(String.valueOf(usageData.size()));
             if (maxUsage != null) {
                 lblMaxCategory.setText(maxUsage.appName);
             }
-            
+
             long avgSeconds = usageData.size() > 0 ? total / usageData.size() : 0;
             lblAvgCategory.setText(formatSeconds(avgSeconds));
 

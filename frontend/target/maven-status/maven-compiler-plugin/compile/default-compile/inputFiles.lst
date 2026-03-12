@@ -31,6 +31,7 @@ C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\fronte
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\services\EventGenerator.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\services\EventsService.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\services\GameService.java
+C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\services\LoginAttemptService.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\services\MissionProgressService.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\services\PaymentService.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\services\PlayerService.java
@@ -42,6 +43,7 @@ C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\fronte
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\ui\controllers\CharacterEditorController.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\ui\controllers\CharacterSelectionController.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\ui\controllers\DashboardViewController.java
+C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\ui\controllers\EventModalController.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\ui\controllers\ForgotPasswordController.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\ui\controllers\HomeController.java
 C:\Users\Usuario\Desktop\proyecto3\Ctrl-Alt-Quest_HerramientaGamificacion\frontend\src\main\java\com\ctrlaltquest\ui\controllers\LoginController.java

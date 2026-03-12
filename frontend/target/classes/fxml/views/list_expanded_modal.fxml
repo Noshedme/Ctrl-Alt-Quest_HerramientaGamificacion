@@ -13,7 +13,7 @@
         <URL value="@/styles/home.css" />
     </stylesheets>
 
-    <!-- ENCABEZADO ÉPICO -->
+    <!-- ENCABEZADO -->
     <top>
         <VBox style="-fx-padding: 0; -fx-background-color: linear-gradient(to right, rgba(163, 53, 238, 0.35), rgba(100, 30, 150, 0.25), rgba(50, 15, 80, 0.15)); -fx-border-color: #a335ee; -fx-border-width: 0 0 3 0;">
             <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 25 30;">
@@ -23,35 +23,74 @@
                     <Label text="Listado detallado de cada aplicación y su tiempo" style="-fx-text-fill: #a335ee; -fx-font-size: 12px; -fx-font-weight: bold;"/>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="✕" onAction="#cerrarModal" style="-fx-font-size: 22px; -fx-padding: 8 14; -fx-background-color: rgba(255, 107, 107, 0.25); -fx-border-color: #ff6b6b; -fx-border-radius: 10; -fx-text-fill: #ff6b6b; -fx-border-width: 2; -fx-cursor: hand; -fx-font-weight: bold;"/>
+                <Button text="✕" onAction="#cerrarModal"
+                        style="-fx-font-size: 22px; -fx-padding: 8 14; -fx-background-color: rgba(255, 107, 107, 0.25); -fx-border-color: #ff6b6b; -fx-border-radius: 10; -fx-text-fill: #ff6b6b; -fx-border-width: 2; -fx-cursor: hand; -fx-font-weight: bold;"/>
             </HBox>
-            <!-- LÍNEA DECORATIVA -->
             <Region prefHeight="2" style="-fx-background-color: linear-gradient(to right, #a335ee, transparent, #a335ee);"/>
         </VBox>
     </top>
 
     <!-- CONTENIDO PRINCIPAL -->
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-padding: 0; -fx-control-inner-background: transparent;">
+        <!--
+            Triple transparent igual que en chart_expanded_modal:
+            -fx-background, -fx-background-color y -fx-control-inner-background
+            para que Modena no filtre el blanco en ninguna capa del ScrollPane.
+        -->
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: transparent;
+                           -fx-background: transparent;
+                           -fx-control-inner-background: transparent;
+                           -fx-padding: 0;">
             <VBox spacing="30" style="-fx-padding: 35; -fx-background-color: transparent;">
-                
+
                 <!-- BARRA DE BÚSQUEDA Y FILTROS -->
-                <VBox spacing="15" style="-fx-padding: 25; -fx-background-radius: 20; -fx-background-color: linear-gradient(to bottom right, rgba(163, 53, 238, 0.25), rgba(100, 30, 150, 0.15)); -fx-border-color: #a335ee; -fx-border-radius: 20; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.4), 25, 0, 0, 5);">
-                    
+                <VBox spacing="15"
+                      style="-fx-padding: 25;
+                             -fx-background-radius: 20;
+                             -fx-background-color: linear-gradient(to bottom right, rgba(163, 53, 238, 0.25), rgba(100, 30, 150, 0.15));
+                             -fx-border-color: #a335ee;
+                             -fx-border-radius: 20;
+                             -fx-border-width: 2;
+                             -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.4), 25, 0, 0, 5);">
+
                     <VBox spacing="8">
                         <Label text="🔍 BÚSQUEDA Y FILTROS" style="-fx-text-fill: #f7d27a; -fx-font-size: 14px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
                         <Label text="Encuentra la información que necesitas" style="-fx-text-fill: #a0a0a0; -fx-font-size: 11px;"/>
                     </VBox>
-                    
+
                     <Separator style="-fx-border-color: linear-gradient(to right, transparent, #a335ee, transparent); -fx-border-width: 1;"/>
-                    
+
                     <HBox spacing="15" alignment="CENTER_LEFT">
-                        <TextField fx:id="searchField" promptText="Buscar aplicación..." 
-                                   style="-fx-control-inner-background: rgba(0,0,0,0.4); -fx-text-fill: #fff; -fx-prompt-text-fill: #888; -fx-font-size: 13px; -fx-padding: 12 15; -fx-border-color: #a335ee; -fx-border-radius: 12; -fx-border-width: 2; -fx-background-radius: 12; -fx-font-weight: bold;"
-                                   HBox.hgrow="ALWAYS" />
-                        <ComboBox fx:id="sortCombo" promptText="Ordenar..." 
-                                  style="-fx-padding: 10 15; -fx-font-size: 12px; -fx-text-fill: #fff; -fx-border-color: #a335ee; -fx-border-width: 2; -fx-border-radius: 12; -fx-control-inner-background: rgba(0,0,0,0.4); -fx-font-weight: bold;" 
-                                  prefWidth="200" />
+                        <TextField fx:id="searchField" promptText="Buscar aplicación..."
+                                   HBox.hgrow="ALWAYS"
+                                   style="-fx-control-inner-background: rgba(10, 5, 25, 0.8);
+                                          -fx-background-color: rgba(10, 5, 25, 0.8);
+                                          -fx-text-fill: #f0f0f0;
+                                          -fx-prompt-text-fill: #666;
+                                          -fx-font-size: 13px;
+                                          -fx-padding: 12 15;
+                                          -fx-border-color: #a335ee;
+                                          -fx-border-radius: 12;
+                                          -fx-border-width: 2;
+                                          -fx-background-radius: 12;
+                                          -fx-font-weight: bold;"/>
+                        <!--
+                            El ComboBox recibe estilos base aquí para el contenedor;
+                            el resto (lista desplegable, texto) se aplica vía
+                            lookupAll en el controller porque Modena los crea en runtime.
+                        -->
+                        <ComboBox fx:id="sortCombo"
+                                  promptText="Ordenar..."
+                                  prefWidth="210"
+                                  style="-fx-background-color: rgba(20, 10, 40, 0.9);
+                                         -fx-border-color: #a335ee;
+                                         -fx-border-width: 2;
+                                         -fx-border-radius: 12;
+                                         -fx-background-radius: 12;
+                                         -fx-font-size: 12px;
+                                         -fx-font-weight: bold;
+                                         -fx-padding: 6 10;"/>
                     </HBox>
                 </VBox>
 
@@ -59,15 +98,22 @@
                 <VBox fx:id="applicationsContainer" spacing="16" style="-fx-padding: 0;"/>
 
                 <!-- PIE CON RESUMEN -->
-                <VBox spacing="20" style="-fx-padding: 40; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom left, rgba(100, 30, 150, 0.3), rgba(50, 15, 80, 0.2)); -fx-border-color: #a335ee; -fx-border-radius: 25; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.4), 30, 0, 0, 5);">
-                    
+                <VBox spacing="20"
+                      style="-fx-padding: 40;
+                             -fx-background-radius: 25;
+                             -fx-background-color: linear-gradient(to bottom left, rgba(100, 30, 150, 0.3), rgba(50, 15, 80, 0.2));
+                             -fx-border-color: #a335ee;
+                             -fx-border-radius: 25;
+                             -fx-border-width: 2;
+                             -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.4), 30, 0, 0, 5);">
+
                     <VBox spacing="8">
                         <Label text="📈 RESUMEN GLOBAL" style="-fx-text-fill: #f7d27a; -fx-font-size: 20px; -fx-font-weight: 900; -fx-letter-spacing: 3px;"/>
                         <Label text="Análisis general de tu actividad" style="-fx-text-fill: #a335ee; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                     </VBox>
-                    
+
                     <Separator style="-fx-border-color: linear-gradient(to right, transparent, #a335ee, transparent); -fx-border-width: 1;"/>
-                    
+
                     <GridPane hgap="25" vgap="20" style="-fx-padding: 20;">
                         <columnConstraints>
                             <ColumnConstraints percentWidth="25" />
@@ -75,29 +121,29 @@
                             <ColumnConstraints percentWidth="25" />
                             <ColumnConstraints percentWidth="25" />
                         </columnConstraints>
-                        
-                        <!-- RESUMEN 1: APLICACIONES -->
+
+                        <!-- APLICACIONES -->
                         <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="0" alignment="CENTER"
                               style="-fx-padding: 25; -fx-background-radius: 15; -fx-background-color: linear-gradient(to bottom right, rgba(163, 53, 238, 0.25), rgba(100, 30, 150, 0.15)); -fx-border-color: #a335ee; -fx-border-radius: 15; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.4), 20, 0, 0, 3);">
                             <Label text="📱 APLICACIONES" style="-fx-text-fill: #f7d27a; -fx-font-size: 11px; -fx-font-weight: 900; -fx-letter-spacing: 1px;"/>
                             <Label fx:id="lblAppCount" text="0" style="-fx-text-fill: #f7d27a; -fx-font-size: 28px; -fx-font-weight: 900; -fx-effect: dropshadow(three-pass-box, rgba(247,210,122,0.5), 15, 0, 0, 0);"/>
                         </VBox>
-                        
-                        <!-- RESUMEN 2: TIEMPO TOTAL -->
+
+                        <!-- TIEMPO TOTAL -->
                         <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="0" alignment="CENTER"
                               style="-fx-padding: 25; -fx-background-radius: 15; -fx-background-color: linear-gradient(to bottom right, rgba(74, 222, 128, 0.25), rgba(50, 150, 100, 0.15)); -fx-border-color: #4ade80; -fx-border-radius: 15; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(74,222,128,0.4), 20, 0, 0, 3);">
                             <Label text="⏱️ TIEMPO TOTAL" style="-fx-text-fill: #4ade80; -fx-font-size: 11px; -fx-font-weight: 900; -fx-letter-spacing: 1px;"/>
                             <Label fx:id="lblTotalTime" text="0h 0m" style="-fx-text-fill: #4ade80; -fx-font-size: 28px; -fx-font-weight: 900; -fx-effect: dropshadow(three-pass-box, rgba(74,222,128,0.5), 15, 0, 0, 0);"/>
                         </VBox>
-                        
-                        <!-- RESUMEN 3: APP MAYOR -->
+
+                        <!-- FAVORITA -->
                         <VBox spacing="10" GridPane.columnIndex="2" GridPane.rowIndex="0" alignment="CENTER"
                               style="-fx-padding: 25; -fx-background-radius: 15; -fx-background-color: linear-gradient(to bottom right, rgba(255, 107, 107, 0.25), rgba(200, 50, 50, 0.15)); -fx-border-color: #ff8c8c; -fx-border-radius: 15; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(255,107,107,0.4), 20, 0, 0, 3);">
                             <Label text="🏆 FAVORITA" style="-fx-text-fill: #ff8c8c; -fx-font-size: 11px; -fx-font-weight: 900; -fx-letter-spacing: 1px;"/>
                             <Label fx:id="lblTopApp" text="---" style="-fx-text-fill: #ff8c8c; -fx-font-size: 16px; -fx-font-weight: 900; -fx-wrap-text: true;" wrapText="true" textAlignment="CENTER"/>
                         </VBox>
-                        
-                        <!-- RESUMEN 4: PROMEDIO -->
+
+                        <!-- PROMEDIO -->
                         <VBox spacing="10" GridPane.columnIndex="3" GridPane.rowIndex="0" alignment="CENTER"
                               style="-fx-padding: 25; -fx-background-radius: 15; -fx-background-color: linear-gradient(to bottom right, rgba(0, 255, 255, 0.25), rgba(0, 150, 150, 0.15)); -fx-border-color: #00ffff; -fx-border-radius: 15; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.4), 20, 0, 0, 3);">
                             <Label text="📊 PROMEDIO" style="-fx-text-fill: #00ffff; -fx-font-size: 11px; -fx-font-weight: 900; -fx-letter-spacing: 1px;"/>

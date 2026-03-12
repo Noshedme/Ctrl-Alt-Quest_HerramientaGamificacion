@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.Insets?>
+<?import java.net.URL?>
+
+<!--
+    event_modal.fxml
+    Modal de evento inmersivo para CtrlAltQuest.
+    Soporta: BOSS_ENCOUNTER, CLICK_RUSH, BUG_STORM, TYPING_CHALLENGE,
+             BREAK_TIME, STRETCH_ROUTINE, TRIVIA_QUIZ
+-->
+<StackPane xmlns="http://javafx.com/javafx/17"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.ctrlaltquest.ui.controllers.EventModalController"
+           prefWidth="820" prefHeight="640"
+           style="-fx-background-color: transparent;">
+    <stylesheets>
+        <URL value="@/styles/home.css" />
+    </stylesheets>
+
+    <!-- ROOT: borde y fondo (color dinámico aplicado desde el controller) -->
+    <VBox fx:id="rootContainer" alignment="TOP_CENTER" spacing="0"
+          style="-fx-background-color: rgba(8,4,18,0.99);
+                 -fx-border-color: #a335ee;
+                 -fx-border-width: 2;
+                 -fx-background-radius: 20;
+                 -fx-border-radius: 20;">
+
+        <!-- ══ CABECERA ══ -->
+        <HBox fx:id="headerBox" alignment="CENTER_LEFT" spacing="16"
+              style="-fx-padding: 18 26 16 26;
+                     -fx-background-radius: 20 20 0 0;">
+            <Label fx:id="lblEventIcon" text="⚔️"
+                   style="-fx-font-size: 30px;"/>
+            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                <Label fx:id="lblEventType" text="TIPO DE EVENTO"
+                       style="-fx-text-fill: #f7d27a; -fx-font-size: 10px;
+                              -fx-font-weight: 900; -fx-letter-spacing: 3px;"/>
+                <Label fx:id="lblEventTitle" text="Título del evento"
+                       style="-fx-text-fill: #ffffff; -fx-font-size: 20px; -fx-font-weight: 900;"/>
+            </VBox>
+            <!-- Timer -->
+            <VBox alignment="CENTER_RIGHT" spacing="1">
+                <Label text="TIEMPO"
+                       style="-fx-text-fill: #666; -fx-font-size: 9px; -fx-letter-spacing: 2px;"/>
+                <Label fx:id="lblTimer" text="02:00"
+                       style="-fx-text-fill: #ff4757; -fx-font-size: 26px; -fx-font-weight: 900;
+                              -fx-effect: dropshadow(three-pass-box, rgba(255,71,87,0.6), 10, 0, 0, 0);"/>
+            </VBox>
+            <Button text="✕" onAction="#huirDelEvento"
+                    style="-fx-font-size: 16px; -fx-padding: 5 11;
+                           -fx-background-color: rgba(255,107,107,0.15);
+                           -fx-border-color: rgba(255,107,107,0.5); -fx-border-radius: 8;
+                           -fx-text-fill: #ff6b6b; -fx-border-width: 1.5; -fx-cursor: hand;
+                           -fx-background-radius: 8;"/>
+        </HBox>
+
+        <!-- ══ CUERPO PRINCIPAL ══ -->
+        <HBox spacing="0" VBox.vgrow="ALWAYS">
+
+            <!-- ── COLUMNA IZQUIERDA: Imagen + Info Boss ── -->
+            <VBox alignment="TOP_CENTER" prefWidth="290" minWidth="270"
+                  style="-fx-background-color: rgba(0,0,0,0.25);
+                         -fx-border-color: transparent rgba(100,50,160,0.3) transparent transparent;
+                         -fx-border-width: 1; -fx-padding: 24 20 20 20;">
+
+                <!-- Imagen del evento con glow -->
+                <StackPane alignment="CENTER">
+                    <Region fx:id="imageGlow" prefWidth="200" prefHeight="200"
+                            style="-fx-background-radius: 100;"/>
+                    <ImageView fx:id="imgEvent"
+                               fitWidth="185" fitHeight="185"
+                               preserveRatio="true"
+                               style="-fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.8), 28, 0, 0, 0);"/>
+                </StackPane>
+
+                <!-- Barra de vida del Boss (solo BOSS_ENCOUNTER) -->
+                <VBox fx:id="bossHealthSection" spacing="6" alignment="CENTER"
+                      style="-fx-padding: 18 5 0 5;" visible="false" managed="false">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="❤ VIDA DEL JEFE"
+                               style="-fx-text-fill: #ff4757; -fx-font-size: 10px;
+                                      -fx-font-weight: 900; -fx-letter-spacing: 1px;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblBossHP" text="300 / 300"
+                               style="-fx-text-fill: #ff8c8c; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    </HBox>
+                    <!-- Track oscuro -->
+                    <StackPane>
+                        <ProgressBar progress="1.0" prefHeight="14" maxWidth="Infinity"
+                                     style="-fx-accent: #2a0010; -fx-control-inner-background: #1a000a;
+                                            -fx-background-radius: 7; -fx-border-radius: 7;"/>
+                        <ProgressBar fx:id="bossHealthBar" progress="1.0" prefHeight="14" maxWidth="Infinity"
+                                     style="-fx-accent: #ff4757; -fx-control-inner-background: transparent;
+                                            -fx-background-radius: 7; -fx-border-radius: 7;"/>
+                    </StackPane>
+                    <Label fx:id="lblDamageFloat" text=""
+                           style="-fx-text-fill: #ff6b6b; -fx-font-size: 18px; -fx-font-weight: 900;
+                                  -fx-effect: dropshadow(three-pass-box, rgba(255,71,87,0.7), 8, 0, 0, 0);"/>
+                </VBox>
+
+                <!-- Descripción -->
+                <Label fx:id="lblDescription" text=""
+                       wrapText="true" textAlignment="CENTER"
+                       style="-fx-text-fill: #909090; -fx-font-size: 11px;
+                              -fx-padding: 16 8 0 8; -fx-line-spacing: 3;"/>
+            </VBox>
+
+            <!-- ── COLUMNA DERECHA: Interacción ── -->
+            <VBox alignment="TOP_CENTER" spacing="18" HBox.hgrow="ALWAYS"
+                  style="-fx-padding: 24 26 22 26; -fx-background-color: transparent;">
+
+                <!-- Barra de progreso general -->
+                <VBox spacing="6">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label fx:id="lblProgressLabel" text="PROGRESO"
+                               style="-fx-text-fill: #a335ee; -fx-font-size: 10px;
+                                      -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="lblProgressValue" text="0 / 100"
+                               style="-fx-text-fill: #c0c0c0; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    </HBox>
+                    <!-- Track -->
+                    <StackPane>
+                        <ProgressBar progress="0.0" prefHeight="10" maxWidth="Infinity"
+                                     style="-fx-accent: #0d0520; -fx-control-inner-background: #0d0520;
+                                            -fx-background-radius: 5; -fx-border-radius: 5;"/>
+                        <ProgressBar fx:id="progressBar" progress="0.0" prefHeight="10" maxWidth="Infinity"
+                                     style="-fx-accent: #a335ee; -fx-control-inner-background: transparent;
+                                            -fx-background-radius: 5; -fx-border-radius: 5;"/>
+                    </StackPane>
+                </VBox>
+
+                <!-- ══ PANEL CLICK (Boss / ClickRush / BugStorm) ══ -->
+                <VBox fx:id="panelClick" spacing="16" alignment="CENTER"
+                      visible="false" managed="false" VBox.vgrow="ALWAYS">
+
+                    <Label fx:id="lblClickInstruction"
+                           text="¡HAZ CLIC PARA ATACAR!"
+                           wrapText="true" textAlignment="CENTER"
+                           style="-fx-text-fill: #f7d27a; -fx-font-size: 13px;
+                                  -fx-font-weight: 900; -fx-letter-spacing: 0.5px;"/>
+
+                    <!-- ZONA DE CLICK -->
+                    <StackPane fx:id="clickZone" onMouseClicked="#registrarClick"
+                               style="-fx-cursor: hand;">
+                        <Region prefWidth="320" prefHeight="145"
+                                style="-fx-background-color: linear-gradient(to bottom right,
+                                           rgba(163,53,238,0.30), rgba(60,15,100,0.18));
+                                       -fx-background-radius: 18;
+                                       -fx-border-color: #a335ee;
+                                       -fx-border-radius: 18;
+                                       -fx-border-width: 2;
+                                       -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.55), 22, 0, 0, 0);"/>
+                        <VBox alignment="CENTER" spacing="8">
+                            <Label fx:id="lblClickIcon" text="⚔️"
+                                   style="-fx-font-size: 54px;"/>
+                            <Label fx:id="lblClickCount" text="0 GOLPES"
+                                   style="-fx-text-fill: #f7d27a; -fx-font-size: 17px; -fx-font-weight: 900;"/>
+                        </VBox>
+                    </StackPane>
+
+                    <Label fx:id="lblClickCombo" text=""
+                           style="-fx-text-fill: #4ade80; -fx-font-size: 14px; -fx-font-weight: bold;
+                                  -fx-effect: dropshadow(three-pass-box, rgba(74,222,128,0.5), 6, 0, 0, 0);"/>
+                </VBox>
+
+                <!-- ══ PANEL TYPING ══ -->
+                <VBox fx:id="panelTyping" spacing="14" alignment="TOP_CENTER"
+                      visible="false" managed="false" VBox.vgrow="ALWAYS">
+
+                    <Label text="⌨️ ESCRIBE ESTAS PALABRAS EN ORDEN:"
+                           style="-fx-text-fill: #4ecdc4; -fx-font-size: 12px;
+                                  -fx-font-weight: 900; -fx-letter-spacing: 1px;"/>
+                    <TextArea fx:id="txtTarget" editable="false" wrapText="true" prefRowCount="3"
+                              style="-fx-control-inner-background: rgba(8,4,20,0.85);
+                                     -fx-background-color: rgba(8,4,20,0.85);
+                                     -fx-text-fill: #c0faf8; -fx-font-size: 14px;
+                                     -fx-border-color: rgba(78,205,196,0.35);
+                                     -fx-border-radius: 10; -fx-background-radius: 10;
+                                     -fx-font-family: 'Consolas', monospace;
+                                     -fx-padding: 10;"/>
+                    <Label text="✍️ TU RESPUESTA (separar palabras con espacio):"
+                           style="-fx-text-fill: #4ecdc4; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <TextField fx:id="txtInput" promptText="Escribe aquí..."
+                               onKeyReleased="#onTypingKeyReleased"
+                               style="-fx-control-inner-background: rgba(8,4,20,0.9);
+                                      -fx-background-color: rgba(8,4,20,0.9);
+                                      -fx-text-fill: #ffffff; -fx-font-size: 14px;
+                                      -fx-prompt-text-fill: #444;
+                                      -fx-border-color: #4ecdc4;
+                                      -fx-border-radius: 10; -fx-background-radius: 10;
+                                      -fx-padding: 11 14;
+                                      -fx-font-family: 'Consolas', monospace;"/>
+                    <Label fx:id="lblTypingFeedback" text=""
+                           style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <!-- ══ PANEL PASIVO (Break / Stretch) ══ -->
+                <VBox fx:id="panelPassive" spacing="16" alignment="CENTER"
+                      visible="false" managed="false" VBox.vgrow="ALWAYS">
+
+                    <Label fx:id="lblPassiveTitle" text="ALÉJATE DE LA PANTALLA"
+                           wrapText="true" textAlignment="CENTER"
+                           style="-fx-text-fill: #10b981; -fx-font-size: 17px;
+                                  -fx-font-weight: 900; -fx-letter-spacing: 1.5px;"/>
+
+                    <!-- Indicador circular de tiempo -->
+                    <StackPane alignment="CENTER">
+                        <ProgressIndicator fx:id="passiveProgress"
+                                           prefWidth="115" prefHeight="115" progress="1.0"
+                                           style="-fx-progress-color: #10b981; -fx-accent: #10b981;"/>
+                        <VBox alignment="CENTER" spacing="1">
+                            <Label fx:id="lblPassiveCountdown" text="60"
+                                   style="-fx-text-fill: #10b981; -fx-font-size: 32px; -fx-font-weight: 900;"/>
+                            <Label text="seg"
+                                   style="-fx-text-fill: #666; -fx-font-size: 11px;"/>
+                        </VBox>
+                    </StackPane>
+
+                    <Label fx:id="lblPassiveInstruction" text=""
+                           wrapText="true" textAlignment="CENTER"
+                           style="-fx-text-fill: #909090; -fx-font-size: 12px;
+                                  -fx-padding: 0 18; -fx-line-spacing: 4;"/>
+
+                    <Button fx:id="btnPassiveDone" text="✓  ¡LO HICE!"
+                            onAction="#completarEventoPasivo" disable="true"
+                            style="-fx-font-size: 14px; -fx-padding: 11 28;
+                                   -fx-background-color: rgba(16,185,129,0.25);
+                                   -fx-border-color: #10b981; -fx-border-radius: 12;
+                                   -fx-text-fill: #10b981; -fx-border-width: 2;
+                                   -fx-cursor: hand; -fx-font-weight: 900;
+                                   -fx-background-radius: 12;"/>
+                </VBox>
+
+                <!-- ══ PANEL TRIVIA ══ -->
+                <VBox fx:id="panelTrivia" spacing="14" alignment="TOP_CENTER"
+                      visible="false" managed="false" VBox.vgrow="ALWAYS">
+
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="🧠 PREGUNTA"
+                               style="-fx-text-fill: #f472b6; -fx-font-size: 10px;
+                                      -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
+                        <Label fx:id="lblTriviaProgress" text="1 / 5"
+                               style="-fx-text-fill: #b0b0b0; -fx-font-size: 11px;"/>
+                    </HBox>
+
+                    <Label fx:id="lblTriviaQuestion" text=""
+                           wrapText="true"
+                           style="-fx-text-fill: #f0f0f0; -fx-font-size: 15px; -fx-font-weight: bold;
+                                  -fx-padding: 14; -fx-line-spacing: 4;
+                                  -fx-background-color: rgba(244,114,182,0.08);
+                                  -fx-background-radius: 12;
+                                  -fx-border-color: rgba(244,114,182,0.25);
+                                  -fx-border-radius: 12; -fx-border-width: 1;"/>
+
+                    <VBox fx:id="triviaOptionsContainer" spacing="8"/>
+
+                    <Label fx:id="lblTriviaFeedback" text=""
+                           wrapText="true"
+                           style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+                </VBox>
+
+                <!-- Zona de pie: recompensas + botón huir -->
+                <Region VBox.vgrow="ALWAYS"/>
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label fx:id="lblRewards" text="🏆  +150 XP   |   +50 💰"
+                           style="-fx-text-fill: #f7d27a; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="btnHuir" text="🏃 HUIR" onAction="#huirDelEvento"
+                            style="-fx-font-size: 12px; -fx-padding: 8 18;
+                                   -fx-background-color: transparent;
+                                   -fx-border-color: rgba(255,107,107,0.3); -fx-border-radius: 10;
+                                   -fx-text-fill: rgba(255,107,107,0.6); -fx-border-width: 1;
+                                   -fx-cursor: hand; -fx-background-radius: 10;"/>
+                </HBox>
+            </VBox>
+        </HBox>
+    </VBox>
+</StackPane>

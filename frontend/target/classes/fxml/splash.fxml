@@ -11,25 +11,27 @@
            stylesheets="/styles/splash.css"
            prefWidth="1280"
            prefHeight="720"
-           style="-fx-background-color: #1a1a2e;">
+           style="-fx-background-color: #0d0b1a;">
 
-    <!-- Video de introducción deshabilitado por conflicto JavaFX 21 -->
+    <!-- CAPA 1: Fondo — login_bg.png con parallax animado por controller -->
+    <ImageView fx:id="splashBg"
+               fitWidth="1400" fitHeight="810"
+               preserveRatio="false"
+               mouseTransparent="true" />
 
-    <VBox alignment="BOTTOM_CENTER"
-          spacing="20"
-          styleClass="splash-overlay">
+    <!-- CAPA 2: Overlay oscuro para dar contraste al contenido -->
+    <StackPane mouseTransparent="true"
+               style="-fx-background-color: rgba(8, 5, 20, 0.52);" />
 
-        <VBox alignment="CENTER" spacing="5">
-            <ImageView fx:id="splashLogo"
-                       fitHeight="80"
-                       preserveRatio="true"
-                       styleClass="splash-logo">
-                <image>
-                    <Image url="@/assets/images/logo.png" />
-                </image>
-            </ImageView>
-            <Label text="CTRL + ALT + QUEST" styleClass="splash-title" />
-        </VBox>
+    <!-- CAPA 3: Contenido principal -->
+    <VBox alignment="CENTER" spacing="30">
+
+        <!-- Logo con pulso + brillo animado por controller -->
+        <ImageView fx:id="splashLogo"
+                   fitHeight="130"
+                   preserveRatio="true" />
+
+        <Label text="CTRL + ALT + QUEST" styleClass="splash-title" />
 
         <VBox alignment="CENTER" spacing="10" maxWidth="500">
             <ProgressBar fx:id="loadingBar"
@@ -40,5 +42,7 @@
                    text="Iniciando Stack Tech..."
                    styleClass="splash-text" />
         </VBox>
+
     </VBox>
+
 </StackPane>

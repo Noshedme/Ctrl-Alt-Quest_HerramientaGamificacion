@@ -4,6 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.chart.*?>
 <?import javafx.scene.image.*?>
+<?import javafx.scene.shape.*?>
 <?import javafx.geometry.Insets?>
 <?import java.net.URL?>
 
@@ -20,135 +21,165 @@
         <padding><Insets top="35" right="40" bottom="45" left="40"/></padding>
 
         <!-- HEADER PRINCIPAL CON PERFIL -->
-        <HBox alignment="CENTER_LEFT" spacing="18" style="-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 15, 0, 0, 0);"> 
+        <HBox alignment="CENTER_LEFT" spacing="18"
+              style="-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 15, 0, 0, 0);">
             <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
-                <!-- AVATAR CON EFECTO -->
-                <StackPane style="-fx-background-radius: 50; -fx-padding: 6; -fx-background-color: radial-gradient(radius 80%, rgba(163,53,238,0.3), rgba(80,20,120,0.1)); -fx-border-color: rgba(247,210,122,0.3); -fx-border-radius: 50; -fx-border-width: 3;">
-                    <ImageView fx:id="ivProfile" fitWidth="85" fitHeight="85" preserveRatio="true" style="-fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.8), 15, 0, 0, 2); -fx-background-radius: 50;"/>
+
+                <!--
+                    AVATAR CIRCULAR:
+                    El StackPane tiene -fx-background-radius: 50 para el borde decorativo,
+                    pero eso no recorta la imagen en JavaFX. El recorte real se hace con
+                    Circle como clip vía el controller (aplicarClipCircular()).
+                    El StackPane tiene -fx-padding: 0 para que el círculo decorativo externo
+                    sea un borde visual y la imagen quede perfectamente contenida.
+                -->
+                <StackPane style="-fx-background-radius: 50;
+                                  -fx-padding: 4;
+                                  -fx-background-color: radial-gradient(radius 80%, rgba(163,53,238,0.4), rgba(80,20,120,0.15));
+                                  -fx-border-color: rgba(247,210,122,0.4);
+                                  -fx-border-radius: 50;
+                                  -fx-border-width: 3;
+                                  -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.8), 15, 0, 0, 2);">
+                    <!--
+                        fitWidth y fitHeight = 85px → radio del clip = 42.5px
+                        El controller aplica un Circle(42.5, 42.5, 42.5) como clip.
+                    -->
+                    <ImageView fx:id="ivProfile"
+                               fitWidth="85" fitHeight="85"
+                               preserveRatio="false"/>
                 </StackPane>
-                
+
                 <!-- INFO DEL HÉROE -->
                 <VBox spacing="3">
-                    <Label fx:id="lblName" text="HÉROE" styleClass="hero-name" style="-fx-font-size: 32px; -fx-text-fill: #f7d27a; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
-                    <Label fx:id="lblClass" text="CLASE: GUERRERO" style="-fx-font-size: 13px; -fx-text-fill: #a335ee; -fx-font-weight: bold; -fx-letter-spacing: 1px;"/>
-                    <Label fx:id="lblDate" text="HOY" style="-fx-font-size: 11px; -fx-text-fill: #888; -fx-font-style: italic;"/>
+                    <Label fx:id="lblName" text="HÉROE" styleClass="hero-name"
+                           style="-fx-font-size: 32px; -fx-text-fill: #f7d27a; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
+                    <Label fx:id="lblClass" text="CLASE: GUERRERO"
+                           style="-fx-font-size: 13px; -fx-text-fill: #a335ee; -fx-font-weight: bold; -fx-letter-spacing: 1px;"/>
+                    <Label fx:id="lblDate" text="HOY"
+                           style="-fx-font-size: 11px; -fx-text-fill: #888; -fx-font-style: italic;"/>
                 </VBox>
             </HBox>
-            
+
             <Region HBox.hgrow="ALWAYS"/>
-            
-            <!-- BOTÓN REPORTE -->
-            <VBox alignment="CENTER_RIGHT" spacing="5">
-                <Button text="📜 REPORTE DIARIO" styleClass="btn-nav" 
-                        style="-fx-border-color: #f7d27a; -fx-text-fill: #f7d27a; -fx-background-radius: 25; -fx-border-radius: 25; -fx-font-size: 12px; -fx-padding: 10 25; -fx-font-weight: bold; -fx-cursor: hand; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(247,210,122,0.3), 10, 0, 0, 0);"/>
-            </VBox>
         </HBox>
 
         <!-- SECCIÓN EVENTOS DEL REINO -->
         <VBox spacing="18" fx:id="eventsSection">
-            <Label text="◆ EVENTOS DEL REINO" styleClass="section-title-small" style="-fx-text-fill: #f7d27a; -fx-font-weight: 900; -fx-font-size: 16px; -fx-letter-spacing: 3px;"/>
-            
+            <Label text="◆ EVENTOS DEL REINO" styleClass="section-title-small"
+                   style="-fx-text-fill: #f7d27a; -fx-font-weight: 900; -fx-font-size: 16px; -fx-letter-spacing: 3px;"/>
+
             <HBox spacing="20" fx:id="newsContainer" style="-fx-padding: 5;">
                 <!-- EVENTO 1 -->
-                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" 
-                      style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #A335EE26, #5014781A); -fx-padding: 28; -fx-cursor: hand; -fx-background-radius: 18; -fx-border-color: #A335EE66; -fx-border-radius: 18; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.3), 15, 0, 0, 0);" 
+                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #A335EE26, #5014781A); -fx-padding: 28; -fx-cursor: hand; -fx-background-radius: 18; -fx-border-color: #A335EE66; -fx-border-radius: 18; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.3), 15, 0, 0, 0);"
                       onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
-                    <Label text="EVENTO ACTIVO" styleClass="text-tiny" style="-fx-text-fill: #a335ee; -fx-font-weight: 900; -fx-letter-spacing: 2px; -fx-font-size: 10px;"/>
-                    <Label text="CODE CLEANUP" styleClass="card-category-runic" style="-fx-font-size: 22px; -fx-text-fill: #f7d27a; -fx-font-weight: bold; -fx-padding: 8 0;"/>
+                    <Label text="EVENTO ACTIVO" styleClass="text-tiny"
+                           style="-fx-text-fill: #a335ee; -fx-font-weight: 900; -fx-letter-spacing: 2px; -fx-font-size: 10px;"/>
+                    <Label text="CODE CLEANUP" styleClass="card-category-runic"
+                           style="-fx-font-size: 22px; -fx-text-fill: #f7d27a; -fx-font-weight: bold; -fx-padding: 8 0;"/>
                     <Region VBox.vgrow="ALWAYS" prefHeight="20"/>
-                    <Label text="+50% XP en limpieza y refactorización." styleClass="text-tiny-bright" wrapText="true" style="-fx-text-fill: #bbb; -fx-font-size: 12px; -fx-line-spacing: 3;"/>
+                    <Label text="+50% XP en limpieza y refactorización." styleClass="text-tiny-bright"
+                           wrapText="true" style="-fx-text-fill: #bbb; -fx-font-size: 12px; -fx-line-spacing: 3;"/>
                 </VBox>
 
                 <!-- EVENTO 2 -->
-                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" 
-                      style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #4ECDC426, #0064641A); -fx-padding: 28; -fx-cursor: hand; -fx-background-radius: 18; -fx-border-color: #FF6B6B66; -fx-border-radius: 18; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, #FF6B6B4D, 15, 0, 0, 0);" 
+                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #4ECDC426, #0064641A); -fx-padding: 28; -fx-cursor: hand; -fx-background-radius: 18; -fx-border-color: #FF6B6B66; -fx-border-radius: 18; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, #FF6B6B4D, 15, 0, 0, 0);"
                       onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
-                    <Label text="BOSS MUNDIAL" styleClass="text-tiny" style="-fx-text-fill: #ff6b6b; -fx-font-weight: 900; -fx-letter-spacing: 2px; -fx-font-size: 10px;"/>
-                    <Label text="BUG ZAPPER" styleClass="card-category-runic" style="-fx-font-size: 22px; -fx-text-fill: #ff8c8c; -fx-font-weight: bold; -fx-padding: 8 0;"/>
+                    <Label text="BOSS MUNDIAL" styleClass="text-tiny"
+                           style="-fx-text-fill: #ff6b6b; -fx-font-weight: 900; -fx-letter-spacing: 2px; -fx-font-size: 10px;"/>
+                    <Label text="BUG ZAPPER" styleClass="card-category-runic"
+                           style="-fx-font-size: 22px; -fx-text-fill: #ff8c8c; -fx-font-weight: bold; -fx-padding: 8 0;"/>
                     <Region VBox.vgrow="ALWAYS" prefHeight="20"/>
-                    <Label text="Aplasta bugs críticos antes del viernes." styleClass="text-tiny-bright" wrapText="true" style="-fx-text-fill: #bbb; -fx-font-size: 12px;"/>
+                    <Label text="Aplasta bugs críticos antes del viernes." styleClass="text-tiny-bright"
+                           wrapText="true" style="-fx-text-fill: #bbb; -fx-font-size: 12px;"/>
                 </VBox>
-                
+
                 <!-- EVENTO 3 -->
-                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS" 
-                      style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #4ECDC426, #0064641A); -fx-padding: 28; -fx-cursor: hand; -fx-background-radius: 18; -fx-border-color: rgba(78,205,196,0.4); -fx-border-radius: 18; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(78,205,196,0.3), 15, 0, 0, 0);" 
+                <VBox styleClass="activity-card" HBox.hgrow="ALWAYS"
+                      style="-fx-background-color: linear-gradient(from 0% 0% to 100% 100%, #4ECDC426, #0064641A); -fx-padding: 28; -fx-cursor: hand; -fx-background-radius: 18; -fx-border-color: rgba(78,205,196,0.4); -fx-border-radius: 18; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(78,205,196,0.3), 15, 0, 0, 0);"
                       onMouseEntered="#animarCardEntrada" onMouseExited="#animarCardSalida">
-                    <Label text="BENDICIÓN" styleClass="text-tiny" style="-fx-text-fill: #4ade80; -fx-font-weight: 900; -fx-letter-spacing: 2px; -fx-font-size: 10px;"/>
-                    <Label text="ENFOQUE PURO" styleClass="card-category-runic" style="-fx-font-size: 22px; -fx-text-fill: #6bcb77; -fx-font-weight: bold; -fx-padding: 8 0;"/>
+                    <Label text="BENDICIÓN" styleClass="text-tiny"
+                           style="-fx-text-fill: #4ade80; -fx-font-weight: 900; -fx-letter-spacing: 2px; -fx-font-size: 10px;"/>
+                    <Label text="ENFOQUE PURO" styleClass="card-category-runic"
+                           style="-fx-font-size: 22px; -fx-text-fill: #6bcb77; -fx-font-weight: bold; -fx-padding: 8 0;"/>
                     <Region VBox.vgrow="ALWAYS" prefHeight="20"/>
-                    <Label text="Resistencia al multitasking aumentada." styleClass="text-tiny-bright" wrapText="true" style="-fx-text-fill: #bbb; -fx-font-size: 12px;"/>
+                    <Label text="Resistencia al multitasking aumentada." styleClass="text-tiny-bright"
+                           wrapText="true" style="-fx-text-fill: #bbb; -fx-font-size: 12px;"/>
                 </VBox>
             </HBox>
         </VBox>
 
-        <!-- GRÁFICO DE BIENESTAR DIGITAL - CON RECUADROS EXPANDIBLES -->
-        <VBox fx:id="chartCard" spacing="30" alignment="TOP_CENTER" 
+        <!-- GRÁFICO DE BIENESTAR DIGITAL -->
+        <VBox fx:id="chartCard" spacing="30" alignment="TOP_CENTER"
               style="-fx-background-color: transparent; -fx-padding: 0;">
-            
-            <!-- ENCABEZADO PRINCIPAL -->
+
             <HBox alignment="CENTER_LEFT" spacing="25" style="-fx-padding: 0 0 20 0;">
-                <Label text="🧭 BIENESTAR DIGITAL" styleClass="section-title-small" style="-fx-font-weight: 900; -fx-font-size: 24px; -fx-text-fill: #f7d27a; -fx-letter-spacing: 3px;"/>
-                <Label text="HOY" styleClass="status-tag" style="-fx-background-color: rgba(163, 53, 238, 0.4); -fx-text-fill: #00ffff; -fx-border-color: #00ffff; -fx-border-radius: 12; -fx-border-width: 2; -fx-padding: 8 16; -fx-font-size: 12px; -fx-font-weight: bold; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.4), 12, 0, 0, 0);"/>
+                <Label text="🧭 BIENESTAR DIGITAL" styleClass="section-title-small"
+                       style="-fx-font-weight: 900; -fx-font-size: 24px; -fx-text-fill: #f7d27a; -fx-letter-spacing: 3px;"/>
+                <Label text="HOY" styleClass="status-tag"
+                       style="-fx-background-color: rgba(163, 53, 238, 0.4); -fx-text-fill: #00ffff; -fx-border-color: #00ffff; -fx-border-radius: 12; -fx-border-width: 2; -fx-padding: 8 16; -fx-font-size: 12px; -fx-font-weight: bold; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.4), 12, 0, 0, 0);"/>
                 <Region HBox.hgrow="ALWAYS"/>
             </HBox>
 
-            <!-- CONTENEDOR CON DOS COLUMNAS - RECUADROS INDIVIDUALES -->
             <HBox spacing="30" alignment="TOP_CENTER" style="-fx-padding: 0;">
-                
-                <!-- RECUADRO 1: GRÁFICA DE PASTEL - EXPANDIBLE -->
-                <VBox fx:id="chartCardContainer" alignment="TOP_CENTER" spacing="15" HBox.hgrow="ALWAYS" 
-                      style="-fx-padding: 35; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom right, rgba(50, 30, 70, 0.95), rgba(20, 15, 30, 0.90)); -fx-border-color: rgba(163, 53, 238, 0.4); -fx-border-radius: 25; -fx-border-width: 3; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.5), 25, 0, 0, 5); -fx-cursor: hand;" 
-                      onMouseEntered="#animarCardTablaEntrada" onMouseExited="#animarCardTablaSalida"
-                      prefWidth="450">
-                    
-                    <!-- ENCABEZADO CON BOTÓN EXPANDIR -->
+
+                <!-- RECUADRO 1: GRÁFICA DE PASTEL -->
+                <VBox fx:id="chartCardContainer" alignment="TOP_CENTER" spacing="15"
+                      HBox.hgrow="ALWAYS" prefWidth="450"
+                      style="-fx-padding: 35; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom right, rgba(50, 30, 70, 0.95), rgba(20, 15, 30, 0.90)); -fx-border-color: rgba(163, 53, 238, 0.4); -fx-border-radius: 25; -fx-border-width: 3; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.5), 25, 0, 0, 5); -fx-cursor: hand;"
+                      onMouseEntered="#animarCardTablaEntrada" onMouseExited="#animarCardTablaSalida">
+
                     <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 0 0 10 0;">
                         <VBox spacing="8" alignment="TOP_LEFT" HBox.hgrow="ALWAYS">
-                            <Label text="📈 DISTRIBUCIÓN HORARIA" styleClass="section-title-small" style="-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #f7d27a; -fx-letter-spacing: 2px;"/>
-                            <Label text="Tiempo invertido por categoría" styleClass="text-tiny-bright" style="-fx-text-fill: #a0a0a0; -fx-font-size: 11px; -fx-opacity: 0.8;"/>
+                            <Label text="📈 DISTRIBUCIÓN HORARIA" styleClass="section-title-small"
+                                   style="-fx-font-weight: 900; -fx-font-size: 16px; -fx-text-fill: #f7d27a; -fx-letter-spacing: 2px;"/>
+                            <Label text="Tiempo invertido por categoría" styleClass="text-tiny-bright"
+                                   style="-fx-text-fill: #a0a0a0; -fx-font-size: 11px; -fx-opacity: 0.8;"/>
                         </VBox>
                         <Button fx:id="btnExpandChart" text="⛶" onAction="#abrirGraficoExpandido"
-                                style="-fx-font-size: 18px; -fx-padding: 8 12; -fx-background-color: rgba(163, 53, 238, 0.3); -fx-border-color: #a335ee; -fx-border-radius: 8; -fx-text-fill: #f7d27a; -fx-border-width: 1; -fx-cursor: hand;" />
+                                style="-fx-font-size: 18px; -fx-padding: 8 12; -fx-background-color: rgba(163, 53, 238, 0.3); -fx-border-color: #a335ee; -fx-border-radius: 8; -fx-text-fill: #f7d27a; -fx-border-width: 1; -fx-cursor: hand;"/>
                     </HBox>
-                    
-                    <!-- SEPARADOR -->
+
                     <Separator style="-fx-border-color: rgba(163, 53, 238, 0.3); -fx-border-width: 1;"/>
-                    
-                    <!-- GRÁFICO EN EL CENTRO -->
+
                     <VBox alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 20;">
-                        <PieChart fx:id="usagePie" labelsVisible="true" legendVisible="false" prefWidth="350" prefHeight="280" 
-                                  style="-fx-background-color: transparent; -fx-font-size: 11px; -fx-text-fill: white;"/>
+                        <PieChart fx:id="usagePie" labelsVisible="true" legendVisible="false"
+                                  prefWidth="350" prefHeight="280"
+                                  style="-fx-background-color: transparent;
+                                         -fx-background: transparent;
+                                         -fx-font-size: 11px;"/>
                     </VBox>
                 </VBox>
 
-                <!-- RECUADRO 2: DISTRIBUCIÓN DE ACTIVIDADES - EXPANDIBLE -->
-                <VBox fx:id="usageCardContainer" spacing="20" alignment="TOP_LEFT" 
+                <!-- RECUADRO 2: DESGLOSE DE ACTIVIDADES -->
+                <VBox fx:id="usageCardContainer" spacing="20" alignment="TOP_LEFT"
+                      HBox.hgrow="ALWAYS" prefWidth="350"
                       style="-fx-padding: 35; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom left, rgba(100, 30, 150, 0.3), rgba(50, 15, 80, 0.2)); -fx-border-color: rgba(163, 53, 238, 0.35); -fx-border-radius: 25; -fx-border-width: 3; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.25), 25, 0, 0, 5); -fx-cursor: hand;"
-                      onMouseEntered="#animarCardTablaEntrada" onMouseExited="#animarCardTablaSalida"
-                      HBox.hgrow="ALWAYS" prefWidth="350">
-                    
-                    <!-- ENCABEZADO CON BOTÓN EXPANDIR -->
+                      onMouseEntered="#animarCardTablaEntrada" onMouseExited="#animarCardTablaSalida">
+
                     <HBox alignment="CENTER_LEFT" spacing="15">
                         <VBox spacing="8" HBox.hgrow="ALWAYS">
-                            <Label text="📊 DESGLOSE DE ACTIVIDAD" styleClass="text-tiny-bright" style="-fx-text-fill: #f7d27a; -fx-font-size: 14px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
-                            <Label text="Detalle por aplicación" styleClass="text-tiny-bright" style="-fx-text-fill: #a335ee; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <Label text="📊 DESGLOSE DE ACTIVIDAD" styleClass="text-tiny-bright"
+                                   style="-fx-text-fill: #f7d27a; -fx-font-size: 14px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
+                            <Label text="Detalle por aplicación" styleClass="text-tiny-bright"
+                                   style="-fx-text-fill: #a335ee; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                         </VBox>
                         <Button fx:id="btnExpandList" text="⛶" onAction="#abrirListaExpandida"
-                                style="-fx-font-size: 18px; -fx-padding: 8 12; -fx-background-color: rgba(163, 53, 238, 0.3); -fx-border-color: #a335ee; -fx-border-radius: 8; -fx-text-fill: #f7d27a; -fx-border-width: 1; -fx-cursor: hand;" />
+                                style="-fx-font-size: 18px; -fx-padding: 8 12; -fx-background-color: rgba(163, 53, 238, 0.3); -fx-border-color: #a335ee; -fx-border-radius: 8; -fx-text-fill: #f7d27a; -fx-border-width: 1; -fx-cursor: hand;"/>
                     </HBox>
-                    
-                    <!-- SEPARADOR -->
+
                     <Separator style="-fx-border-color: rgba(163, 53, 238, 0.3); -fx-border-width: 1;"/>
-                    
-                    <!-- LISTA DE ACTIVIDADES - LIMITADA A 5 ITEMS EN EL DASHBOARD -->
-                    <VBox fx:id="usageDetails" spacing="14" style="-fx-padding: 10 0;" maxHeight="320" />
-                    
-                    <!-- FOOTER CON ESTADÍSTICA -->
+
+                    <VBox fx:id="usageDetails" spacing="14" style="-fx-padding: 10 0;" maxHeight="320"/>
+
                     <Region VBox.vgrow="ALWAYS"/>
                     <Separator style="-fx-border-color: rgba(163, 53, 238, 0.2); -fx-border-width: 1;"/>
                     <HBox alignment="CENTER" spacing="15" style="-fx-padding: 15 0 0 0;">
-                        <Label text="⏱️ Total Registrado:" styleClass="text-tiny-bright" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
-                        <Label text="Hoy" styleClass="text-value-gold" style="-fx-text-fill: #4ade80; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+                        <Label text="⏱️ Total Registrado:" styleClass="text-tiny-bright"
+                               style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                        <Label text="Hoy" styleClass="text-value-gold"
+                               style="-fx-text-fill: #4ade80; -fx-font-weight: bold; -fx-font-size: 13px;"/>
                     </HBox>
                 </VBox>
 

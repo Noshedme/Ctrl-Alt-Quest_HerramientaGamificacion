@@ -1,10 +1,12 @@
 package com.ctrlaltquest.services;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.ctrlaltquest.dao.MissionsDAO;
 import com.ctrlaltquest.dao.UserDAO;
-import com.ctrlaltquest.models.Mission; 
+import com.ctrlaltquest.models.Mission;
 import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
 
@@ -13,64 +15,67 @@ import javafx.application.Platform;
 public class GameService {
 
     private static final GameService instance = new GameService();
-
     private GameService() {}
-
-    public static GameService getInstance() {
-        return instance;
-    }
+    public static GameService getInstance() { return instance; }
 
     /**
-     * Procesa un evento de actividad (ej: 1 segundo programando).
-     * Es el "cerebro" que conecta el monitoreo con la base de datos y la UI.
-     * @param userId ID del usuario
-     * @param metricKey Clave de la métrica (ej: "time_coding")
-     * @param value Cantidad a sumar al progreso
+     * Cooldown por misión completada (ms).
+     * Evita que la misma misión dispare múltiples toasts si el DAO
+     * la devuelve en ticks consecutivos antes de marcarse completa.
+     */
+    private static final long MISSION_TOAST_COOLDOWN = 10_000; // 10 segundos
+    private final Map<Integer, Long> missionToastTimestamps = new ConcurrentHashMap<>();
+
+    // ════════════════════════════════════════════════════════════════════════
+    // PROCESAMIENTO DE ACTIVIDAD
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Procesa un tick de actividad (llamado cada segundo por ActivityMonitorService).
+     * Solo notifica a la UI cuando una misión se completa, no en cada tick.
      */
     public void processActivityEvent(int userId, String metricKey, int value) {
-        // 1. Actualizar progresos en BD y obtener lista de misiones que llegaron al 100%
-        //    (El DAO ya maneja la lógica de buscar en mission_progress)
         List<Integer> completedMissions = MissionsDAO.actualizarProgreso(userId, metricKey, value);
 
-        // 2. Si hubo misiones completadas en este "tick", procesar recompensas
         for (int missionId : completedMissions) {
+            // Evitar toasts duplicados para la misma misión en un período corto
+            long now = System.currentTimeMillis();
+            Long lastToast = missionToastTimestamps.get(missionId);
+            if (lastToast != null && now - lastToast < MISSION_TOAST_COOLDOWN) continue;
+
+            missionToastTimestamps.put(missionId, now);
             completarYRecompensar(userId, missionId);
         }
     }
 
-    /**
-     * Maneja la lógica de finalización de misión: BD, Recompensas y UI.
-     */
+    // ════════════════════════════════════════════════════════════════════════
+    // RECOMPENSAS
+    // ════════════════════════════════════════════════════════════════════════
+
     private void completarYRecompensar(int userId, int missionId) {
-        // A. Obtener datos reales de la misión (XP y Monedas) para mostrar en la alerta
         Mission mission = MissionsDAO.getMisionById(missionId);
-        
+
         if (mission == null) {
-            System.err.println("❌ Error: Se completó la misión ID " + missionId + " pero no se pudo recuperar info.");
+            System.err.println("❌ Misión ID " + missionId + " completada pero no encontrada en BD.");
             return;
         }
 
-        // B. Marcar como completa en BD (Auto-complete) para ESTE usuario
-        // 🔥 CORRECCIÓN: Usamos reclamarMision pasando el userId
         MissionsDAO.reclamarMision(userId, missionId);
-
-        // C. Otorgar recompensas en la cuenta del usuario
         boolean levelUp = UserDAO.otorgarRecompensas(userId, mission.getXpReward(), mission.getCoinReward());
 
-        System.out.println("✅ Misión completada automáticamente: " + mission.getTitle());
+        System.out.println("✅ Misión completada: " + mission.getTitle() +
+                           " | +" + mission.getXpReward() + " XP | +" + mission.getCoinReward() + " monedas");
 
-        // D. Notificar a la UI (Debe ser en el hilo de JavaFX)
         Platform.runLater(() -> {
-            // 1. Sonido
-            SoundManager.playSuccessSound();
-            
-            // 2. Notificación visual con Toast
-            Toast.success("¡Misión Completada!", mission.getTitle() + "\nRecompensa: +" + mission.getXpReward() + " XP, " + mission.getCoinReward() + " Monedas.");
+            try { SoundManager.playSuccessSound(); } catch (Exception ignored) {}
 
-            // 3. Manejo de Subida de Nivel
+            Toast.gold("¡Misión Completada!",
+                mission.getTitle() + " · +" + mission.getXpReward() +
+                " XP  |  +" + mission.getCoinReward() + " 💰");
+
             if (levelUp) {
-                SoundManager.playLevelUpSound();
-                Toast.success("¡LEVEL UP!", "¡HAS SUBIDO DE NIVEL! Tus atributos han aumentado. ¡Sigue programando!");
+                try { SoundManager.playLevelUpSound(); } catch (Exception ignored) {}
+                Toast.success("🎉 ¡LEVEL UP!", "¡Has subido de nivel! ¡Sigue adelante!");
             }
         });
     }

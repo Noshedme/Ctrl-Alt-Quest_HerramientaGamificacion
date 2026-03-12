@@ -14,7 +14,7 @@
         <URL value="@/styles/home.css" />
     </stylesheets>
 
-    <!-- ENCABEZADO ÉPICO -->
+    <!-- ENCABEZADO -->
     <top>
         <VBox style="-fx-padding: 0; -fx-background-color: linear-gradient(to right, rgba(163, 53, 238, 0.35), rgba(100, 30, 150, 0.25), rgba(50, 15, 80, 0.15)); -fx-border-color: #a335ee; -fx-border-width: 0 0 3 0;">
             <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 25 30;">
@@ -26,71 +26,108 @@
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="✕" onAction="#cerrarModal" style="-fx-font-size: 22px; -fx-padding: 8 14; -fx-background-color: rgba(255, 107, 107, 0.25); -fx-border-color: #ff6b6b; -fx-border-radius: 10; -fx-text-fill: #ff6b6b; -fx-border-width: 2; -fx-cursor: hand; -fx-font-weight: bold;"/>
             </HBox>
-            <!-- LÍNEA DECORATIVA -->
             <Region prefHeight="2" style="-fx-background-color: linear-gradient(to right, #a335ee, transparent, #a335ee);"/>
         </VBox>
     </top>
 
     <!-- CONTENIDO PRINCIPAL -->
     <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-padding: 0; -fx-control-inner-background: transparent;">
+        <!--
+            CAMBIO 1: Se agregan los 3 estilos clave para eliminar el fondo blanco del ScrollPane:
+              - background-color transparent (el contenedor exterior)
+              - control-inner-background transparent (el viewport interior)
+              - viewport-background transparent (el área de scroll en sí)
+        -->
+        <ScrollPane fitToWidth="true"
+                    style="-fx-background-color: transparent;
+                           -fx-control-inner-background: transparent;
+                           -fx-background: transparent;
+                           -fx-padding: 0;">
             <VBox spacing="35" style="-fx-padding: 35; -fx-background-color: transparent;">
-                
+
                 <!-- SECCIÓN GRÁFICO GRANDE -->
-                <VBox alignment="TOP_CENTER" spacing="25" style="-fx-padding: 40; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom right, rgba(50, 30, 80, 0.95), rgba(20, 10, 40, 0.98)); -fx-border-color: #a335ee; -fx-border-radius: 25; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.6), 35, 0, 0, 8);">
-                    
+                <VBox alignment="TOP_CENTER" spacing="25"
+                      style="-fx-padding: 40;
+                             -fx-background-radius: 25;
+                             -fx-background-color: linear-gradient(to bottom right, rgba(50, 30, 80, 0.95), rgba(20, 10, 40, 0.98));
+                             -fx-border-color: #a335ee;
+                             -fx-border-radius: 25;
+                             -fx-border-width: 2;
+                             -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.6), 35, 0, 0, 8);">
+
                     <VBox spacing="8" alignment="TOP_CENTER">
                         <Label text="Gráfico de Distribución" style="-fx-text-fill: #f7d27a; -fx-font-size: 20px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
                         <Label text="Visualización interactiva de tu tiempo" style="-fx-text-fill: #a0a0a0; -fx-font-size: 12px; -fx-opacity: 0.85;"/>
                     </VBox>
-                    
+
                     <Separator style="-fx-border-color: linear-gradient(to right, transparent, #a335ee, transparent); -fx-border-width: 1;"/>
-                    
-                    <VBox alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 30;">
-                        <PieChart fx:id="chartExpanded" labelsVisible="true" legendVisible="true" prefWidth="650" prefHeight="480" 
-                                  style="-fx-background-color: transparent; -fx-font-size: 13px; -fx-text-fill: #f7d27a; -fx-font-weight: bold;"/>
+
+                    <VBox alignment="CENTER" VBox.vgrow="ALWAYS" style="-fx-padding: 10;">
+                        <!--
+                            CAMBIO 2: legendSide="BOTTOM" → la leyenda queda debajo del gráfico,
+                            no compite con el espacio lateral y se ve más ordenada.
+
+                            CAMBIO 3: -fx-background-color y -fx-background ambos en transparent
+                            para asegurarse de que ningún nodo interno herede el blanco de Modena.
+                        -->
+                        <PieChart fx:id="chartExpanded"
+                                  labelsVisible="true"
+                                  legendVisible="true"
+                                  legendSide="BOTTOM"
+                                  prefWidth="780" prefHeight="600"
+                                  style="-fx-background-color: transparent;
+                                         -fx-background: transparent;
+                                         -fx-font-size: 14px;
+                                         -fx-font-weight: bold;"/>
                     </VBox>
                 </VBox>
 
-                <!-- SECCIÓN ESTADÍSTICAS CON ESTILO -->
-                <VBox spacing="20" style="-fx-padding: 40; -fx-background-radius: 25; -fx-background-color: linear-gradient(to bottom left, rgba(100, 30, 150, 0.25), rgba(50, 15, 80, 0.2)); -fx-border-color: #a335ee; -fx-border-radius: 25; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.4), 30, 0, 0, 5);">
-                    
+                <!-- SECCIÓN ESTADÍSTICAS -->
+                <VBox spacing="20"
+                      style="-fx-padding: 40;
+                             -fx-background-radius: 25;
+                             -fx-background-color: linear-gradient(to bottom left, rgba(100, 30, 150, 0.25), rgba(50, 15, 80, 0.2));
+                             -fx-border-color: #a335ee;
+                             -fx-border-radius: 25;
+                             -fx-border-width: 2;
+                             -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.4), 30, 0, 0, 5);">
+
                     <VBox spacing="8">
                         <Label text="📊 ESTADÍSTICAS DETALLADAS" style="-fx-text-fill: #f7d27a; -fx-font-size: 20px; -fx-font-weight: 900; -fx-letter-spacing: 3px;"/>
                         <Label text="Resumen analítico de tu actividad" style="-fx-text-fill: #a335ee; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                     </VBox>
-                    
+
                     <Separator style="-fx-border-color: linear-gradient(to right, transparent, #a335ee, transparent); -fx-border-width: 1;"/>
-                    
+
                     <!-- GRID DE ESTADÍSTICAS -->
                     <GridPane hgap="25" vgap="20" style="-fx-padding: 20;">
                         <columnConstraints>
                             <ColumnConstraints percentWidth="50" />
                             <ColumnConstraints percentWidth="50" />
                         </columnConstraints>
-                        
-                        <!-- ESTADÍSTICA 1: TIEMPO TOTAL -->
-                        <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="0" 
+
+                        <!-- TIEMPO TOTAL -->
+                        <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="0"
                               style="-fx-padding: 25; -fx-background-radius: 15; -fx-background-color: linear-gradient(to bottom right, rgba(163, 53, 238, 0.25), rgba(100, 30, 150, 0.15)); -fx-border-color: #a335ee; -fx-border-radius: 15; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(163,53,238,0.4), 20, 0, 0, 3);">
                             <Label text="⏱️ TIEMPO TOTAL" style="-fx-text-fill: #f7d27a; -fx-font-size: 13px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
                             <Label fx:id="lblTotalTime" text="0h 0m" style="-fx-text-fill: #4ade80; -fx-font-size: 32px; -fx-font-weight: 900; -fx-effect: dropshadow(three-pass-box, rgba(74,222,128,0.5), 15, 0, 0, 0);"/>
                         </VBox>
-                        
-                        <!-- ESTADÍSTICA 2: CATEGORÍAS -->
+
+                        <!-- CATEGORÍAS -->
                         <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="0"
                               style="-fx-padding: 25; -fx-background-radius: 15; -fx-background-color: linear-gradient(to bottom right, rgba(78, 205, 196, 0.25), rgba(50, 150, 150, 0.15)); -fx-border-color: #4ecdc4; -fx-border-radius: 15; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(78,205,196,0.4), 20, 0, 0, 3);">
                             <Label text="📂 CATEGORÍAS" style="-fx-text-fill: #4ecdc4; -fx-font-size: 13px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
                             <Label fx:id="lblCategoryCount" text="0" style="-fx-text-fill: #00ffff; -fx-font-size: 32px; -fx-font-weight: 900; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.5), 15, 0, 0, 0);"/>
                         </VBox>
-                        
-                        <!-- ESTADÍSTICA 3: CATEGORÍA MAYOR -->
+
+                        <!-- FAVORITA -->
                         <VBox spacing="10" GridPane.columnIndex="0" GridPane.rowIndex="1"
                               style="-fx-padding: 25; -fx-background-radius: 15; -fx-background-color: linear-gradient(to bottom right, rgba(255, 107, 107, 0.25), rgba(200, 50, 50, 0.15)); -fx-border-color: #ff6b6b; -fx-border-radius: 15; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(255,107,107,0.4), 20, 0, 0, 3);">
                             <Label text="🏆 FAVORITA" style="-fx-text-fill: #ff6b6b; -fx-font-size: 13px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>
                             <Label fx:id="lblMaxCategory" text="---" style="-fx-text-fill: #ff8c8c; -fx-font-size: 18px; -fx-font-weight: 900; -fx-wrap-text: true;" wrapText="true"/>
                         </VBox>
-                        
-                        <!-- ESTADÍSTICA 4: PROMEDIO -->
+
+                        <!-- PROMEDIO -->
                         <VBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="1"
                               style="-fx-padding: 25; -fx-background-radius: 15; -fx-background-color: linear-gradient(to bottom right, rgba(255, 212, 61, 0.25), rgba(200, 150, 40, 0.15)); -fx-border-color: #ffd93d; -fx-border-radius: 15; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(255,212,61,0.4), 20, 0, 0, 3);">
                             <Label text="📈 PROMEDIO" style="-fx-text-fill: #ffd93d; -fx-font-size: 13px; -fx-font-weight: 900; -fx-letter-spacing: 2px;"/>

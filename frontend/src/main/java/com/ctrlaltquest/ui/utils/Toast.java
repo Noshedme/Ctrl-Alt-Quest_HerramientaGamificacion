@@ -15,319 +15,215 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 /**
- * Sistema de notificaciones Toast animadas para Ctrl+Alt+Quest
- * Soporta múltiples tipos: SUCCESS, ERROR, WARNING, INFO, GOLD
- * 
- * Uso fácil:
- * Toast.success("Título", "Mensaje");
- * Toast.error("Error", "Algo salió mal");
- * Toast.warning("Advertencia", "Ten cuidado");
- * Toast.info("Info", "Mensaje informativo");
- * Toast.gold("Épico", "¡Lo lograste!");
+ * Sistema de notificaciones Toast animadas para Ctrl+Alt+Quest.
+ *
+ * Anti-spam mejorado:
+ *  - DUPLICATE_COOLDOWN: mismo mensaje no se repite en X ms
+ *  - GLOBAL_COOLDOWN: mínimo tiempo entre cualquier par de toasts
+ *  - MAX_VISIBLE_TOASTS: límite de toasts en pantalla a la vez
  */
 public class Toast {
-    
-    private static final double SCREEN_OFFSET_X = 20;
-    private static final double SCREEN_OFFSET_Y = 20;
-    private static final double TOAST_DURATION = 4000; // 4 segundos
-    private static final double ANIMATION_DURATION = 500; // 0.5 segundos
-    private static final int MAX_VISIBLE_TOASTS = 5; // Máximo de toasts visibles
-    private static final long DUPLICATE_CHECK_TIME = 500; // 500ms para evitar duplicados
-    
+
+    // ── Configuración ────────────────────────────────────────────────────────
+    private static final double SCREEN_OFFSET_X    = 20;
+    private static final double SCREEN_OFFSET_Y    = 20;
+    private static final double TOAST_DURATION     = 4000; // ms que dura visible
+    private static final double ANIMATION_DURATION = 400;  // ms de animación entrada/salida
+    private static final int    MAX_VISIBLE_TOASTS = 4;    // máximo en pantalla
+
+    /**
+     * Cooldown por mensaje duplicado (ms).
+     * Un mismo título+mensaje no puede aparecer de nuevo antes de este tiempo.
+     */
+    private static final long DUPLICATE_COOLDOWN = 5000; // 5 segundos
+
+    /**
+     * Cooldown global entre cualquier toast (ms).
+     * Evita el spam aunque sean mensajes distintos.
+     */
+    private static final long GLOBAL_COOLDOWN = 800; // 0.8 segundos
+
+    // ── Estado interno ────────────────────────────────────────────────────────
+    private static VBox toastContainer;
+    private static final Map<String, Long> recentToasts = new HashMap<>();
+    private static long lastToastTime = 0; // Para el cooldown global
+
+    // ── Tipos ─────────────────────────────────────────────────────────────────
     public enum ToastType {
         SUCCESS("#4ade80", "✓"),
-        ERROR("#ff6b6b", "✗"),
+        ERROR  ("#ff6b6b", "✗"),
         WARNING("#f59e0b", "⚠"),
-        INFO("#a855f7", "ⓘ"),
-        GOLD("#f7d27a", "★");
-        
+        INFO   ("#a855f7", "ⓘ"),
+        GOLD   ("#f7d27a", "★");
+
         public final String color;
         public final String icon;
-        
+
         ToastType(String color, String icon) {
             this.color = color;
-            this.icon = icon;
+            this.icon  = icon;
         }
     }
-    
-    private static VBox toastContainer;
-    private static final Map<String, Long> recentToasts = new HashMap<>(); // Control de duplicados
-    
-    /**
-     * Inicializa el contenedor de Toasts (llamar al inicio de la aplicación)
-     */
+
+    // ════════════════════════════════════════════════════════════════════════
+    // INICIALIZACIÓN
+    // ════════════════════════════════════════════════════════════════════════
+
     public static void initialize(VBox container) {
         toastContainer = container;
         toastContainer.setStyle("-fx-background-color: transparent;");
         toastContainer.setPrefSize(400, 600);
         toastContainer.setSpacing(10);
-        toastContainer.setPadding(new Insets(SCREEN_OFFSET_Y, SCREEN_OFFSET_X, SCREEN_OFFSET_Y, SCREEN_OFFSET_X));
+        toastContainer.setPadding(new Insets(SCREEN_OFFSET_Y, SCREEN_OFFSET_X,
+                                             SCREEN_OFFSET_Y, SCREEN_OFFSET_X));
     }
-    
-    /**
-     * Notificación SUCCESS (Verde) - Operación exitosa
-     */
-    public static void success(String title, String message) {
-        show(title, message, ToastType.SUCCESS);
+
+    // ════════════════════════════════════════════════════════════════════════
+    // API PÚBLICA
+    // ════════════════════════════════════════════════════════════════════════
+
+    public static void success(String title, String message) { show(title, message, ToastType.SUCCESS); }
+    public static void error  (String title, String message) { show(title, message, ToastType.ERROR);   }
+    public static void warning(String title, String message) { show(title, message, ToastType.WARNING); }
+    public static void info   (String title, String message) { show(title, message, ToastType.INFO);    }
+    public static void gold   (String title, String message) { show(title, message, ToastType.GOLD);    }
+
+    public static void formError  (String field, String msg) { error("❌ " + field, msg); }
+    public static void formSuccess(String title, String msg) { success("✔️ " + title, msg); }
+    public static void exception  (String title, Exception e) {
+        String msg = e.getLocalizedMessage() != null ? e.getLocalizedMessage() : e.getClass().getSimpleName();
+        error(title, msg);
     }
-    
-    /**
-     * Notificación ERROR (Rojo) - Error o excepción
-     */
-    public static void error(String title, String message) {
-        show(title, message, ToastType.ERROR);
+
+    public static void epic(String title, String message) {
+        if (!puedeMotrar(title, message)) return;
+        VBox toast = createToastUI(title, message, ToastType.GOLD);
+        toast.setPrefWidth(450);
+        mostrarToast(toast, 6000);
     }
-    
-    /**
-     * Notificación WARNING (Naranja) - Advertencia
-     */
-    public static void warning(String title, String message) {
-        show(title, message, ToastType.WARNING);
-    }
-    
-    /**
-     * Notificación INFO (Púrpura) - Información general
-     */
-    public static void info(String title, String message) {
-        show(title, message, ToastType.INFO);
-    }
-    
-    /**
-     * Notificación GOLD (Dorado) - Evento épico/especial
-     */
-    public static void gold(String title, String message) {
-        show(title, message, ToastType.GOLD);
-    }
-    
-    /**
-     * Muestra un toast con tipo personalizado
-     * Incluye control de duplicados y límite máximo de toasts visibles
-     */
+
+    // ════════════════════════════════════════════════════════════════════════
+    // LÓGICA CENTRAL
+    // ════════════════════════════════════════════════════════════════════════
+
     private static void show(String title, String message, ToastType type) {
+        if (!puedeMotrar(title, message)) return;
+        mostrarToast(createToastUI(title, message, type), TOAST_DURATION);
+    }
+
+    /**
+     * Verifica si el toast puede mostrarse según los cooldowns.
+     * Registra el tiempo si pasa los filtros.
+     */
+    private static boolean puedeMotrar(String title, String message) {
         if (toastContainer == null) {
-            System.err.println("Toast no inicializado. Llamar Toast.initialize() al inicio.");
-            return;
+            System.err.println("Toast no inicializado. Llamar Toast.initialize() primero.");
+            return false;
         }
-        
-        // Crear clave única para el mensaje
-        String toastKey = title + "|" + message;
-        long currentTime = System.currentTimeMillis();
-        
-        // Verificar si este mismo toast se mostró recientemente (evitar duplicados)
-        if (recentToasts.containsKey(toastKey)) {
-            long lastShowTime = recentToasts.get(toastKey);
-            if (currentTime - lastShowTime < DUPLICATE_CHECK_TIME) {
-                return; // Ignorar si es un duplicado muy reciente
-            }
+
+        long now = System.currentTimeMillis();
+
+        // 1. Cooldown global — evita ráfagas de toasts distintos
+        if (now - lastToastTime < GLOBAL_COOLDOWN) return false;
+
+        // 2. Cooldown por mensaje duplicado
+        String key = title + "|" + message;
+        Long lastTime = recentToasts.get(key);
+        if (lastTime != null && now - lastTime < DUPLICATE_COOLDOWN) return false;
+
+        // Pasó los filtros → registrar
+        lastToastTime = now;
+        recentToasts.put(key, now);
+
+        // Limpiar entradas viejas del mapa para no crecer infinitamente
+        if (recentToasts.size() > 50) {
+            recentToasts.entrySet().removeIf(e -> now - e.getValue() > DUPLICATE_COOLDOWN * 2);
         }
-        
-        // Registrar este toast como mostrado recientemente
-        recentToasts.put(toastKey, currentTime);
-        
-        // Limpiar el mapa de duplicados después de un tiempo
-        if (recentToasts.size() > 100) {
-            recentToasts.entrySet().removeIf(entry -> 
-                currentTime - entry.getValue() > DUPLICATE_CHECK_TIME * 2
-            );
-        }
-        
-        // Limitar el número máximo de toasts visibles
+
+        return true;
+    }
+
+    private static void mostrarToast(VBox toast, double duracionMs) {
+        // Límite de toasts visibles: eliminar el más antiguo
         if (toastContainer.getChildren().size() >= MAX_VISIBLE_TOASTS) {
-            // Remover el toast más antiguo (primero de la lista)
-            if (!toastContainer.getChildren().isEmpty()) {
-                toastContainer.getChildren().remove(0);
-            }
+            toastContainer.getChildren().remove(0);
         }
-        
-        // Crear el componente Toast
-        VBox toast = createToastUI(title, message, type);
-        
-        // Agregar al contenedor
+
         toastContainer.getChildren().add(toast);
-        
-        // Animación de entrada
         animateEntry(toast);
-        
-        // Programar desaparición
-        PauseTransition pause = new PauseTransition(Duration.millis(TOAST_DURATION));
-        pause.setOnFinished(event -> animateExit(toast, toastContainer));
+
+        PauseTransition pause = new PauseTransition(Duration.millis(duracionMs));
+        pause.setOnFinished(e -> animateExit(toast, toastContainer));
         pause.play();
     }
-    
-    /**
-     * Crea la interfaz visual del Toast
-     */
+
+    // ════════════════════════════════════════════════════════════════════════
+    // UI DEL TOAST
+    // ════════════════════════════════════════════════════════════════════════
+
     private static VBox createToastUI(String title, String message, ToastType type) {
         VBox toastBox = new VBox();
-        toastBox.getStyleClass().add("toast-container");
-        String typeClass = "toast-" + type.name().toLowerCase();
-        toastBox.getStyleClass().add(typeClass);
-        // Estilos inline para asegurar visibilidad sin CSS externo
-        toastBox.setStyle("-fx-background-color: " + type.color + "cc; " + // Color con 80% opacidad
-                          "-fx-padding: 15; " +
-                          "-fx-border-radius: 8; " +
-                          "-fx-background-radius: 8; " +
-                          "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 2);");
-        
-        // Icono y título en horizontal
-        HBox headerBox = new HBox();
-        headerBox.setSpacing(10);
+        toastBox.setStyle(
+            "-fx-background-color: " + type.color + "cc;" +
+            "-fx-padding: 15;" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 2);");
+
+        HBox headerBox = new HBox(10);
         headerBox.setAlignment(Pos.CENTER_LEFT);
-        
+
         Label iconLabel = new Label(type.icon);
-        iconLabel.getStyleClass().add("icon");
         iconLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;");
-        
+
         Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("title");
         titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
         titleLabel.setWrapText(true);
-        
+
         headerBox.getChildren().addAll(iconLabel, titleLabel);
-        
-        // Mensaje
+
         Label messageLabel = new Label(message);
-        messageLabel.getStyleClass().add("message");
         messageLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
         messageLabel.setWrapText(true);
         messageLabel.setMaxWidth(320);
-        
+
         toastBox.getChildren().addAll(headerBox, messageLabel);
         toastBox.setPrefWidth(350);
         toastBox.setMinHeight(80);
-        
+
         return toastBox;
     }
-    
-    /**
-     * Anima la entrada del Toast (desliza desde la derecha con fade)
-     */
+
+    // ════════════════════════════════════════════════════════════════════════
+    // ANIMACIONES
+    // ════════════════════════════════════════════════════════════════════════
+
     private static void animateEntry(VBox toast) {
-        // Posición inicial (fuera de pantalla a la derecha)
         toast.setTranslateX(400);
         toast.setOpacity(0);
-        
-        // Animación de traslación
-        TranslateTransition translateTransition = new TranslateTransition(
-            Duration.millis(ANIMATION_DURATION), toast
-        );
-        translateTransition.setToX(0);
-        translateTransition.play();
-        
-        // Animación de opacidad (fade in)
-        FadeTransition fadeTransition = new FadeTransition(
-            Duration.millis(ANIMATION_DURATION), toast
-        );
-        fadeTransition.setToValue(1);
-        fadeTransition.play();
-        
-        // Efecto de escala para más dinamismo
-        ScaleTransition scaleTransition = new ScaleTransition(
-            Duration.millis(ANIMATION_DURATION), toast
-        );
-        scaleTransition.setFromX(0.9);
-        scaleTransition.setFromY(0.9);
-        scaleTransition.setToX(1);
-        scaleTransition.setToY(1);
-        scaleTransition.play();
+
+        TranslateTransition tt = new TranslateTransition(Duration.millis(ANIMATION_DURATION), toast);
+        tt.setToX(0); tt.play();
+
+        FadeTransition ft = new FadeTransition(Duration.millis(ANIMATION_DURATION), toast);
+        ft.setToValue(1); ft.play();
+
+        ScaleTransition st = new ScaleTransition(Duration.millis(ANIMATION_DURATION), toast);
+        st.setFromX(0.9); st.setFromY(0.9);
+        st.setToX(1);     st.setToY(1);
+        st.play();
     }
-    
-    /**
-     * Anima la salida del Toast (desliza a la derecha con fade)
-     */
+
     private static void animateExit(VBox toast, VBox container) {
-        TranslateTransition translateTransition = new TranslateTransition(
-            Duration.millis(ANIMATION_DURATION), toast
-        );
-        translateTransition.setToX(400);
-        
-        FadeTransition fadeTransition = new FadeTransition(
-            Duration.millis(ANIMATION_DURATION), toast
-        );
-        fadeTransition.setToValue(0);
-        
-        ScaleTransition scaleTransition = new ScaleTransition(
-            Duration.millis(ANIMATION_DURATION), toast
-        );
-        scaleTransition.setToX(0.9);
-        scaleTransition.setToY(0.9);
-        
-        // Al finalizar, remover del contenedor
-        fadeTransition.setOnFinished(event -> container.getChildren().remove(toast));
-        
-        translateTransition.play();
-        fadeTransition.play();
-        scaleTransition.play();
-    }
-    
-    /**
-     * Muestra un error de form (validación)
-     * Toast.formError("Campo Obligatorio", "El email es requerido");
-     */
-    public static void formError(String field, String message) {
-        error("❌ " + field, message);
-    }
-    
-    /**
-     * Muestra éxito de form
-     * Toast.formSuccess("Registro", "Cuenta creada exitosamente");
-     */
-    public static void formSuccess(String title, String message) {
-        success("✔️ " + title, message);
-    }
-    
-    /**
-     * Muestra un error tipo Exception (para try/catch)
-     * Toast.exception("Error de Base de Datos", exception);
-     */
-    public static void exception(String title, Exception e) {
-        String message = e.getLocalizedMessage() != null ? 
-            e.getLocalizedMessage() : e.getClass().getSimpleName();
-        error(title, message);
-    }
-    
-    /**
-     * Muestra notificación larga (épica)
-     */
-    public static void epic(String title, String message) {
-        if (toastContainer == null) {
-            System.err.println("Toast no inicializado. Llamar Toast.initialize() al inicio.");
-            return;
-        }
-        
-        // Crear clave única para el mensaje
-        String toastKey = title + "|" + message + "|epic";
-        long currentTime = System.currentTimeMillis();
-        
-        // Verificar si este mismo toast se mostró recientemente (evitar duplicados)
-        if (recentToasts.containsKey(toastKey)) {
-            long lastShowTime = recentToasts.get(toastKey);
-            if (currentTime - lastShowTime < DUPLICATE_CHECK_TIME) {
-                return; // Ignorar si es un duplicado muy reciente
-            }
-        }
-        
-        // Registrar este toast como mostrado recientemente
-        recentToasts.put(toastKey, currentTime);
-        
-        // Limitar el número máximo de toasts visibles
-        if (toastContainer.getChildren().size() >= MAX_VISIBLE_TOASTS) {
-            // Remover el toast más antiguo (primero de la lista)
-            if (!toastContainer.getChildren().isEmpty()) {
-                toastContainer.getChildren().remove(0);
-            }
-        }
-        
-        VBox toast = createToastUI(title, message, ToastType.GOLD);
-        toast.getStyleClass().add("toast-epic");
-        toast.setPrefWidth(450);
-        
-        toastContainer.getChildren().add(toast);
-        animateEntry(toast);
-        
-        // Duración más larga para épicos (6 segundos)
-        PauseTransition pause = new PauseTransition(Duration.millis(6000));
-        pause.setOnFinished(event -> animateExit(toast, toastContainer));
-        pause.play();
+        TranslateTransition tt = new TranslateTransition(Duration.millis(ANIMATION_DURATION), toast);
+        tt.setToX(400); tt.play();
+
+        FadeTransition ft = new FadeTransition(Duration.millis(ANIMATION_DURATION), toast);
+        ft.setToValue(0);
+        ft.setOnFinished(e -> container.getChildren().remove(toast));
+        ft.play();
+
+        ScaleTransition st = new ScaleTransition(Duration.millis(ANIMATION_DURATION), toast);
+        st.setToX(0.9); st.setToY(0.9); st.play();
     }
 }

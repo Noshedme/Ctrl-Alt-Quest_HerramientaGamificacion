@@ -61,7 +61,6 @@ public class ListExpandedModalController {
     }
 
     private void setupSearchAndFilter() {
-        // Configurar ComboBox de ordenamiento
         ObservableList<String> sortOptions = FXCollections.observableArrayList(
             "Mayor a Menor Tiempo",
             "Menor a Mayor Tiempo",
@@ -71,11 +70,46 @@ public class ListExpandedModalController {
         sortCombo.setItems(sortOptions);
         sortCombo.setValue("Mayor a Menor Tiempo");
 
-        // Listener para búsqueda
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> filtrarYOrdenar());
+        // ── Estilo oscuro del ComboBox vía lookupAll ──────────────────────
+        // Se aplica en un Platform.runLater para que el skin ya esté creado
+        Platform.runLater(() -> estilizarComboBox());
 
-        // Listener para ordenamiento
-        sortCombo.valueProperty().addListener((obs, oldVal, newVal) -> filtrarYOrdenar());
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> filtrarYOrdenar());
+        sortCombo.valueProperty().addListener((obs, oldVal, newVal) -> {
+            filtrarYOrdenar();
+            // Re-aplicar estilos al cambiar valor (el skin se recrea)
+            Platform.runLater(() -> estilizarComboBox());
+        });
+
+        // Estilo al abrir/cerrar el desplegable
+        sortCombo.showingProperty().addListener((obs, wasShowing, isShowing) ->
+            Platform.runLater(() -> estilizarComboBox())
+        );
+    }
+
+    private void estilizarComboBox() {
+        // Fondo del combo cerrado
+        sortCombo.lookupAll(".combo-box").forEach(n ->
+            n.setStyle("-fx-background-color: rgba(20, 10, 40, 0.9); -fx-border-color: #a335ee; -fx-border-width: 2; -fx-border-radius: 12; -fx-background-radius: 12;")
+        );
+        // Texto del ítem seleccionado
+        sortCombo.lookupAll(".list-cell").forEach(n ->
+            n.setStyle("-fx-text-fill: #d0d0d0; -fx-background-color: transparent; -fx-font-size: 12px; -fx-font-weight: bold;")
+        );
+        // Botón de flecha
+        sortCombo.lookupAll(".arrow-button").forEach(n ->
+            n.setStyle("-fx-background-color: transparent;")
+        );
+        sortCombo.lookupAll(".arrow").forEach(n ->
+            n.setStyle("-fx-background-color: #a335ee;")
+        );
+        // Popup / lista desplegable
+        sortCombo.lookupAll(".combo-box-popup .list-view").forEach(n ->
+            n.setStyle("-fx-background-color: rgba(20, 10, 40, 0.97); -fx-border-color: #a335ee; -fx-border-width: 2;")
+        );
+        sortCombo.lookupAll(".combo-box-popup .list-cell").forEach(n ->
+            n.setStyle("-fx-text-fill: #d0d0d0; -fx-background-color: transparent; -fx-font-size: 12px; -fx-padding: 8 12;")
+        );
     }
 
     private void filtrarYOrdenar() {
@@ -86,7 +120,6 @@ public class ListExpandedModalController {
             .filter(u -> u.appName.toLowerCase().contains(searchText))
             .collect(Collectors.toList());
 
-        // Aplicar ordenamiento
         switch (sortType) {
             case "Mayor a Menor Tiempo":
                 filtered.sort((a, b) -> Long.compare(b.seconds, a.seconds));
@@ -123,9 +156,10 @@ public class ListExpandedModalController {
             return;
         }
 
+        // Colores vibrantes y contrastados — misma paleta que el PieChart
         String[] colors = {
-            "#FF6B6B", "#4ECDC4", "#FFD93D", "#A335EE", "#FF8C42",
-            "#6BCB77", "#FF006E", "#00D4FF", "#A0FF00", "#FFB6C1"
+            "#FF3D3D", "#00C9B1", "#FFB800", "#C840FF", "#FF6000",
+            "#00E676", "#FF0066", "#00B0FF", "#AAFF00", "#FF80AB"
         };
 
         int colorIdx = 0;
@@ -134,8 +168,6 @@ public class ListExpandedModalController {
         for (DashboardDAO.AppUsage u : usageData) {
             double percent = (double) u.seconds / (double) total * 100.0;
             String color = colors[colorIdx % colors.length];
-
-            // Crear tarjeta de aplicación ampliada
             VBox appCard = crearTarjetaAplicacion(u, percent, color, delayIdx);
             applicationsContainer.getChildren().add(appCard);
             colorIdx++;
@@ -145,20 +177,18 @@ public class ListExpandedModalController {
 
     private VBox crearTarjetaAplicacion(DashboardDAO.AppUsage u, double percent, String color, int delayIdx) {
         VBox card = new VBox(15);
-        card.setStyle("-fx-padding: 25; -fx-background-radius: 18; -fx-background-color: linear-gradient(to right, rgba(" + extraerRGB(color) + ", 0.2), rgba(" + extraerRGB(color) + ", 0.05) 50%, rgba(0,0,0,0.05)); -fx-border-color: " + color + "; -fx-border-radius: 18; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(" + extraerRGB(color) + ", 0.5), 20, 0, 0, 4);");
+        card.setStyle(estiloTarjeta(color, false));
         card.setPrefHeight(140);
 
         // ENCABEZADO: Nombre y tiempo
         HBox header = new HBox(18);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        // Indicador de color con efecto de brillo
         Region colorDot = new Region();
         colorDot.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, " + color + ", 12, 0, 0, 0);");
         colorDot.setPrefWidth(20);
         colorDot.setPrefHeight(20);
 
-        // Nombre de app grande y brillante
         Label appName = new Label(u.appName);
         appName.setStyle("-fx-text-fill: #f7d27a; -fx-font-size: 20px; -fx-font-weight: 900; -fx-letter-spacing: 1.5px;");
         appName.setMaxWidth(350);
@@ -168,7 +198,6 @@ public class ListExpandedModalController {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Tiempo y porcentaje con estilos vibrantes
         VBox timeBox = new VBox(5);
         timeBox.setAlignment(Pos.CENTER_RIGHT);
         Label timeLabel = new Label(formatSeconds(u.seconds));
@@ -179,17 +208,22 @@ public class ListExpandedModalController {
 
         header.getChildren().addAll(colorDot, appName, spacer, timeBox);
 
-        // BARRA DE PROGRESO mejorada
+        // BARRA DE PROGRESO — fondo oscuro explícito para que no se vea blanco
         ProgressBar progressBar = new ProgressBar(percent / 100.0);
-        progressBar.setStyle("-fx-accent: " + color + "; -fx-control-inner-background: rgba(0,0,0,0.2); -fx-padding: 0;");
-        progressBar.setPrefHeight(6);
         progressBar.setMaxWidth(Double.MAX_VALUE);
-        progressBar.setStyle("-fx-accent: " + color + "; -fx-control-inner-background: rgba(0,0,0,0.3);");
+        progressBar.setPrefHeight(8);
+        progressBar.setStyle(
+            "-fx-accent: " + color + ";" +
+            "-fx-control-inner-background: rgba(10, 5, 25, 0.6);" +
+            "-fx-background-color: rgba(10, 5, 25, 0.6);" +
+            "-fx-background-radius: 4;" +
+            "-fx-border-radius: 4;"
+        );
 
         // Información adicional
         HBox infoBox = new HBox(20);
         infoBox.setAlignment(Pos.CENTER_LEFT);
-        infoBox.setStyle("-fx-padding: 12 0 0 0;");
+        infoBox.setStyle("-fx-padding: 4 0 0 0;");
 
         Label minLabel = new Label("⏱️  " + (u.seconds / 60) + " minutos");
         minLabel.setStyle("-fx-text-fill: #a0a0a0; -fx-font-size: 12px; -fx-font-weight: bold;");
@@ -198,11 +232,9 @@ public class ListExpandedModalController {
         secLabel.setStyle("-fx-text-fill: " + color + "80; -fx-font-size: 11px;");
 
         infoBox.getChildren().addAll(minLabel, secLabel);
-
-        // Agregar elementos a la tarjeta
         card.getChildren().addAll(header, progressBar, infoBox);
 
-        // Animación de entrada suave
+        // Animación de entrada
         card.setOpacity(0);
         card.setTranslateY(25);
 
@@ -215,9 +247,9 @@ public class ListExpandedModalController {
         ft.setToValue(1.0);
         ft.setDelay(Duration.millis(delayIdx));
 
-        // Hover effects espectaculares
+        // Hover
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-padding: 25; -fx-background-radius: 18; -fx-background-color: linear-gradient(to right, rgba(" + extraerRGB(color) + ", 0.35), rgba(" + extraerRGB(color) + ", 0.1) 50%, rgba(0,0,0,0.1)); -fx-border-color: " + color + "; -fx-border-radius: 18; -fx-border-width: 3; -fx-effect: dropshadow(three-pass-box, rgba(" + extraerRGB(color) + ", 0.8), 30, 0, 0, 6);");
+            card.setStyle(estiloTarjetaHover(color));
             ScaleTransition scale = new ScaleTransition(Duration.millis(160), card);
             scale.setToX(1.03);
             scale.setToY(1.03);
@@ -227,7 +259,7 @@ public class ListExpandedModalController {
         });
 
         card.setOnMouseExited(e -> {
-            card.setStyle("-fx-padding: 25; -fx-background-radius: 18; -fx-background-color: linear-gradient(to right, rgba(" + extraerRGB(color) + ", 0.2), rgba(" + extraerRGB(color) + ", 0.05) 50%, rgba(0,0,0,0.05)); -fx-border-color: " + color + "; -fx-border-radius: 18; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(" + extraerRGB(color) + ", 0.5), 20, 0, 0, 4);");
+            card.setStyle(estiloTarjeta(color, false));
             ScaleTransition scale = new ScaleTransition(Duration.millis(160), card);
             scale.setToX(1.0);
             scale.setToY(1.0);
@@ -241,6 +273,30 @@ public class ListExpandedModalController {
 
         return card;
     }
+
+    // ── Helpers de estilo centralizados ──────────────────────────────────────
+
+    private String estiloTarjeta(String color, boolean hover) {
+        String rgb = extraerRGB(color);
+        double alpha1 = hover ? 0.35 : 0.20;
+        double alpha2 = hover ? 0.10 : 0.05;
+        int borderWidth = hover ? 3 : 2;
+        double shadowAlpha = hover ? 0.8 : 0.5;
+        int shadowRadius = hover ? 30 : 20;
+        return "-fx-padding: 25;" +
+               "-fx-background-radius: 18;" +
+               "-fx-background-color: linear-gradient(to right, rgba(" + rgb + ", " + alpha1 + "), rgba(" + rgb + ", " + alpha2 + ") 50%, rgba(10,5,25,0.4));" +
+               "-fx-border-color: " + color + ";" +
+               "-fx-border-radius: 18;" +
+               "-fx-border-width: " + borderWidth + ";" +
+               "-fx-effect: dropshadow(three-pass-box, rgba(" + rgb + ", " + shadowAlpha + "), " + shadowRadius + ", 0, 0, 4);";
+    }
+
+    private String estiloTarjetaHover(String color) {
+        return estiloTarjeta(color, true);
+    }
+
+    // ── Estadísticas ─────────────────────────────────────────────────────────
 
     private void actualizarEstadisticas(List<DashboardDAO.AppUsage> usageData) {
         if (usageData.isEmpty()) return;

@@ -1,259 +1,249 @@
 package com.ctrlaltquest.ui.utils;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.ctrlaltquest.ui.controllers.SettingsController;
 
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
- * Gestor Global de Atajos de Teclado (Singleton)
- * Maneja todos los atajos de teclado que funcionan globalmente en la aplicación
+ * KeyBindingManager — Gestor global de atajos de teclado.
+ *
+ * Problema original: al llamar WindowManager.changeScene() se crea una nueva
+ * Scene, y el event filter registrado en la escena anterior se pierde.
+ *
+ * Solución: escuchar stage.sceneProperty() para re-registrar el handler
+ * automáticamente cada vez que cambie la escena.
  */
 public class KeyBindingManager {
-    
+
     private static KeyBindingManager instance;
-    private Map<String, Runnable> keyBindingActions;
-    private Stage primaryStage;
-    private boolean videoControlEnabled = false;
-    private Runnable videoToggleCallback;
-    
-    // Variables para estado de muteo
-    private boolean musicMuted = false;
+    private final Map<String, Runnable> actions = new HashMap<>();
+
+    private Stage  primaryStage;
+    private boolean videoControlEnabled  = false;
+    private Runnable videoToggleCallback = null;
+
+    private boolean musicMuted  = false;
     private boolean soundsMuted = false;
-    
+
     private KeyBindingManager() {
-        this.keyBindingActions = new HashMap<>();
-        registerDefaultActions();
+        registrarAcciones();
     }
-    
-    /**
-     * Obtiene la instancia única del gestor
-     */
+
     public static KeyBindingManager getInstance() {
-        if (instance == null) {
-            instance = new KeyBindingManager();
-        }
+        if (instance == null) instance = new KeyBindingManager();
         return instance;
     }
-    
+
+    // ════════════════════════════════════════════════════════════════════════
+    // INICIALIZACIÓN
+    // ════════════════════════════════════════════════════════════════════════
+
     /**
-     * Registra las acciones por defecto para los atajos
+     * Llamar una sola vez desde AppLauncher.
+     * Se registra en sceneProperty() para que los atajos funcionen en TODAS
+     * las escenas, incluso después de WindowManager.changeScene().
      */
-    private void registerDefaultActions() {
-        // Mutear música
+    public void initializeKeyBindings(Stage stage, Scene initialScene) {
+        this.primaryStage = stage;
+
+        // Registrar en la escena inicial
+        registrarEnEscena(initialScene);
+
+        // Re-registrar automáticamente cada vez que la escena cambie
+        stage.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) registrarEnEscena(newScene);
+        });
+    }
+
+    private void registrarEnEscena(Scene scene) {
+        // Eliminar listener anterior si existe (evita duplicados)
+        scene.removeEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // ACCIONES
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void registrarAcciones() {
+
+        // Alt + M — Mutear música
         registerAction("TOGGLE_MUSIC", () -> {
             musicMuted = !musicMuted;
             SettingsController.isMusicEnabled = !musicMuted;
             SoundManager.getInstance().synchronizeMusic();
-            showNotification("Música: " + (SettingsController.isMusicEnabled ? "ACTIVADA ♪" : "DESACTIVADA 🔇"));
+            log("Música: " + (SettingsController.isMusicEnabled ? "ACTIVADA ♪" : "DESACTIVADA 🔇"));
         });
-        
-        // Mutear sonidos
+
+        // Alt + S — Mutear sonidos
         registerAction("TOGGLE_SOUNDS", () -> {
             soundsMuted = !soundsMuted;
             SettingsController.isTypingSoundEnabled = !soundsMuted;
-            showNotification("Sonidos: " + (SettingsController.isTypingSoundEnabled ? "ACTIVADOS ✓" : "DESACTIVADOS ✗"));
+            log("Sonidos: " + (SettingsController.isTypingSoundEnabled ? "ACTIVADOS ✓" : "DESACTIVADOS ✗"));
         });
-        
-        // Mutear todo
+
+        // Ctrl + M — Mutear todo
         registerAction("TOGGLE_ALL_AUDIO", () -> {
             boolean shouldMute = !musicMuted && !soundsMuted;
-            musicMuted = shouldMute;
+            musicMuted  = shouldMute;
             soundsMuted = shouldMute;
-            SettingsController.isMusicEnabled = !musicMuted;
-            SettingsController.isTypingSoundEnabled = !soundsMuted;
+            SettingsController.isMusicEnabled        = !musicMuted;
+            SettingsController.isTypingSoundEnabled  = !soundsMuted;
             SoundManager.getInstance().synchronizeMusic();
-            showNotification("Audio Global: " + (shouldMute ? "DESACTIVADO 🔇" : "ACTIVADO ♪"));
+            log("Audio Global: " + (shouldMute ? "DESACTIVADO 🔇" : "ACTIVADO ♪"));
         });
-        
-        // Pausar/Reanudar video
+
+        // Space / Alt + V — Pausar video de fondo
         registerAction("TOGGLE_VIDEO", () -> {
             if (videoControlEnabled && videoToggleCallback != null) {
                 videoToggleCallback.run();
+                log("Video: alternado");
             }
         });
-        
-        // Pantalla completa
+
+        // F11 — Pantalla completa
         registerAction("FULLSCREEN", () -> {
             if (primaryStage != null) {
                 primaryStage.setFullScreen(!primaryStage.isFullScreen());
-                showNotification("Pantalla Completa: " + (primaryStage.isFullScreen() ? "ACTIVADA" : "DESACTIVADA"));
+                log("Pantalla Completa: " + (primaryStage.isFullScreen() ? "ON" : "OFF"));
             }
         });
-        
-        // Salir
+
+        // Ctrl + Q — Cerrar app
         registerAction("QUIT_APP", () -> {
-            if (primaryStage != null) {
-                primaryStage.close();
-            }
+            if (primaryStage != null) primaryStage.close();
         });
+
+        // Ctrl + K — Mostrar ventana de atajos
+        registerAction("SHOW_KEYBINDINGS", () -> Platform.runLater(this::abrirVistaAtaljos));
     }
-    
-    /**
-     * Registra un nuevo atajo de teclado con su acción
-     */
-    public void registerAction(String actionName, Runnable action) {
-        keyBindingActions.put(actionName, action);
+
+    public void registerAction(String name, Runnable action) {
+        actions.put(name, action);
     }
-    
-    /**
-     * Obtiene la acción asociada a un atajo
-     */
-    public Runnable getAction(String actionName) {
-        return keyBindingActions.get(actionName);
+
+    public void executeAction(String name) {
+        Runnable a = actions.get(name);
+        if (a != null) a.run();
     }
-    
-    /**
-     * Ejecuta una acción por nombre
-     */
-    public void executeAction(String actionName) {
-        Runnable action = keyBindingActions.get(actionName);
-        if (action != null) {
-            action.run();
-        }
-    }
-    
-    /**
-     * Inicializa el gestor de atajos en la escena especificada
-     */
-    public void initializeKeyBindings(Stage stage, Scene scene) {
-        this.primaryStage = stage;
-        
-        // Agregar event filter para capturar eventos de teclado
-        scene.addEventFilter(KeyEvent.KEY_PRESSED, this::handleKeyPress);
-    }
-    
-    /**
-     * Manejador de pulsaciones de teclado
-     */
-    private void handleKeyPress(KeyEvent event) {
-        boolean ctrl = event.isControlDown();
-        boolean alt = event.isAltDown();
-        boolean shift = event.isShiftDown();
-        
-        switch (event.getCode()) {
-            // Ctrl + M: Mutear todo
+
+    // ════════════════════════════════════════════════════════════════════════
+    // HANDLER DE TECLADO
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void handleKeyPress(KeyEvent e) {
+        boolean ctrl  = e.isControlDown();
+        boolean alt   = e.isAltDown();
+        boolean shift = e.isShiftDown();
+
+        switch (e.getCode()) {
+
             case M:
-                if (ctrl && !alt && !shift) {
-                    executeAction("TOGGLE_ALL_AUDIO");
-                    event.consume();
-                }
-                // Alt + M: Mutear música
-                else if (alt && !ctrl && !shift) {
-                    executeAction("TOGGLE_MUSIC");
-                    event.consume();
-                }
+                if (ctrl && !alt && !shift)       { executeAction("TOGGLE_ALL_AUDIO"); e.consume(); }
+                else if (alt && !ctrl && !shift)  { executeAction("TOGGLE_MUSIC");     e.consume(); }
                 break;
-            
-            // Alt + S: Mutear sonidos
+
             case S:
-                if (alt && !ctrl && !shift) {
-                    executeAction("TOGGLE_SOUNDS");
-                    event.consume();
-                }
+                if (alt && !ctrl && !shift)       { executeAction("TOGGLE_SOUNDS");    e.consume(); }
                 break;
-            
-            // Space: Pausar video
+
             case SPACE:
-                if (!ctrl && !alt && !shift) {
-                    executeAction("TOGGLE_VIDEO");
-                    event.consume();
+                // Solo pausar video si no hay un campo de texto enfocado
+                if (!ctrl && !alt && !shift && !hayTextFieldEnfocado()) {
+                    executeAction("TOGGLE_VIDEO"); e.consume();
                 }
                 break;
-            
-            // Alt + V: Pausar video (alternativo)
+
             case V:
-                if (alt && !ctrl && !shift) {
-                    executeAction("TOGGLE_VIDEO");
-                    event.consume();
-                }
+                if (alt && !ctrl && !shift)       { executeAction("TOGGLE_VIDEO");     e.consume(); }
                 break;
-            
-            // F11: Pantalla completa
+
             case F11:
-                if (!ctrl && !alt && !shift) {
-                    executeAction("FULLSCREEN");
-                    event.consume();
-                }
+                if (!ctrl && !alt && !shift)      { executeAction("FULLSCREEN");       e.consume(); }
                 break;
-            
-            // Ctrl + Q: Salir
+
             case Q:
-                if (ctrl && !alt && !shift) {
-                    executeAction("QUIT_APP");
-                    event.consume();
-                }
+                if (ctrl && !alt && !shift)       { executeAction("QUIT_APP");         e.consume(); }
                 break;
-            
-            // Ctrl + K: Mostrar atajos (será implementado por el controlador que lo use)
+
             case K:
-                if (ctrl && !alt && !shift) {
-                    // Buscar si hay una vista de keybindings
-                    showKeybindingsDialog();
-                    event.consume();
-                }
+                if (ctrl && !alt && !shift)       { executeAction("SHOW_KEYBINDINGS"); e.consume(); }
                 break;
-            
+
             default:
                 break;
         }
     }
-    
+
     /**
-     * Habilita el control de video con callback
+     * Evita que Space pause el video cuando el usuario está escribiendo en un TextField.
      */
+    private boolean hayTextFieldEnfocado() {
+        if (primaryStage == null || primaryStage.getScene() == null) return false;
+        javafx.scene.Node focused = primaryStage.getScene().getFocusOwner();
+        return focused instanceof javafx.scene.control.TextField
+            || focused instanceof javafx.scene.control.TextArea
+            || focused instanceof javafx.scene.control.PasswordField;
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // VENTANA DE ATAJOS (Ctrl + K)
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void abrirVistaAtaljos() {
+        try {
+            // Evitar abrir dos ventanas a la vez
+            boolean yaAbierta = Stage.getWindows().stream()
+                .anyMatch(w -> w instanceof Stage &&
+                               "Atajos de Teclado".equals(((Stage) w).getTitle()) &&
+                               w.isShowing());
+            if (yaAbierta) return;
+
+            FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/fxml/views/keybindings_view.fxml"));
+            Parent root = loader.load();
+
+            Stage modal = new Stage();
+            modal.setTitle("Atajos de Teclado");
+            modal.initModality(Modality.APPLICATION_MODAL);
+            if (primaryStage != null) modal.initOwner(primaryStage);
+            modal.initStyle(StageStyle.DECORATED);
+            modal.setResizable(false);
+            modal.setScene(new Scene(root));
+            modal.show();
+
+        } catch (IOException ex) {
+            System.err.println("❌ [KeyBindingManager] No se pudo abrir keybindings_view.fxml: " + ex.getMessage());
+        }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CONTROL DE VIDEO Y UTILIDADES
+    // ════════════════════════════════════════════════════════════════════════
+
     public void enableVideoControl(Runnable toggleCallback) {
         this.videoControlEnabled = true;
         this.videoToggleCallback = toggleCallback;
     }
-    
-    /**
-     * Deshabilita el control de video
-     */
+
     public void disableVideoControl() {
         this.videoControlEnabled = false;
         this.videoToggleCallback = null;
     }
-    
-    /**
-     * Muestra una notificación en pantalla (será mejorada en futuras versiones)
-     */
-    private void showNotification(String message) {
-        System.out.println("⌨️ ATAJO: " + message);
-        // TODO: Implementar toastNotification visual
-    }
-    
-    /**
-     * Muestra el diálogo de atajos disponibles
-     */
-    private void showKeybindingsDialog() {
-        StringBuilder message = new StringBuilder("📋 ATAJOS DE TECLADO DISPONIBLES\n");
-        message.append("═════════════════════════════════\n\n");
-        
-        for (KeyBindings.KeyBindingInfo binding : KeyBindings.ALL_BINDINGS) {
-            message.append(String.format("%-25s %s\n", binding.keyCombination, binding.name));
-            message.append(String.format("   → %s\n\n", binding.description));
-        }
-        
-        System.out.println(message.toString());
-        // TODO: Mostrar esto en una ventana modal en lugar de consola
-    }
-    
-    /**
-     * Obtiene el estado de muteo de música
-     */
-    public boolean isMusicMuted() {
-        return musicMuted;
-    }
-    
-    /**
-     * Obtiene el estado de muteo de sonidos
-     */
-    public boolean isSoundsMuted() {
-        return soundsMuted;
-    }
+
+    public boolean isMusicMuted()  { return musicMuted;  }
+    public boolean isSoundsMuted() { return soundsMuted; }
+
+    private void log(String msg) { System.out.println("⌨️  [KeyBinding] " + msg); }
 }

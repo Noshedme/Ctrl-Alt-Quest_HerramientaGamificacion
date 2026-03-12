@@ -6,9 +6,11 @@ import java.util.Map;
 import java.util.prefs.Preferences;
 
 import com.ctrlaltquest.dao.AuthDAO;
+import com.ctrlaltquest.dao.AuthDAO.LoginResult;
 import com.ctrlaltquest.dao.CharacterDAO;
 import com.ctrlaltquest.models.Character;
 import com.ctrlaltquest.services.AuditService;
+import com.ctrlaltquest.services.LoginAttemptService;
 import com.ctrlaltquest.services.SessionManager;
 import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
@@ -43,21 +45,29 @@ import javafx.util.Duration;
 
 public class LoginController {
 
-    @FXML private TextField usernameField;
+    @FXML private TextField     usernameField;
     @FXML private PasswordField passwordHidden;
-    @FXML private TextField passwordShown;
-    @FXML private Button btnTogglePassword;
-    @FXML private ImageView sidebarLogo;
-    @FXML private MediaView backgroundVideo;
-    @FXML private StackPane newsSlider; 
-    @FXML private CheckBox rememberMeCheck;
-    @FXML private VBox loadingLayer; 
-    
+    @FXML private TextField     passwordShown;
+    @FXML private Button        btnTogglePassword;
+    @FXML private Button        btnLogin;
+    @FXML private ImageView     sidebarLogo;
+    @FXML private MediaView     backgroundVideo;
+    @FXML private StackPane     newsSlider;
+    @FXML private CheckBox      rememberMeCheck;
+    @FXML private VBox          loadingLayer;
+
     private MediaPlayer videoPlayer;
     private boolean isPasswordVisible = false;
-    private int currentNewsIndex = 0;
+    private int     currentNewsIndex  = 0;
 
-    private Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
+    /** Timeline que actualiza el botón con la cuenta regresiva de bloqueo. */
+    private Timeline lockCountdownTimeline;
+
+    private final Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
+
+    // ════════════════════════════════════════════════════════════════════════
+    // INICIALIZACIÓN
+    // ════════════════════════════════════════════════════════════════════════
 
     @FXML
     public void initialize() {
@@ -65,39 +75,26 @@ public class LoginController {
             backgroundVideo.setEffect(new javafx.scene.effect.GaussianBlur(15));
             configurarVideo();
         }
-        
-        SoundManager.getInstance().synchronizeMusic(); 
-        setupTypingSounds(); 
-        
+        SoundManager.getInstance().synchronizeMusic();
+        setupTypingSounds();
         cargarLogo();
-        setupCarousel(); 
+        setupCarousel();
         verificarRecordatorios();
-        
-        // Sincronizar texto inicial por si acaso
         passwordShown.textProperty().bindBidirectional(passwordHidden.textProperty());
-        
-        // Inicializar Toast cuando la escena esté lista
+
         usernameField.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene != null) {
-                initializeToast();
-            }
+            if (newScene != null) initializeToast();
         });
     }
-    
+
     private void initializeToast() {
         try {
             StackPane root = (StackPane) usernameField.getScene().getRoot();
-            
-            // Crear contenedor de Toast
             VBox toastContainer = new VBox();
             toastContainer.setPrefSize(400, 600);
             toastContainer.setStyle("-fx-background-color: transparent;");
             toastContainer.setMouseTransparent(true);
-            
-            // Inicializar el sistema de Toast
             Toast.initialize(toastContainer);
-            
-            // Añadir al root
             if (root != null && !root.getChildren().contains(toastContainer)) {
                 root.getChildren().add(toastContainer);
                 StackPane.setAlignment(toastContainer, javafx.geometry.Pos.TOP_RIGHT);
@@ -106,6 +103,170 @@ public class LoginController {
             System.err.println("Error al inicializar Toast: " + e.getMessage());
         }
     }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // LOGIN
+    // ════════════════════════════════════════════════════════════════════════
+
+    @FXML
+    public void handleLogin() {
+        String user = usernameField.getText().trim();
+        String pass = passwordHidden.getText();
+
+        if (user.isEmpty() || pass.isEmpty()) {
+            SoundManager.playErrorSound();
+            Toast.warning("Campos Incompletos", "Debes ingresar tu identidad para cruzar el umbral.");
+            return;
+        }
+
+        // Verificar bloqueo ANTES de lanzar el Task
+        LoginAttemptService attemptSvc = LoginAttemptService.getInstance();
+        if (attemptSvc.isBlocked(user)) {
+            mostrarBloqueo(user, attemptSvc);
+            return;
+        }
+
+        if (loadingLayer != null) loadingLayer.setVisible(true);
+        Toast.info("Iniciando Sesión", "Verificando tus credenciales...");
+
+        Task<LoginResult> loginTask = new Task<>() {
+            @Override protected LoginResult call() {
+                return AuthDAO.loginCompleto(user, pass);
+            }
+        };
+
+        loginTask.setOnSucceeded(e -> manejarResultado(loginTask.getValue(), user));
+        loginTask.setOnFailed(e -> {
+            if (loadingLayer != null) loadingLayer.setVisible(false);
+            SoundManager.playErrorSound();
+            Toast.error("Error de Conexión", "No se pudo establecer contacto con la base de datos.");
+        });
+
+        new Thread(loginTask).start();
+    }
+
+    /**
+     * Interpreta el LoginResult y actúa en consecuencia.
+     */
+    private void manejarResultado(LoginResult result, String identifier) {
+        if (loadingLayer != null) loadingLayer.setVisible(false);
+
+        switch (result) {
+            case SUCCESS -> {
+                int userId = SessionManager.getInstance().getUserId();
+                String finalUsername = SessionManager.getInstance().getUsername();
+                Map<Integer, Character> personajes = CharacterDAO.getCharactersByUser(userId);
+                Toast.success("¡Bienvenido!", "Acceso concedido, " + finalUsername + "!");
+                if (personajes.isEmpty()) navigateToEditor(userId, finalUsername);
+                else                      navigateToSelection(userId, finalUsername);
+                AuditService.log(null, "LOGIN_SUCCESS", "Acceso concedido para: " + finalUsername);
+            }
+            case BLOCKED -> {
+                SoundManager.playErrorSound();
+                mostrarBloqueo(identifier, LoginAttemptService.getInstance());
+            }
+            case ACCOUNT_INACTIVE -> {
+                SoundManager.playErrorSound();
+                Toast.warning("Cuenta Inactiva", "Tu cuenta no ha sido verificada. Revisa tu correo.");
+            }
+            case INVALID_CREDENTIALS -> {
+                SoundManager.playErrorSound();
+                int restantes = LoginAttemptService.MAX_ATTEMPTS -
+                                LoginAttemptService.getInstance().getAttemptCount(identifier);
+                if (restantes > 0) {
+                    Toast.error("Credenciales Inválidas",
+                        "Usuario o contraseña incorrectos. Te quedan " + restantes + " intento(s).");
+                } else {
+                    // Se bloqueó con este intento
+                    mostrarBloqueo(identifier, LoginAttemptService.getInstance());
+                }
+            }
+            case ERROR -> {
+                SoundManager.playErrorSound();
+                Toast.error("Error", "Ocurrió un problema al procesar el inicio de sesión.");
+            }
+        }
+    }
+
+    /**
+     * Muestra el mensaje de bloqueo e inicia el countdown en el botón.
+     */
+    private void mostrarBloqueo(String identifier, LoginAttemptService svc) {
+        SoundManager.playErrorSound();
+
+        // Deshabilitar botón durante el bloqueo
+        if (btnLogin != null) btnLogin.setDisable(true);
+
+        // Detener countdown anterior si existía
+        if (lockCountdownTimeline != null) lockCountdownTimeline.stop();
+
+        lockCountdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            long remainingMs = svc.getRemainingLockMs(identifier);
+            if (remainingMs <= 0) {
+                // Bloqueo expirado
+                lockCountdownTimeline.stop();
+                if (btnLogin != null) {
+                    btnLogin.setDisable(false);
+                    btnLogin.setText("INICIAR SESIÓN");
+                }
+                Toast.info("Desbloqueado", "Ya puedes intentar iniciar sesión de nuevo.");
+            } else {
+                long secsLeft = (remainingMs / 1000) + 1;
+                if (btnLogin != null) btnLogin.setText("Bloqueado — " + secsLeft + "s");
+            }
+        }));
+        lockCountdownTimeline.setCycleCount(Timeline.INDEFINITE);
+        lockCountdownTimeline.play();
+
+        long secsLeft = (svc.getRemainingLockMs(identifier) / 1000) + 1;
+        Toast.error("🔒 Cuenta Bloqueada",
+            "Demasiados intentos fallidos. Espera " + secsLeft + " segundo(s). Se envió una alerta a tu correo.");
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // NAVEGACIÓN (sin cambios)
+    // ════════════════════════════════════════════════════════════════════════
+
+    private void navigateToSelection(int userId, String username) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/character_selection.fxml"));
+            Parent root = loader.load();
+            CharacterSelectionController ctrl = loader.getController();
+            ctrl.initData(userId, username);
+            ejecutarCambioEscena(root);
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    private void navigateToEditor(int userId, String username) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/character_editor.fxml"));
+            Parent root = loader.load();
+            CharacterEditorController ctrl = loader.getController();
+            ctrl.setInitData(userId, 1);
+            ejecutarCambioEscena(root);
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
+    private void ejecutarCambioEscena(Parent nextRoot) {
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(500), stage.getScene().getRoot());
+        fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
+        fadeOut.setOnFinished(event -> {
+            limpiarRecursos();
+            WindowManager.getInstance().changeScene(nextRoot);
+            Stage newStage = WindowManager.getInstance().getPrimaryStage();
+            if (newStage != null && newStage.getScene() != null)
+                newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
+            nextRoot.setOpacity(0);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(500), nextRoot);
+            fadeIn.setToValue(1.0); fadeIn.play();
+        });
+        fadeOut.play();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // RESTO DE MÉTODOS (sin cambios)
+    // ════════════════════════════════════════════════════════════════════════
 
     private void configurarVideo() {
         URL videoUrl = getClass().getResource("/assets/videos/login_bg.mp4");
@@ -116,33 +277,22 @@ public class LoginController {
                 backgroundVideo.setMediaPlayer(videoPlayer);
                 videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                 videoPlayer.setMute(true);
-                videoPlayer.setRate(0.5); 
-                
-                if (SettingsController.isVideoPaused) {
-                    videoPlayer.pause();
-                } else {
-                    videoPlayer.setOnReady(() -> videoPlayer.play());
-                }
-            } catch (Exception e) {
-                System.err.println("❌ Error carga video: " + e.getMessage());
-            }
+                videoPlayer.setRate(0.5);
+                if (SettingsController.isVideoPaused) videoPlayer.pause();
+                else videoPlayer.setOnReady(() -> videoPlayer.play());
+            } catch (Exception e) { System.err.println("❌ Error carga video: " + e.getMessage()); }
         }
     }
 
     private void setupTypingSounds() {
         TextField[] fields = {usernameField, passwordHidden, passwordShown};
-        for (TextField field : fields) {
-            field.setOnKeyTyped(e -> SoundManager.playKeyClick());
-        }
+        for (TextField field : fields) field.setOnKeyTyped(e -> SoundManager.playKeyClick());
     }
 
     private void verificarRecordatorios() {
         if (prefs.getBoolean("remember_active", false)) {
-            String user = prefs.get("saved_user", "");
-            String pass = prefs.get("saved_pass", "");
-            usernameField.setText(user);
-            passwordHidden.setText(pass);
-            // El bind en initialize se encarga de passwordShown
+            usernameField.setText(prefs.get("saved_user", ""));
+            passwordHidden.setText(prefs.get("saved_pass", ""));
             rememberMeCheck.setSelected(true);
         }
     }
@@ -163,25 +313,20 @@ public class LoginController {
         if (newsSlider == null) return;
         int totalNews = newsSlider.getChildren().size();
         if (totalNews <= 1) return;
-
         for (int i = 0; i < totalNews; i++) {
             newsSlider.getChildren().get(i).setOpacity(i == 0 ? 1.0 : 0.0);
             newsSlider.getChildren().get(i).setManaged(i == 0);
         }
-
         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(6), event -> {
             Node outNode = newsSlider.getChildren().get(currentNewsIndex);
             currentNewsIndex = (currentNewsIndex + 1) % totalNews;
             Node inNode = newsSlider.getChildren().get(currentNewsIndex);
-
             FadeTransition fadeOut = new FadeTransition(Duration.millis(800), outNode);
             fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(e -> {
-                outNode.setManaged(false);
-                inNode.setManaged(true);
+                outNode.setManaged(false); inNode.setManaged(true);
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(800), inNode);
-                fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0);
-                fadeIn.play();
+                fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0); fadeIn.play();
             });
             fadeOut.play();
         }));
@@ -189,223 +334,78 @@ public class LoginController {
         timeline.play();
     }
 
-    @FXML
-    private void togglePassword() {
+    @FXML private void togglePassword() {
         isPasswordVisible = !isPasswordVisible;
-        
-        // Guardamos la posición del cursor para que no salte al inicio
         int caretPos = isPasswordVisible ? passwordHidden.getCaretPosition() : passwordShown.getCaretPosition();
-
         if (isPasswordVisible) {
-            passwordShown.setVisible(true);
-            passwordHidden.setVisible(false);
-            btnTogglePassword.setText("🙈"); // Icono de ocultar
-            
-            passwordShown.requestFocus();
-            passwordShown.positionCaret(caretPos);
+            passwordShown.setVisible(true); passwordHidden.setVisible(false);
+            btnTogglePassword.setText("🙈");
+            passwordShown.requestFocus(); passwordShown.positionCaret(caretPos);
         } else {
-            passwordHidden.setVisible(true);
-            passwordShown.setVisible(false);
-            btnTogglePassword.setText("👁"); // Icono de ver
-            
-            passwordHidden.requestFocus();
-            passwordHidden.positionCaret(caretPos);
+            passwordHidden.setVisible(true); passwordShown.setVisible(false);
+            btnTogglePassword.setText("👁");
+            passwordHidden.requestFocus(); passwordHidden.positionCaret(caretPos);
         }
     }
 
-    @FXML 
-    public void handleLogin() {
-        String user = usernameField.getText().trim();
-        // Al estar vinculados (bind), basta con obtener el texto de uno de los dos
-        String pass = passwordHidden.getText();
-
-        if (user.isEmpty() || pass.isEmpty()) {
-            SoundManager.playErrorSound();
-            Toast.warning("Campos Incompletos", "Debes ingresar tu identidad para cruzar el umbral.");
-            return;
-        }
-
-        if (loadingLayer != null) loadingLayer.setVisible(true);
-        Toast.info("Iniciando Sesión", "Verificando tus credenciales...");
-
-        Task<Boolean> loginTask = new Task<>() {
-            @Override
-            protected Boolean call() {
-                return AuthDAO.loginCompleto(user, pass);
-            }
-        };
-
-        loginTask.setOnSucceeded(e -> {
-            if (loginTask.getValue()) {
-                procesarGuardadoCredenciales(user, pass);
-                int userId = SessionManager.getInstance().getUserId();
-                String finalUsername = SessionManager.getInstance().getUsername();
-                Map<Integer, Character> personajes = CharacterDAO.getCharactersByUser(userId);
-
-                Toast.success("¡Bienvenido!", "Acceso concedido, " + finalUsername + "!");
-                
-                if (personajes.isEmpty()) {
-                    navigateToEditor(userId, finalUsername);
-                } else {
-                    navigateToSelection(userId, finalUsername);
-                }
-                AuditService.log(null, "LOGIN_SUCCESS", "Acceso concedido para: " + finalUsername);
-            } else {
-                if (loadingLayer != null) loadingLayer.setVisible(false);
-                SoundManager.playErrorSound();
-                Toast.error("Credenciales Inválidas", "El usuario o contraseña no coinciden con nuestros registros.");
-            }
-        });
-
-        loginTask.setOnFailed(e -> {
-            if (loadingLayer != null) loadingLayer.setVisible(false);
-            SoundManager.playErrorSound();
-            Toast.error("Error de Conexión", "No se pudo establecer contacto con la base de datos.");
-        });
-
-        new Thread(loginTask).start();
-    }
-
-    @FXML 
-    public void handleForgotPassword() { 
+    @FXML public void handleForgotPassword() {
         try {
             SoundManager.playClickSound();
             Toast.info("Recuperación", "Abriendo formulario de recuperación...");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/forgot_password.fxml"));
             Parent root = loader.load();
-            
             Stage stage = (Stage) usernameField.getScene().getWindow();
-            
             FadeTransition fadeOut = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
+            fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
                 limpiarRecursos();
-                
-                // Usar WindowManager para cambiar escena y mantener maximizado
                 WindowManager.getInstance().changeScene(root);
-                
-                // Inyectar sonidos globales después de cambiar la escena
                 Stage newStage = WindowManager.getInstance().getPrimaryStage();
-                if (newStage != null && newStage.getScene() != null) {
+                if (newStage != null && newStage.getScene() != null)
                     newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
-                }
-                
                 FadeTransition fadeIn = new FadeTransition(Duration.millis(400), root);
-                fadeIn.setFromValue(0.0);
-                fadeIn.setToValue(1.0);
-                fadeIn.play();
+                fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0); fadeIn.play();
             });
             fadeOut.play();
-            
         } catch (IOException e) {
             e.printStackTrace();
             Toast.error("Error", "No se pudo cargar la interfaz de recuperación.");
         }
     }
 
-    private void navigateToSelection(int userId, String username) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/character_selection.fxml"));
-            Parent root = loader.load();
-            CharacterSelectionController ctrl = loader.getController();
-            ctrl.initData(userId, username);
-            ejecutarCambioEscena(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void navigateToEditor(int userId, String username) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/character_editor.fxml"));
-            Parent root = loader.load();
-            CharacterEditorController ctrl = loader.getController();
-            ctrl.setInitData(userId, 1); 
-            ejecutarCambioEscena(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void ejecutarCambioEscena(Parent nextRoot) {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(500), stage.getScene().getRoot());
-        fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
-        
-        fadeOut.setOnFinished(event -> {
-            limpiarRecursos();
-            
-            // Usar WindowManager para cambiar escena y mantener maximizado
-            WindowManager.getInstance().changeScene(nextRoot);
-            
-            // Inyectar sonidos globales después de cambiar la escena
-            Stage newStage = WindowManager.getInstance().getPrimaryStage();
-            if (newStage != null && newStage.getScene() != null) {
-                newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
-            }
-            
-            nextRoot.setOpacity(0);
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(500), nextRoot);
-            fadeIn.setToValue(1.0); fadeIn.play();
-        });
-        fadeOut.play();
-    }
-
-    private void limpiarRecursos() {
-        if (videoPlayer != null) {
-            videoPlayer.stop();
-            videoPlayer.dispose();
-            videoPlayer = null;
-        }
-    }
-
-    @FXML 
-    public void handleOpenSettings() {
+    @FXML public void handleOpenSettings() {
         try {
             SoundManager.playClickSound();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
             Parent root = loader.load();
             SettingsController settingsCtrl = loader.getController();
             settingsCtrl.setLoginController(this);
-            
             Stage settingsStage = new Stage();
             settingsStage.initModality(Modality.APPLICATION_MODAL);
             settingsStage.initOwner(usernameField.getScene().getWindow());
-            settingsStage.initStyle(StageStyle.TRANSPARENT); 
-            
+            settingsStage.initStyle(StageStyle.TRANSPARENT);
             Scene scene = new Scene(root);
-            scene.setFill(Color.TRANSPARENT); 
+            scene.setFill(Color.TRANSPARENT);
             settingsStage.setScene(scene);
             settingsStage.show();
-        } catch (IOException e) {
-            System.err.println("❌ Error al abrir ajustes: " + e.getMessage());
-        }
+        } catch (IOException e) { System.err.println("❌ Error al abrir ajustes: " + e.getMessage()); }
     }
 
-    @FXML 
-    public void handleGoToRegister() { 
+    @FXML public void handleGoToRegister() {
         try {
             SoundManager.playClickSound();
             Toast.info("Registro", "Abriendo formulario de registro...");
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/register.fxml"));
             Parent registerRoot = loader.load();
             Stage stage = (Stage) usernameField.getScene().getWindow();
-            
             FadeTransition fadeOut = new FadeTransition(Duration.millis(400), stage.getScene().getRoot());
-            fadeOut.setFromValue(1.0);
-            fadeOut.setToValue(0.0);
+            fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(event -> {
                 limpiarRecursos();
-                
-                // Usar WindowManager para cambiar escena y mantener maximizado
                 WindowManager.getInstance().changeScene(registerRoot);
-                
-                // Inyectar sonidos globales después de cambiar la escena
                 Stage newStage = WindowManager.getInstance().getPrimaryStage();
-                if (newStage != null && newStage.getScene() != null) {
+                if (newStage != null && newStage.getScene() != null)
                     newStage.getScene().addEventFilter(KeyEvent.KEY_PRESSED, e -> SoundManager.playKeyClick());
-                }
             });
             fadeOut.play();
         } catch (IOException e) {
@@ -416,17 +416,18 @@ public class LoginController {
 
     private void cargarLogo() {
         URL logoUrl = getClass().getResource("/assets/images/logo.png");
-        if (logoUrl != null && sidebarLogo != null) {
+        if (logoUrl != null && sidebarLogo != null)
             sidebarLogo.setImage(new Image(logoUrl.toExternalForm()));
-        }
     }
 
-
+    private void limpiarRecursos() {
+        if (lockCountdownTimeline != null) { lockCountdownTimeline.stop(); lockCountdownTimeline = null; }
+        if (videoPlayer != null) { videoPlayer.stop(); videoPlayer.dispose(); videoPlayer = null; }
+    }
 
     public void setVideoPlaying(boolean play) {
         if (videoPlayer != null) {
-            if (play) videoPlayer.play();
-            else videoPlayer.pause();
+            if (play) videoPlayer.play(); else videoPlayer.pause();
         }
     }
 }

@@ -8,31 +8,29 @@ import java.net.URL;
 
 /**
  * SoundManager - Gestor Global de Audio (Singleton)
- * Versión optimizada: Carga dinámica y reutilización de recursos.
  */
 public class SoundManager {
 
     private static SoundManager instance;
 
-    // --- EFECTOS DE SONIDO ---
     private AudioClip clickSound;
     private AudioClip successSound;
     private AudioClip levelUpSound;
     private AudioClip errorSound;
-    // Hover sound eliminado explícitamente para ahorrar recursos (opcional)
+    private AudioClip gritoSound; // 🎁 El Grito
 
-    // --- MÚSICA DE FONDO ---
     private MediaPlayer musicPlayer;
 
-    // --- CONSTRUCTOR ---
+    // Estado del item "El Grito"
+    private static boolean gritoActivado = false;
+
     private SoundManager() {
-        // 1. Cargar Efectos (Usando nombres simplificados del segundo código)
-        clickSound = loadSound("click.mp3");
+        clickSound   = loadSound("click.mp3");
         successSound = loadSound("success.mp3");
         levelUpSound = loadSound("levelup.mp3");
-        errorSound = loadSound("error.mp3");
+        errorSound   = loadSound("error.mp3");
+        gritoSound   = loadSound("grito.mp3"); // puede ser null si no existe aún
 
-        // 2. Cargar Música de Fondo (Mantenemos la lógica robusta del Base)
         try {
             URL musicUrl = getClass().getResource("/assets/sounds/login_theme.mp3");
             if (musicUrl != null) {
@@ -46,9 +44,6 @@ public class SoundManager {
         }
     }
 
-    /**
-     * Helper simplificado para cargar sonidos desde /assets/sounds/
-     */
     private AudioClip loadSound(String filename) {
         try {
             URL url = getClass().getResource("/assets/sounds/" + filename);
@@ -60,85 +55,76 @@ public class SoundManager {
     }
 
     public static SoundManager getInstance() {
-        if (instance == null) {
-            instance = new SoundManager();
-        }
+        if (instance == null) instance = new SoundManager();
         return instance;
     }
 
-    // --- MÉTODOS PÚBLICOS DE EFECTOS ---
+    // ── Efectos estándar ──────────────────────────────────────────────────────
 
     public static void playClickSound() {
-        // Reproducir click normal
+        // Si El Grito está activado, cada clic suena el grito
+        if (gritoActivado) {
+            playGrito();
+            return;
+        }
         playEffect(getInstance().clickSound, 0.5);
     }
 
     public static void playKeyClick() {
         if (SettingsController.isTypingSoundEnabled) {
-            // Reutilizamos el sonido de click con volumen bajo (0.2) como se pidió
+            // El grito NO se activa al escribir, solo en clics de mouse
             playEffect(getInstance().clickSound, 0.2);
         }
     }
 
-    public static void playSuccessSound() {
-        playEffect(getInstance().successSound, 0.7);
+    public static void playSuccessSound() { playEffect(getInstance().successSound, 0.7); }
+    public static void playLevelUpSound() { playEffect(getInstance().levelUpSound, 0.8); }
+    public static void playErrorSound()   { playEffect(getInstance().errorSound,   0.6); }
+    public static void playHoverSound()   {}
+
+    public static void playEventSound()    { playSuccessSound(); }
+    public static void playEventWinSound() { playLevelUpSound(); }
+    public static void playEventFailSound(){ playErrorSound();   }
+
+    // ── El Grito ─────────────────────────────────────────────────────────────
+
+    /** Reproduce el grito directamente (sin importar el estado de activación). */
+    public static void playGrito() {
+        playEffect(getInstance().gritoSound, 0.9);
     }
 
-    public static void playLevelUpSound() {
-        playEffect(getInstance().levelUpSound, 0.8);
+    /** Activa o desactiva El Grito. */
+    public static void setGritoActivado(boolean activado) {
+        gritoActivado = activado;
+        System.out.println("😱 [SoundManager] El Grito: " + (activado ? "ACTIVADO" : "DESACTIVADO"));
     }
 
-    public static void playErrorSound() {
-        playEffect(getInstance().errorSound, 0.6);
+    public static boolean isGritoActivado() {
+        return gritoActivado;
     }
 
-    public static void playHoverSound() {
-        // Opcional: Si quieres sonido al pasar el mouse, descomenta abajo usando el click muy suave
-        // playEffect(getInstance().clickSound, 0.1); 
-    }
-    
-    // ========== SONIDOS DE EVENTOS CONTEXTUALES ==========
-    
-    public static void playEventSound() {
-        // Sonido cuando aparece un evento contextual
-        playSuccessSound();
-    }
-    
-    public static void playEventWinSound() {
-        // Sonido cuando se completa un evento exitosamente
-        playLevelUpSound();
-    }
-    
-    public static void playEventFailSound() {
-        // Sonido cuando se falla un evento
-        playErrorSound();
+    /** True si el archivo grito.mp3 fue cargado correctamente. */
+    public static boolean isGritoDisponible() {
+        return getInstance().gritoSound != null;
     }
 
-    // --- CONTROL DE MÚSICA (Integración con SettingsController) ---
+    // ── Música ───────────────────────────────────────────────────────────────
 
     public void synchronizeMusic() {
         if (musicPlayer == null) return;
-
         if (SettingsController.isMusicEnabled) {
-            if (musicPlayer.getStatus() != MediaPlayer.Status.PLAYING) {
-                musicPlayer.play();
-            }
+            if (musicPlayer.getStatus() != MediaPlayer.Status.PLAYING) musicPlayer.play();
         } else {
             musicPlayer.pause();
         }
     }
 
-    /**
-     * Helper seguro para reproducir audio con volumen específico.
-     */
     private static void playEffect(AudioClip clip, double volume) {
         if (clip == null) return;
         try {
             if (clip.isPlaying()) clip.stop();
             clip.setVolume(volume);
             clip.play();
-        } catch (Exception e) {
-            // Ignoramos errores de reproducción momentáneos
-        }
+        } catch (Exception ignored) {}
     }
 }

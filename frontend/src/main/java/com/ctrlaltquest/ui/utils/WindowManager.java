@@ -1,133 +1,97 @@
 package com.ctrlaltquest.ui.utils;
 
-import javafx.geometry.Rectangle2D;
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /**
- * Gestor centralizado para mantener la ventana principal maximizada en todo momento.
- * Proporciona métodos para cambiar escenas mientras se mantiene el estado maximizado.
+ * WindowManager — Mantiene la ventana principal maximizada en todo momento.
+ *
+ * Causa raíz del problema:
+ *   new Scene(root) sin dimensiones hace que JavaFX calcule el tamaño
+ *   a partir del prefWidth/prefHeight del FXML raíz (ej. 1280x720),
+ *   lo que provoca que la ventana se "restaure" visualmente aunque
+ *   isMaximized() siga devolviendo true internamente.
+ *
+ * Solución:
+ *   Pasar el ancho y alto actuales al constructor de Scene para que
+ *   no haya ningún recalculo de tamaño desde el FXML.
+ *   setMaximized(true) en Platform.runLater como segunda capa de seguridad.
  */
 public class WindowManager {
+
     private static WindowManager instance;
     private Stage primaryStage;
 
-    private WindowManager() {
-    }
+    private WindowManager() {}
 
     public static WindowManager getInstance() {
-        if (instance == null) {
-            instance = new WindowManager();
-        }
+        if (instance == null) instance = new WindowManager();
         return instance;
     }
 
-    /**
-     * Inicializa el manager con la ventana principal.
-     * Debe ser llamado una vez en AppLauncher.
-     */
+    // ════════════════════════════════════════════════════════════════════════
+    // INICIALIZACIÓN — llamar una sola vez desde AppLauncher
+    // ════════════════════════════════════════════════════════════════════════
+
     public void initialize(Stage stage) {
         this.primaryStage = stage;
-        ensureMaximized();
+        registrarListenerMaximizado();
     }
 
+    private void registrarListenerMaximizado() {
+        if (primaryStage == null) return;
+
+        primaryStage.maximizedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal) {
+                // El usuario intentó restaurar — volver a maximizar
+                Platform.runLater(() -> primaryStage.setMaximized(true));
+            }
+        });
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // CAMBIO DE ESCENA
+    // ════════════════════════════════════════════════════════════════════════
+
     /**
-     * Cambia la escena manteniendo el estado maximizado.
-     * Reemplaza la necesidad de hacer directamente stage.setScene()
+     * Cambia la escena manteniendo el tamaño y estado maximizado.
+     *
+     * Clave: se pasa el ancho y alto ACTUALES de la ventana al constructor
+     * de Scene para que JavaFX no recalcule el tamaño desde el prefWidth
+     * del FXML. Luego setMaximized(true) en runLater como segunda garantía.
      */
     public void changeScene(Parent root) {
-        if (primaryStage == null) {
-            throw new IllegalStateException("WindowManager no ha sido inicializado");
-        }
+        if (primaryStage == null)
+            throw new IllegalStateException("WindowManager no ha sido inicializado.");
 
-        // Preservar dimensiones actuales si está maximizado
-        boolean wasMaximized = primaryStage.isMaximized();
-        double prevWidth = primaryStage.getWidth();
-        double prevHeight = primaryStage.getHeight();
-        double prevX = primaryStage.getX();
-        double prevY = primaryStage.getY();
+        // Capturar dimensiones ANTES de cambiar la escena
+        double currentWidth  = primaryStage.getWidth();
+        double currentHeight = primaryStage.getHeight();
 
-        // Crear nueva escena sin dimensiones fijas
-        Scene newScene = new Scene(root);
-
-        // Cambiar escena
+        // Crear escena con las dimensiones actuales — evita el recalculo de prefSize
+        Scene newScene = new Scene(root, currentWidth, currentHeight);
         primaryStage.setScene(newScene);
 
-        // Restaurar estado maximizado
-        if (wasMaximized) {
-            primaryStage.setMaximized(true);
-        } else {
-            // Si no estaba maximizado, mantener posición anterior
-            primaryStage.setWidth(prevWidth);
-            primaryStage.setHeight(prevHeight);
-            primaryStage.setX(prevX);
-            primaryStage.setY(prevY);
-        }
+        // Segunda capa: forzar maximizado después del layout pass
+        Platform.runLater(() -> primaryStage.setMaximized(true));
     }
 
-    /**
-     * Asegura que la ventana esté maximizada y no sea redimensionable.
-     */
-    private void ensureMaximized() {
-        if (primaryStage != null) {
-            primaryStage.setResizable(true); // Debe ser true para que setMaximized funcione
-            primaryStage.setMaximized(true);
+    // ════════════════════════════════════════════════════════════════════════
+    // UTILIDADES
+    // ════════════════════════════════════════════════════════════════════════
 
-            // Escuchar cambios que intenten restaurar la ventana
-            primaryStage.maximizedProperty().addListener((obs, oldVal, newVal) -> {
-                if (!newVal) {
-                    // Si alguien intenta desmaximizar, volver a maximizar
-                    primaryStage.setMaximized(true);
-                }
-            });
-
-            // Prevenir que se cambie el tamaño manualmente por arrastrar bordes
-            primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> {
-                if (primaryStage.isMaximized()) {
-                    // Si está maximizado, ignorar cambios de ancho
-                    // Esto evita que se redimensione al arrastrar
-                }
-            });
-
-            primaryStage.heightProperty().addListener((obs, oldVal, newVal) -> {
-                if (primaryStage.isMaximized()) {
-                    // Si está maximizado, ignorar cambios de alto
-                    // Esto evita que se redimensione al arrastrar
-                }
-            });
-        }
-    }
-
-    /**
-     * Obtiene la ventana principal.
-     */
     public Stage getPrimaryStage() {
         return primaryStage;
     }
 
-    /**
-     * Fuerza la ventana a estar maximizada.
-     */
-    public void forceMaximized() {
-        if (primaryStage != null) {
-            primaryStage.setMaximized(true);
-        }
-    }
-
-    /**
-     * Obtiene si la ventana está maximizada.
-     */
     public boolean isMaximized() {
         return primaryStage != null && primaryStage.isMaximized();
     }
 
-    /**
-     * Calcula el tamaño ideal de una escena basado en la pantalla actual.
-     */
-    public static double[] getScreenDimensions() {
-        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
-        return new double[]{bounds.getWidth(), bounds.getHeight()};
+    public void forceMaximized() {
+        if (primaryStage != null)
+            Platform.runLater(() -> primaryStage.setMaximized(true));
     }
 }

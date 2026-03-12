@@ -2,27 +2,44 @@
 
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.media.MediaView?>
 <?import javafx.geometry.Insets?>
 
-<VBox alignment="CENTER" spacing="20" styleClass="auth-panel" 
-      stylesheets="/styles/auth.css" xmlns:fx="http://javafx.com/fxml" 
-      fx:controller="com.ctrlaltquest.ui.controllers.VerifyController"
-      prefWidth="400" prefHeight="300">
-    
-    <padding>
-        <Insets top="30" right="30" bottom="30" left="30" />
-    </padding>
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.ctrlaltquest.ui.controllers.VerifyController"
+           stylesheets="/styles/auth.css"
+           prefWidth="400" prefHeight="300">
 
-    <Label text="VERIFICAR CUENTA" styleClass="auth-title-hero" style="-fx-font-size: 24px;" />
-    
-    <Label text="Ingresa el código de verificación enviado a tu correo para completar el registro." 
-           wrapText="true" textAlignment="CENTER" style="-fx-text-fill: #b4a3c2;" />
+    <!-- Video de fondo con slow motion y blur (igual que Register) -->
+    <MediaView fx:id="backgroundVideo"
+               fitWidth="1920" fitHeight="1080"
+               preserveRatio="true"
+               mouseTransparent="true" />
 
-    <TextField fx:id="codeField" promptText="CÓDIGO DE 6 DÍGITOS" 
-               styleClass="custom-field" alignment="CENTER" style="-fx-font-size: 18px;" />
+    <!-- Contenido centrado encima del video -->
+    <VBox alignment="CENTER" spacing="20" styleClass="auth-panel"
+          maxWidth="400" maxHeight="340">
 
-    <HBox spacing="15" alignment="CENTER">
-        <Button text="CANCELAR" onAction="#handleCancel" styleClass="link-button-clean" />
-        <Button text="VALIDAR" onAction="#handleVerify" styleClass="primary-button-hero" />
-    </HBox>
-</VBox>
+        <padding>
+            <Insets top="30" right="30" bottom="30" left="30" />
+        </padding>
+
+        <Label text="VERIFICAR CUENTA" styleClass="auth-title-hero"
+               style="-fx-font-size: 24px;" />
+
+        <Label text="Ingresa el código de verificación enviado a tu correo para completar el registro."
+               wrapText="true" textAlignment="CENTER"
+               style="-fx-text-fill: #b4a3c2;" />
+
+        <TextField fx:id="codeField" promptText="CÓDIGO DE 6 DÍGITOS"
+                   styleClass="custom-field" alignment="CENTER"
+                   style="-fx-font-size: 18px;" />
+
+        <HBox spacing="15" alignment="CENTER">
+            <Button text="CANCELAR" onAction="#handleCancel" styleClass="link-button-clean" />
+            <Button text="VALIDAR"  onAction="#handleVerify" styleClass="primary-button-hero" />
+        </HBox>
+
+    </VBox>
+
+</StackPane>

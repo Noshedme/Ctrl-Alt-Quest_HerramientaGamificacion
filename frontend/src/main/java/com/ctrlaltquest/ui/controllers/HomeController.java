@@ -1,6 +1,5 @@
 package com.ctrlaltquest.ui.controllers;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalTime;
@@ -20,7 +19,6 @@ import com.ctrlaltquest.services.EventContextualService;
 import com.ctrlaltquest.services.SessionManager;
 import com.ctrlaltquest.services.XPChangeListener;
 import com.ctrlaltquest.services.XPSyncService;
-import com.ctrlaltquest.ui.utils.EventContextualUI;
 import com.ctrlaltquest.ui.utils.SoundManager;
 import com.ctrlaltquest.ui.utils.Toast;
 
@@ -42,6 +40,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
@@ -49,94 +48,86 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 /**
- * 🎮 HOME CONTROLLER - HUB PRINCIPAL DEL JUEGO
- * IMPLEMENTA XPChangeListener para sincronización en tiempo real
- * IMPLEMENTA EventContextualListener para reaccionar a eventos dinámicos
- * ==========================================
+ * HomeController — Hub principal del juego.
+ *
+ * Cambios relacionados con el sistema de eventos:
+ *  - onEventStarted() abre el EventModalController en un Stage modal
+ *  - onEventCompleted() refresca los datos del personaje
+ *  - El modal se abre siempre en el hilo de JavaFX (Platform.runLater)
  */
 public class HomeController implements XPChangeListener, EventContextualListener {
 
-    // ==========================================
-    // SECCIÓN 1: ELEMENTOS DE UI (FXML)
-    // ==========================================
-    
+    // ══ UI (FXML) ═══════════════════════════════════════════════════════════
+
     @FXML private BorderPane mainLayout;
-    @FXML private StackPane contentArea;
-    @FXML private VBox loadingLayer;
-    
-    // Header Superior (HUD del Jugador)
-    @FXML private Label lblUsername;
-    @FXML private Label lblClass;
-    @FXML private Label lblLevel;
-    @FXML private Label lblCoins;
-    @FXML private Label lblXPText;
+    @FXML private StackPane  contentArea;
+    @FXML private VBox       loadingLayer;
+
+    // Header
+    @FXML private Label     lblUsername;
+    @FXML private Label     lblClass;
+    @FXML private Label     lblLevel;
+    @FXML private Label     lblCoins;
+    @FXML private Label     lblXPText;
     @FXML private ImageView imgAvatarSmall;
     @FXML private ProgressBar xpBar;
-    
-    // Sidebar Derecha (Monitor de Actividad)
-    @FXML private Label lblCurrentApp;
-    @FXML private Label lblAppStatus;
-    @FXML private Label lblHealthStreak;
+
+    // Sidebar actividad
+    @FXML private Label     lblCurrentApp;
+    @FXML private Label     lblAppStatus;
+    @FXML private Label     lblHealthStreak;
     @FXML private ProgressBar healthBar;
-    
-    // Fondo Multimedia
+
+    // Fondo
     @FXML private MediaView backgroundVideo;
-    
-    // ==========================================
-    // SECCIÓN 2: VARIABLES DE ESTADO
-    // ==========================================
-    
+
+    // ══ ESTADO ══════════════════════════════════════════════════════════════
+
     private MediaPlayer videoPlayer;
-    private Character currentCharacter;
-    private int dbSessionId = -1;
-    
+    private Character   currentCharacter;
+    private int         dbSessionId = -1;
+
     private final ActivityMonitorService monitorService = ActivityMonitorService.getInstance();
     private boolean isMonitoring = true;
-    private Thread monitorThread;
-    
-    // Sistema de Caché de Vistas (Performance)
-    private final Map<String, Node> viewCache = new HashMap<>();
+    private Thread  monitorThread;
+
+    private final Map<String, Node>   viewCache       = new HashMap<>();
     private final Map<String, Object> controllerCache = new HashMap<>();
     private String currentViewName = "";
-    
-    // ==========================================
-    // SECCIÓN 3: EASTER EGGS & LOGROS SECRETOS
-    // ==========================================
-    
-    private int avatarClickCount = 0;
+
+    // Easter eggs
+    private int  avatarClickCount   = 0;
     private long lastAvatarClickTime = 0;
-    
+
     private final List<KeyCode> konamiCode = Arrays.asList(
-        KeyCode.UP, KeyCode.UP, 
-        KeyCode.DOWN, KeyCode.DOWN, 
-        KeyCode.LEFT, KeyCode.RIGHT, 
-        KeyCode.LEFT, KeyCode.RIGHT, 
+        KeyCode.UP, KeyCode.UP, KeyCode.DOWN, KeyCode.DOWN,
+        KeyCode.LEFT, KeyCode.RIGHT, KeyCode.LEFT, KeyCode.RIGHT,
         KeyCode.B, KeyCode.A
     );
-    private int konamiIndex = 0;
+    private int  konamiIndex         = 0;
     private long lastKonamiInputTime = 0;
-    
-    // ==========================================
-    // SECCIÓN 4: INICIALIZACIÓN
-    // ==========================================
+
+    // Guardia para no abrir dos modales de evento a la vez
+    private boolean eventModalOpen = false;
+
+    // ══ INICIALIZACIÓN ══════════════════════════════════════════════════════
 
     @FXML
     public void initialize() {
         System.out.println("🎮 [HomeController] Inicializando...");
-        
+
         configurarFondo();
         configurarTooltips();
         iniciarMonitoreoActividad();
-        configurarEfectosAvatar(); // <-- NUEVO: Prepara el avatar para ser interactivo
-        
-        // inicializar Toast
+        configurarEfectosAvatar();
+
+        // Toast container
         VBox toastContainer = new VBox();
         toastContainer.setPrefSize(400, 600);
         toastContainer.setStyle("-fx-background-color: transparent;");
@@ -153,15 +144,13 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 System.err.println("Error al inicializar Toast: " + e.getMessage());
             }
         });
-        
-        try {
-            SoundManager.getInstance().synchronizeMusic();
-        } catch (Exception e) {}
+
+        try { SoundManager.getInstance().synchronizeMusic(); } catch (Exception e) {}
 
         Platform.runLater(() -> {
             loadView("dashboard_view");
             Toast.success("Bienvenido al Hub", "¡Controla tu aventura desde aquí!");
-            
+
             if (mainLayout.getScene() != null) {
                 setupInputListeners(mainLayout.getScene());
                 aplicarEstilos(mainLayout.getScene());
@@ -177,40 +166,27 @@ public class HomeController implements XPChangeListener, EventContextualListener
     }
 
     private void configurarTooltips() {
-        if (xpBar != null) Tooltip.install(xpBar, new Tooltip("Experiencia hasta el próximo nivel"));
-        if (healthBar != null) Tooltip.install(healthBar, new Tooltip("Racha de días productivos"));
-        if (imgAvatarSmall != null) Tooltip.install(imgAvatarSmall, new Tooltip("Clic para cambiar foto. (O 50 clics para un secreto)"));
+        if (xpBar != null)         Tooltip.install(xpBar,         new Tooltip("Experiencia hasta el próximo nivel"));
+        if (healthBar != null)     Tooltip.install(healthBar,     new Tooltip("Racha de días productivos"));
+        if (imgAvatarSmall != null) Tooltip.install(imgAvatarSmall, new Tooltip("Tu avatar de héroe"));
     }
-    
-    /**
-     * Da un efecto visual al avatar cuando pasas el mouse por encima para que el usuario
-     * sepa que puede hacer clic en él para cambiar su foto.
-     */
+
     private void configurarEfectosAvatar() {
-        if (imgAvatarSmall != null) {
-            // Aplicar clip circular para bordes redondeados
-            aplicarClipCircular(imgAvatarSmall, 25);
-            
-            imgAvatarSmall.setOnMouseEntered(e -> {
-                imgAvatarSmall.setEffect(new DropShadow(12, Color.rgb(163, 53, 238, 0.7)));
-                imgAvatarSmall.setStyle("-fx-cursor: hand;");
-                ScaleTransition st = new ScaleTransition(Duration.millis(120), imgAvatarSmall);
-                st.setToX(1.03); st.setToY(1.03); st.play();
-            });
-            
-            imgAvatarSmall.setOnMouseExited(e -> {
-                imgAvatarSmall.setEffect(null);
-                ScaleTransition st = new ScaleTransition(Duration.millis(120), imgAvatarSmall);
-                st.setToX(1.0); st.setToY(1.0); st.play();
-            });
-        }
+        if (imgAvatarSmall == null) return;
+        aplicarClipCircular(imgAvatarSmall, 25);
+
+        imgAvatarSmall.setOnMouseEntered(e -> {
+            imgAvatarSmall.setEffect(new DropShadow(12, Color.rgb(163, 53, 238, 0.7)));
+            ScaleTransition st = new ScaleTransition(Duration.millis(120), imgAvatarSmall);
+            st.setToX(1.03); st.setToY(1.03); st.play();
+        });
+        imgAvatarSmall.setOnMouseExited(e -> {
+            imgAvatarSmall.setEffect(null);
+            ScaleTransition st = new ScaleTransition(Duration.millis(120), imgAvatarSmall);
+            st.setToX(1.0); st.setToY(1.0); st.play();
+        });
     }
-    
-    /**
-     * Aplica un clip circular con bordes redondeados a la ImageView del avatar
-     * @param imageView La ImageView a clipear
-     * @param radius El radio del círculo de clip
-     */
+
     private void aplicarClipCircular(ImageView imageView, double radius) {
         Circle clip = new Circle(radius);
         clip.setCenterX(radius);
@@ -222,9 +198,8 @@ public class HomeController implements XPChangeListener, EventContextualListener
         try {
             String authCss = getClass().getResource("/styles/auth.css").toExternalForm();
             String homeCss = getClass().getResource("/styles/home.css").toExternalForm();
-            
             if (!scene.getStylesheets().contains(authCss)) scene.getStylesheets().add(authCss);
-            if (!scene.getStylesheets().contains(homeCss)) scene.getStylesheets().add(homeCss);
+            if (!scene.getStylesheets().contains(homeCss))  scene.getStylesheets().add(homeCss);
         } catch (Exception e) {
             System.err.println("⚠️ Error cargando CSS: " + e.getMessage());
         }
@@ -235,7 +210,7 @@ public class HomeController implements XPChangeListener, EventContextualListener
         scene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastKonamiInputTime > 2000) konamiIndex = 0;
-            
+
             if (event.getCode() == konamiCode.get(konamiIndex)) {
                 konamiIndex++;
                 lastKonamiInputTime = currentTime;
@@ -248,119 +223,53 @@ public class HomeController implements XPChangeListener, EventContextualListener
             }
         });
 
-        // Click Avatar (Sirve para cambiar foto Y para el Easter Egg)
+        // Avatar — solo Easter Egg
         if (imgAvatarSmall != null) {
             imgAvatarSmall.setPickOnBounds(true);
             imgAvatarSmall.setOnMouseClicked(e -> {
                 long currentTime = System.currentTimeMillis();
-                
-                // Si hace doble clic rápido o un solo clic, abrimos el selector de imágenes
-                if (e.getClickCount() == 1 || e.getClickCount() == 2) {
-                     cambiarImagenPerfil();
-                }
-                
-                // Lógica del Easter Egg (50 clics)
                 if (currentTime - lastAvatarClickTime > 3000) avatarClickCount = 0;
                 avatarClickCount++;
                 lastAvatarClickTime = currentTime;
                 animarClickAvatar();
-                
                 if (avatarClickCount == 50) {
-                    intentarDesbloquearLogro(903, "Spammer de Clicks", "¡Cálmate con el mouse! Has clickeado 50 veces tu avatar.");
+                    intentarDesbloquearLogro(903, "Spammer de Clicks",
+                        "¡Cálmate! Has clickeado 50 veces tu avatar.");
                     avatarClickCount = 0;
                 }
             });
-        }
-    }
-    
-    // ==========================================
-    // SECCIÓN 4.5: CAMBIO DE IMAGEN DE PERFIL
-    // ==========================================
-    
-    /**
-     * Abre un selector de archivos para que el usuario elija su propio avatar.
-     */
-    private void cambiarImagenPerfil() {
-        if (currentCharacter == null) return;
-        
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Elige tu nuevo Avatar");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Imágenes", "*.png", "*.jpg", "*.jpeg", "*.gif")
-        );
-        
-        // Mostrar la ventana de selección encima de la actual
-        Stage stage = (Stage) mainLayout.getScene().getWindow();
-        File selectedFile = fileChooser.showOpenDialog(stage);
-        
-        if (selectedFile != null) {
-            try {
-                // 1. Cargar la imagen seleccionada y ponerla en el ImageView
-                String imageUri = selectedFile.toURI().toString();
-                Image newAvatar = new Image(imageUri);
-                imgAvatarSmall.setImage(newAvatar);
-                
-                // 2. Aplicar clip circular a la nueva imagen
-                aplicarClipCircular(imgAvatarSmall, 25);
-                
-                // 3. Guardar la ruta en el modelo (Asume que agregaste un campo 'avatarUrl' o similar a la clase Character)
-                // currentCharacter.setAvatarUrl(selectedFile.getAbsolutePath());
-                // CharacterDAO.saveCharacter(currentCharacter);
-                
-                Toast.success("¡Genial!", "Tu foto de perfil ha sido actualizada.");
-                
-            } catch (Exception ex) {
-                System.err.println("❌ Error al cargar la nueva imagen: " + ex.getMessage());
-                Toast.error("Error", "No se pudo cargar la imagen seleccionada.");
-            }
         }
     }
 
     private void animarClickAvatar() {
         ScaleTransition st = new ScaleTransition(Duration.millis(100), imgAvatarSmall);
         st.setFromX(1.0); st.setFromY(1.0);
-        st.setToX(0.85); st.setToY(0.85);
-        st.setAutoReverse(true);
-        st.setCycleCount(2);
-        st.play();
+        st.setToX(0.85);  st.setToY(0.85);
+        st.setAutoReverse(true); st.setCycleCount(2); st.play();
     }
 
     private void activarKonamiCode() {
-        intentarDesbloquearLogro(901, "Konami Code Master", "↑↑↓↓←→←→BA - ¡Has activado el código legendario!");
+        intentarDesbloquearLogro(901, "Konami Code Master", "↑↑↓↓←→←→BA - ¡Código legendario!");
         if (currentCharacter != null) {
             currentCharacter.setCoins(currentCharacter.getCoins() + 500);
             CharacterDAO.saveCharacter(currentCharacter);
             actualizarUI();
-            Toast.gold("¡BONUS!", "+500 monedas por descubrir el Konami Code!");
+            Toast.gold("¡BONUS!", "+500 monedas por el Konami Code!");
         }
     }
 
-    private void intentarDesbloquearLogro(int achievementId, String title, String msg) {
+    private void intentarDesbloquearLogro(int id, String title, String msg) {
         int userId = SessionManager.getInstance().getUserId();
         new Thread(() -> {
-            boolean esNuevo = AchievementsDAO.unlockAchievement(userId, achievementId);
-            if (esNuevo) {
-                Platform.runLater(() -> {
-                    try { SoundManager.playSuccessSound(); } catch (Exception e) {}
-                    mostrarAlertaLogro(title, msg);
-                });
-            }
+            boolean nuevo = AchievementsDAO.unlockAchievement(userId, id);
+            if (nuevo) Platform.runLater(() -> {
+                try { SoundManager.playSuccessSound(); } catch (Exception e) {}
+                Toast.gold("🏆 " + title, msg);
+            });
         }).start();
     }
 
-    private void mostrarAlertaLogro(String title, String content) {
-        // Use gold toast for secret unlocks
-        Toast.gold("🏆 " + title, content);
-    }
-
-    private void mostrarNotificacion(String titulo, String mensaje) {
-        // Redirigido a Toast para consistencia
-        Toast.info(titulo, mensaje);
-    }
-
-    // ==========================================
-    // SECCIÓN 5: GESTIÓN DE DATOS DEL JUGADOR
-    // ==========================================
+    // ══ DATOS DEL JUGADOR ════════════════════════════════════════════════════
 
     public void initPlayerData(Character character) {
         if (character == null) return;
@@ -371,31 +280,19 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 int userId = SessionManager.getInstance().getUserId();
                 this.dbSessionId = ActivityDAO.iniciarSesion(userId);
 
-                // Actualizar datos del personaje tras iniciar sesión para reflejar racha/vitalidad
                 refreshCharacterData();
-                
                 MissionsDAO.inicializarMisionesGlobalesParaUsuario(userId);
-                
                 XPSyncService.getInstance().addXPChangeListener(HomeController.this);
-                
-                // Suscribirse a los Eventos Dinámicos
                 EventContextualService.getInstance().addEventListener(this);
-                
-                // Instanciar la UI que pinta los eventos
-                new EventContextualUI();
-                
-                // Activar motor de eventos
                 EventContextualService.getInstance().startEventGenerator(userId);
-                
+
                 LocalTime now = LocalTime.now();
-                if (now.getHour() == 3 && now.getMinute() == 33) {
-                    intentarDesbloquearLogro(902, "Viajero del Tiempo", "Has entrado a las 3:33 AM... La hora maldita. 👻");
-                }
-                
+                if (now.getHour() == 3 && now.getMinute() == 33)
+                    intentarDesbloquearLogro(902, "Viajero del Tiempo", "Entraste a las 3:33 AM... 👻");
+
                 monitorService.startMonitoring(userId);
-                
             } catch (Exception e) {
-                System.err.println("❌ Error en initPlayerData background: " + e.getMessage());
+                System.err.println("❌ Error en initPlayerData: " + e.getMessage());
             }
         }).start();
 
@@ -409,25 +306,21 @@ public class HomeController implements XPChangeListener, EventContextualListener
             lblClass.setText(obtenerNombreClase(currentCharacter.getClassId()));
             lblLevel.setText(String.valueOf(currentCharacter.getLevel()));
             lblCoins.setText(String.valueOf(currentCharacter.getCoins()));
-            
             cargarAvatarSmall(currentCharacter.getClassId());
-            
-            int xpActual = currentCharacter.getCurrentXp();
+
+            int xpActual    = currentCharacter.getCurrentXp();
             int xpRequerido = currentCharacter.getLevel() * 1000;
-            double xpProgress = (double) xpActual / xpRequerido;
-            xpBar.setProgress(xpProgress);
+            xpBar.setProgress((double) xpActual / xpRequerido);
             lblXPText.setText(xpActual + " / " + xpRequerido + " XP");
-            
-            // Mostrar racha real (número de días consecutivos) y mapear a la barra de vitalidad
+
             if (lblHealthStreak != null) {
                 int racha = currentCharacter.getHealthStreak();
                 lblHealthStreak.setText(String.valueOf(racha));
-                double progress = Math.min(1.0, ((double) racha) / 7.0); // objetivo semanal
-                healthBar.setProgress(progress);
+                healthBar.setProgress(Math.min(1.0, racha / 7.0));
             } else {
                 healthBar.setProgress(0.0);
             }
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
     }
 
     public void refreshCharacterData() {
@@ -435,35 +328,28 @@ public class HomeController implements XPChangeListener, EventContextualListener
         new Thread(() -> {
             try {
                 int userId = SessionManager.getInstance().getUserId();
-                Map<Integer, Character> characters = CharacterDAO.getCharactersByUser(userId);
-                if (!characters.isEmpty()) {
-                    Character refreshed = characters.get(currentCharacter.getSlotIndex());
+                Map<Integer, Character> chars = CharacterDAO.getCharactersByUser(userId);
+                if (!chars.isEmpty()) {
+                    Character refreshed = chars.get(currentCharacter.getSlotIndex());
                     if (refreshed != null) {
                         this.currentCharacter = refreshed;
                         Platform.runLater(this::actualizarUI);
                     }
                 }
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
         }).start();
     }
 
     private void cargarAvatarSmall(int classId) {
         try {
-            // Nota: Aquí podrías chequear si currentCharacter.getAvatarUrl() tiene algo 
-            // y cargar esa imagen primero. Si está vacío, cargar las por defecto.
-            
             String path = "/assets/images/sprites/base/class_" + classId + ".png";
             URL url = getClass().getResource(path);
-            if (url == null) {
-                path = "/assets/images/sprites/class_" + classId + "_idle.png";
-                url = getClass().getResource(path);
-            }
+            if (url == null) url = getClass().getResource("/assets/images/sprites/class_" + classId + "_idle.png");
             if (url != null) {
                 imgAvatarSmall.setImage(new Image(url.toExternalForm()));
-                // Aplicar clip circular cuando se carga la imagen
                 aplicarClipCircular(imgAvatarSmall, 25);
             }
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
     }
 
     private String obtenerNombreClase(int classId) {
@@ -475,76 +361,60 @@ public class HomeController implements XPChangeListener, EventContextualListener
         };
     }
 
-    // ==========================================
-    // SECCIÓN 6: NAVEGACIÓN ENTRE VISTAS
-    // ==========================================
+    // ══ NAVEGACIÓN ═══════════════════════════════════════════════════════════
 
     private void loadView(String viewName) {
         if (viewName.equals(currentViewName)) return;
         try {
-            Node nextView = viewCache.get(viewName);
+            Node nextView   = viewCache.get(viewName);
             Object controller = controllerCache.get(viewName);
-            
+
             if (nextView == null) {
                 String path = "/fxml/views/" + viewName + ".fxml";
                 URL url = getClass().getResource(path);
                 if (url == null) return;
-
                 FXMLLoader loader = new FXMLLoader(url);
-                nextView = loader.load();
-                controller = loader.getController();
-                
+                nextView    = loader.load();
+                controller  = loader.getController();
                 viewCache.put(viewName, nextView);
                 controllerCache.put(viewName, controller);
             }
 
             if (controller != null) injectCharacterData(controller);
-
             animarCambioDeVista(nextView);
             currentViewName = viewName;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     private void injectCharacterData(Object controller) {
         int userId = SessionManager.getInstance().getUserId();
-        // Inyección a sub-controladores
-        if (controller instanceof com.ctrlaltquest.ui.controllers.views.CharacterPanelController) {
-            ((com.ctrlaltquest.ui.controllers.views.CharacterPanelController) controller).setPlayerData(currentCharacter);
-        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.ProfileViewController) {
-            ((com.ctrlaltquest.ui.controllers.views.ProfileViewController) controller).setPlayerData(currentCharacter);
-        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.DashboardViewController) {
-            com.ctrlaltquest.ui.controllers.views.DashboardViewController dashCtrl = (com.ctrlaltquest.ui.controllers.views.DashboardViewController) controller;
-            dashCtrl.setUserId(userId);
-            dashCtrl.setPlayerData(currentCharacter);
-        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.MissionsViewController) {
-            ((com.ctrlaltquest.ui.controllers.views.MissionsViewController) controller).setUserId(userId);
-        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.ActivityViewController) {
-            com.ctrlaltquest.ui.controllers.views.ActivityViewController activityCtrl = (com.ctrlaltquest.ui.controllers.views.ActivityViewController) controller;
-            activityCtrl.setUserId(userId);
-            activityCtrl.setHomeController(this);
-        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.AchievementsViewController) {
-            ((com.ctrlaltquest.ui.controllers.views.AchievementsViewController) controller).setUserId(userId);
-        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.TutorialViewController) {
-            ((com.ctrlaltquest.ui.controllers.views.TutorialViewController) controller).setHomeController(this);
-        }
+        if (controller instanceof com.ctrlaltquest.ui.controllers.views.CharacterPanelController c)
+            c.setPlayerData(currentCharacter);
+        else if (controller instanceof com.ctrlaltquest.ui.controllers.views.ProfileViewController c)
+            c.setPlayerData(currentCharacter);
+        else if (controller instanceof com.ctrlaltquest.ui.controllers.views.DashboardViewController c) {
+            c.setUserId(userId); c.setPlayerData(currentCharacter);
+        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.MissionsViewController c)
+            c.setUserId(userId);
+        else if (controller instanceof com.ctrlaltquest.ui.controllers.views.ActivityViewController c) {
+            c.setUserId(userId); c.setHomeController(this);
+        } else if (controller instanceof com.ctrlaltquest.ui.controllers.views.AchievementsViewController c)
+            c.setUserId(userId);
+        else if (controller instanceof com.ctrlaltquest.ui.controllers.views.TutorialViewController c)
+            c.setHomeController(this);
     }
 
     private void animarCambioDeVista(Node nextView) {
         if (contentArea.getChildren().isEmpty()) {
-            contentArea.getChildren().add(nextView);
-            fadeIn(nextView);
-            return;
+            contentArea.getChildren().add(nextView); fadeIn(nextView); return;
         }
-        Node currentView = contentArea.getChildren().get(0);
-        if (currentView == nextView) return;
+        Node current = contentArea.getChildren().get(0);
+        if (current == nextView) return;
 
-        FadeTransition fadeOut = new FadeTransition(Duration.millis(200), currentView);
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(200), current);
         fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
         fadeOut.setOnFinished(e -> {
-            contentArea.getChildren().clear();
-            contentArea.getChildren().add(nextView);
+            contentArea.getChildren().setAll(nextView);
             fadeIn(nextView);
         });
         fadeOut.play();
@@ -552,26 +422,22 @@ public class HomeController implements XPChangeListener, EventContextualListener
 
     private void fadeIn(Node node) {
         node.setOpacity(0);
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(300), node);
-        fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0); fadeIn.play();
+        FadeTransition ft = new FadeTransition(Duration.millis(300), node);
+        ft.setFromValue(0.0); ft.setToValue(1.0); ft.play();
     }
 
-    // ==========================================
-    // SECCIÓN 7: ACCIONES DEL MENÚ
-    // ==========================================
+    // ══ MENÚ ═════════════════════════════════════════════════════════════════
 
-    private void playClick() {
-        try { SoundManager.playClickSound(); } catch(Exception e){}
-    }
+    private void playClick() { try { SoundManager.playClickSound(); } catch (Exception e) {} }
 
-    @FXML public void showDashboard() { playClick(); Toast.info("Dashboard", "Mostrando tablero de control"); loadView("dashboard_view"); }
-    @FXML public void showActivity() { playClick(); Toast.info("Actividad", "Revisando tu progreso de uso"); loadView("activity_view"); }
-    @FXML public void showMissions() { playClick(); Toast.info("Misiones", "Aquí están tus misiones actuales"); loadView("missions_view"); }
-    @FXML public void showStore() { playClick(); Toast.info("Tienda", "Explora objetos y recompensas"); loadView("store_view"); }
-    @FXML public void showInventory() { playClick(); Toast.info("Inventario", "Revisa tu equipo y objetos"); loadView("character_panel"); }
-    @FXML public void showStats() { playClick(); Toast.info("Logros", "Consulta tus logros desbloqueados"); loadView("achievements_view"); }
-    @FXML public void showProfile() { playClick(); Toast.info("Perfil", "Edita tus datos y preferencias"); loadView("profile_view"); }
-    @FXML public void showTutorial() { playClick(); Toast.info("Tutorial", "Aprende a usar la aplicación"); loadView("tutorial_view"); }
+    @FXML public void showDashboard()  { playClick(); loadView("dashboard_view"); }
+    @FXML public void showActivity()   { playClick(); loadView("activity_view"); }
+    @FXML public void showMissions()   { playClick(); loadView("missions_view"); }
+    @FXML public void showStore()      { playClick(); loadView("store_view"); }
+    @FXML public void showInventory()  { playClick(); loadView("character_panel"); }
+    @FXML public void showStats()      { playClick(); loadView("achievements_view"); }
+    @FXML public void showProfile()    { playClick(); loadView("profile_view"); }
+    @FXML public void showTutorial()   { playClick(); loadView("tutorial_view"); }
 
     @FXML
     public void showSettingsModal() {
@@ -579,19 +445,18 @@ public class HomeController implements XPChangeListener, EventContextualListener
             playClick();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/settings.fxml"));
             Parent root = loader.load();
-            SettingsController settingsCtrl = loader.getController();
-            settingsCtrl.setHomeController(this);
+            SettingsController sc = loader.getController();
+            sc.setHomeController(this);
 
-            Stage settingsStage = new Stage();
-            settingsStage.initModality(Modality.APPLICATION_MODAL);
-            settingsStage.initOwner(mainLayout.getScene().getWindow());
-            settingsStage.initStyle(StageStyle.TRANSPARENT);
-
+            Stage st = new Stage();
+            st.initModality(Modality.APPLICATION_MODAL);
+            st.initOwner(mainLayout.getScene().getWindow());
+            st.initStyle(StageStyle.TRANSPARENT);
             Scene scene = new Scene(root);
             scene.setFill(Color.TRANSPARENT);
-            settingsStage.setScene(scene);
-            settingsStage.setTitle("Ajustes");
-            settingsStage.show();
+            st.setScene(scene);
+            st.setTitle("Ajustes");
+            st.show();
         } catch (IOException e) {
             System.err.println("Error al cargar settings: " + e.getMessage());
         }
@@ -601,32 +466,22 @@ public class HomeController implements XPChangeListener, EventContextualListener
     private void resumeTracking() {
         playClick();
         isMonitoring = true;
-        
-        // Si el thread se detuvo, reiniciarlo
-        if (monitorThread == null || !monitorThread.isAlive()) {
-            iniciarMonitoreoActividad();
-        }
+        if (monitorThread == null || !monitorThread.isAlive()) iniciarMonitoreoActividad();
     }
 
-    // ==========================================
-    // SECCIÓN 8: MONITOREO DE ACTIVIDAD
-    // ==========================================
+    // ══ MONITOREO ════════════════════════════════════════════════════════════
 
     private void iniciarMonitoreoActividad() {
         monitorThread = new Thread(() -> {
             while (isMonitoring) {
                 try {
-                    String currentTitle = monitorService.getActiveWindowTitle();
-                    boolean isProductive = monitorService.isProductive(currentTitle);
-                    
-                    // Notificar al sistema de eventos en qué estamos trabajando
-                    EventContextualService.getInstance().updateCurrentActivity(currentTitle);
-
-                    Platform.runLater(() -> actualizarPanelActividad(currentTitle, isProductive));
+                    String title      = monitorService.getActiveWindowTitle();
+                    boolean productive = monitorService.isProductive(title);
+                    EventContextualService.getInstance().updateCurrentActivity(title);
+                    Platform.runLater(() -> actualizarPanelActividad(title, productive));
                     Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    break;
-                } catch (Exception e) {}
+                } catch (InterruptedException e) { break; }
+                catch (Exception ignored) {}
             }
         });
         monitorThread.setDaemon(true);
@@ -635,24 +490,24 @@ public class HomeController implements XPChangeListener, EventContextualListener
 
     private void actualizarPanelActividad(String currentTitle, boolean isProductive) {
         if (lblCurrentApp != null) {
-            String display = currentTitle.length() > 30 ? currentTitle.substring(0, 30) + "..." : currentTitle;
+            String display = currentTitle.length() > 30
+                ? currentTitle.substring(0, 30) + "..." : currentTitle;
             lblCurrentApp.setText(display);
         }
-        
         if (lblAppStatus != null) {
             if (isProductive) {
                 lblAppStatus.setText("✓ PRODUCTIVO (+XP)");
-                lblAppStatus.setStyle("-fx-background-color: #2d5a27; -fx-text-fill: #90EE90; -fx-padding: 4 12; -fx-background-radius: 6; -fx-font-weight: bold;");
+                lblAppStatus.setStyle("-fx-background-color: #2d5a27; -fx-text-fill: #90EE90;" +
+                    "-fx-padding: 4 12; -fx-background-radius: 6; -fx-font-weight: bold;");
             } else {
                 lblAppStatus.setText("○ OCIO / NEUTRAL");
-                lblAppStatus.setStyle("-fx-background-color: #5a2d2d; -fx-text-fill: #FFB6C1; -fx-padding: 4 12; -fx-background-radius: 6; -fx-font-weight: bold;");
+                lblAppStatus.setStyle("-fx-background-color: #5a2d2d; -fx-text-fill: #FFB6C1;" +
+                    "-fx-padding: 4 12; -fx-background-radius: 6; -fx-font-weight: bold;");
             }
         }
     }
 
-    // ==========================================
-    // SECCIÓN 9: VIDEO DE FONDO
-    // ==========================================
+    // ══ VIDEO DE FONDO ═══════════════════════════════════════════════════════
 
     private void configurarFondo() {
         try {
@@ -661,54 +516,41 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 Media media = new Media(videoUrl.toExternalForm());
                 videoPlayer = new MediaPlayer(media);
                 backgroundVideo.setMediaPlayer(videoPlayer);
-                
                 videoPlayer.setCycleCount(MediaPlayer.INDEFINITE);
                 videoPlayer.setMute(true);
                 videoPlayer.setRate(0.5);
                 backgroundVideo.setEffect(new GaussianBlur(15));
-                
-                if (SettingsController.isVideoPaused) {
-                    videoPlayer.pause();
-                } else {
-                    videoPlayer.play();
-                }
+                if (SettingsController.isVideoPaused) videoPlayer.pause();
+                else videoPlayer.play();
             }
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
     }
 
     public void setVideoPlaying(boolean shouldPlay) {
         if (videoPlayer == null) return;
         Platform.runLater(() -> {
-            if (shouldPlay) videoPlayer.play();
-            else videoPlayer.pause();
+            if (shouldPlay) videoPlayer.play(); else videoPlayer.pause();
         });
     }
 
-    // ==========================================
-    // SECCIÓN 10: CIERRE DE SESIÓN
-    // ==========================================
+    // ══ LOGOUT ═══════════════════════════════════════════════════════════════
 
     @FXML
     public void handleLogout() {
         playClick();
         if (loadingLayer != null) {
-            loadingLayer.setVisible(true);
-            loadingLayer.setOpacity(0);
+            loadingLayer.setVisible(true); loadingLayer.setOpacity(0);
             FadeTransition ft = new FadeTransition(Duration.millis(300), loadingLayer);
             ft.setToValue(1.0); ft.play();
         }
-
         isMonitoring = false;
         monitorService.stopMonitoring();
-
         new Thread(() -> {
             try {
                 if (dbSessionId != -1) ActivityDAO.cerrarSesion(dbSessionId);
                 Thread.sleep(800);
                 Platform.runLater(this::volverALogin);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         }).start();
     }
 
@@ -718,7 +560,7 @@ public class HomeController implements XPChangeListener, EventContextualListener
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) mainLayout.getScene().getWindow();
-            
+
             FadeTransition fadeOut = new FadeTransition(Duration.millis(600), stage.getScene().getRoot());
             fadeOut.setFromValue(1.0); fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(e -> {
@@ -727,114 +569,152 @@ public class HomeController implements XPChangeListener, EventContextualListener
                 fadeIn.setFromValue(0.0); fadeIn.setToValue(1.0); fadeIn.play();
             });
             fadeOut.play();
-        } catch (IOException e) {}
+        } catch (IOException ignored) {}
     }
 
     private void cleanup() {
         try {
-            if (videoPlayer != null) {
-                videoPlayer.stop(); videoPlayer.dispose(); videoPlayer = null;
-            }
+            if (videoPlayer != null) { videoPlayer.stop(); videoPlayer.dispose(); videoPlayer = null; }
             viewCache.clear(); controllerCache.clear();
             XPSyncService.getInstance().removeXPChangeListener(this);
             EventContextualService.getInstance().removeEventListener(this);
             EventContextualService.getInstance().stopEventGenerator(SessionManager.getInstance().getUserId());
             SessionManager.getInstance().logout();
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
     }
-    
-    // ==========================================
-    // IMPLEMENTACIÓN DE XPChangeListener
-    // ==========================================
-    
+
+    // ══ XPChangeListener ═════════════════════════════════════════════════════
+
     @Override
     public void onXPChanged(int userId, XPSyncService.XPChangeEvent event) {
         if (currentCharacter == null || SessionManager.getInstance().getUserId() != userId) return;
-        
         Platform.runLater(() -> {
             try {
                 XPSyncService.UserXPData data = XPSyncService.getInstance().getUserXPData(userId);
                 if (data == null) return;
-                
                 double progress = XPSyncService.getInstance().getUserXPProgress(userId);
                 xpBar.setProgress(progress);
                 lblXPText.setText(data.currentXP + " / " + data.xpRequired + " XP");
-                
                 if (event.xpGained > 0) {
-                        ScaleTransition scaleUp = new ScaleTransition(Duration.millis(200), xpBar);
-                        scaleUp.setToY(1.06); scaleUp.setCycleCount(2); scaleUp.setAutoReverse(true); scaleUp.play();
-                    showXPGainNotification(event.xpGained, event.source);
+                    ScaleTransition st = new ScaleTransition(Duration.millis(200), xpBar);
+                    st.setToY(1.06); st.setCycleCount(2); st.setAutoReverse(true); st.play();
+                    Toast.success("XP Ganado", "+" + event.xpGained + " XP de " + event.source);
                 }
-            } catch (Exception e) {}
+            } catch (Exception ignored) {}
         });
     }
-    
+
     @Override
     public void onLevelUp(int userId, int newLevel) {
         if (currentCharacter == null || SessionManager.getInstance().getUserId() != userId) return;
-        
         Platform.runLater(() -> {
             try {
                 lblLevel.setText(String.valueOf(newLevel));
                 currentCharacter.setLevel(newLevel);
                 xpBar.setProgress(0.0);
-                
                 XPSyncService.UserXPData data = XPSyncService.getInstance().getUserXPData(userId);
                 if (data != null) lblXPText.setText(data.currentXP + " / " + data.xpRequired + " XP");
-                
-                playLevelUpAnimation();
+
+                ScaleTransition scale = new ScaleTransition(Duration.millis(350), lblLevel);
+                scale.setToX(1.12); scale.setToY(1.12); scale.setCycleCount(1); scale.setAutoReverse(true);
+                FadeTransition fade = new FadeTransition(Duration.millis(350), lblLevel);
+                fade.setFromValue(1.0); fade.setToValue(0.85); fade.setCycleCount(1); fade.setAutoReverse(true);
+                scale.play(); fade.play();
+
                 try { SoundManager.playLevelUpSound(); } catch (Exception e) {}
-                Toast.success("🎉 ¡SUBIDA DE NIVEL!", "¡Felicidades! Acabas de alcanzar NIVEL " + newLevel + "! 🎊");
-            } catch (Exception e) {}
+                Toast.success("🎉 ¡SUBIDA DE NIVEL!", "¡Alcanzaste el NIVEL " + newLevel + "! 🎊");
+            } catch (Exception ignored) {}
         });
     }
-    
-    private void playLevelUpAnimation() {
-        ScaleTransition scale = new ScaleTransition(Duration.millis(350), lblLevel);
-        scale.setToX(1.12); scale.setToY(1.12); scale.setCycleCount(1); scale.setAutoReverse(true);
-        FadeTransition fade = new FadeTransition(Duration.millis(350), lblLevel);
-        fade.setFromValue(1.0); fade.setToValue(0.85); fade.setCycleCount(1); fade.setAutoReverse(true);
-        scale.play(); fade.play();
-    }
-    
-    private void showXPGainNotification(int xpAmount, String source) {
-        Label notifLabel = new Label("+ " + xpAmount + " XP");
-        notifLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #FFD700;");
-        notifLabel.setOpacity(1.0);
-        StackPane.setAlignment(notifLabel, javafx.geometry.Pos.CENTER);
-        FadeTransition fade = new FadeTransition(Duration.millis(1000), notifLabel);
-        fade.setFromValue(1.0); fade.setToValue(0.0); fade.play();
-        Toast.success("XP Ganado", "+" + xpAmount + " XP de " + source);
+
+    // ══ EventContextualListener ══════════════════════════════════════════════
+
+    @Override
+    public void onEventGenerated(int userId, EventContextualService.ContextualEvent event) {
+        // Pre-carga silenciosa — no hacemos nada en la UI todavía
     }
 
-    // ==========================================
-    // IMPLEMENTACIÓN DE EventContextualListener
-    // ==========================================
-
+    /**
+     * Este es el único método que abre el modal.
+     * Se ejecuta en el hilo del scheduler, así que usamos Platform.runLater.
+     */
     @Override
-    public void onEventGenerated(int userId, EventContextualService.ContextualEvent event) { }
-
-    @Override
-    public void onEventStarted(int userId, EventContextualService.ContextualEvent event) { 
-        Toast.info("Evento Iniciado", "Nuevo evento iniciado");
+    public void onEventStarted(int userId, EventContextualService.ContextualEvent event) {
+        Platform.runLater(() -> abrirEventoModal(userId, event));
     }
 
-    @Override
-    public void onEventProgressUpdated(int userId, EventContextualService.ContextualEvent event, int currentProgress, int target) { }
-
-    @Override
-    public void onEventCriticalPhase(int userId, EventContextualService.ContextualEvent event) { 
-        Toast.warning("Fase Crítica", "¡Atención! Fase crítica en evento");
-    }
-
-    @Override
-    public void onEventCompleted(int userId, EventContextualService.ContextualEvent event, CompletionStatus status, int xpReward, int coinReward) {
-        // Al terminar un evento, pedimos a la BD que actualice la interfaz por si ganamos oro o nivel.
-        if (status == CompletionStatus.VICTORY) {
-            refreshCharacterData();
-            Toast.success("Evento Completado", "¡Victoria! +" + xpReward + " XP y +" + coinReward + " monedas");
-        } else {
-            Toast.error("Evento Fallido", "Evento fallido");
+    /**
+     * Abre el EventModalController en un Stage modal centrado.
+     * Comprueba que no haya ya un modal abierto para evitar duplicados.
+     */
+    private void abrirEventoModal(int userId, EventContextualService.ContextualEvent event) {
+        if (eventModalOpen) {
+            System.out.println("⚠️ [HomeController] Modal ya abierto, ignorando nuevo evento.");
+            return;
         }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                getClass().getResource("/fxml/event_modal.fxml"));
+            Parent root = loader.load();
+
+            EventModalController controller = loader.getController();
+
+            Stage modalStage = new Stage();
+            modalStage.initModality(Modality.APPLICATION_MODAL);
+            modalStage.initOwner(mainLayout.getScene().getWindow());
+            modalStage.initStyle(StageStyle.TRANSPARENT);
+            modalStage.setResizable(false);
+
+            Scene scene = new Scene(root);
+            scene.setFill(Color.TRANSPARENT);
+            modalStage.setScene(scene);
+            modalStage.setTitle(event.title);
+
+            // Registrar apertura / cierre
+            eventModalOpen = true;
+            modalStage.setOnHidden(e -> eventModalOpen = false);
+
+            // Inicializar el controller con los datos del evento
+            controller.setEvento(userId, event, modalStage);
+
+            // Sonido de alerta
+            try { SoundManager.playSuccessSound(); } catch (Exception ignored) {}
+
+            modalStage.show();
+
+            // Centrar respecto a la ventana principal
+            Stage owner = (Stage) mainLayout.getScene().getWindow();
+            modalStage.setX(owner.getX() + (owner.getWidth()  - modalStage.getWidth())  / 2);
+            modalStage.setY(owner.getY() + (owner.getHeight() - modalStage.getHeight()) / 2);
+
+        } catch (IOException e) {
+            eventModalOpen = false;
+            System.err.println("❌ [HomeController] Error abriendo event_modal.fxml: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onEventProgressUpdated(int userId, EventContextualService.ContextualEvent event,
+                                       int current, int target) {
+        // El progreso se muestra dentro del modal — no hace falta tocar el HUD aquí
+    }
+
+    @Override
+    public void onEventCriticalPhase(int userId, EventContextualService.ContextualEvent event) {
+        Platform.runLater(() ->
+            Toast.warning("⚠️ FASE CRÍTICA", "¡El jefe se está enfureciendo!"));
+    }
+
+    @Override
+    public void onEventCompleted(int userId, EventContextualService.ContextualEvent event,
+                                 CompletionStatus status, int xpReward, int coinReward) {
+        Platform.runLater(() -> {
+            if (status == CompletionStatus.VICTORY) {
+                refreshCharacterData();
+                // El Toast de victoria ya lo lanza EventModalController
+            }
+        });
     }
 }
