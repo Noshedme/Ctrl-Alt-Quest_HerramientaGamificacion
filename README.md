@@ -1,5 +1,4 @@
-Ctrl+Alt+Quest: gestión de usuarios, personajes, misiones, tienda y pagos.
-Requisitos mínimos:
+Una app desktop gamificada que convierte el uso de tu PC en una aventura RPG. Registra actividades, gana XP, completa misiones y derrota jefes.
 
 •	Java 17 (compilación configurada con `maven-compiler-plugin` / `release=17`).
 •	Maven instalado (usa `javafx-maven-plugin` para ejecutar
