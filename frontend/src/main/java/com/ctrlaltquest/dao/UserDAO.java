@@ -11,13 +11,6 @@ import com.ctrlaltquest.db.DatabaseConnection;
 
 public class UserDAO {
 
-    /**
-     * Otorgar recompensas y verificar subida de nivel
-     * @param userId ID del usuario
-     * @param xp Cantidad de XP a otorgar
-     * @param coins Cantidad de monedas a otorgar
-     * @return true si hubo subida de nivel
-     */
     public static boolean otorgarRecompensas(int userId, int xp, int coins) {
         boolean levelUp = false;
         String sqlSelect = "SELECT level, current_xp, coins FROM public.users WHERE id = ?";
@@ -89,24 +82,10 @@ public class UserDAO {
         }
     }
 
-    /**
-     * Registra una transacción de monedas en la tabla coin_transactions
-     * @param userId ID del usuario
-     * @param amount Cantidad de monedas (puede ser negativa para gastos)
-     * @param reason Descripción de la transacción
-     */
     public static void registrarTransaccionCoins(int userId, int amount, String reason) {
         registrarTransaccionCoins(userId, amount, reason, "system", null);
     }
 
-    /**
-     * Registra una transacción de monedas con referencia completa
-     * @param userId ID del usuario
-     * @param amount Cantidad de monedas
-     * @param reason Descripción
-     * @param refType Tipo de referencia (ej: "payment", "mission", "store")
-     * @param refId ID de referencia (ej: order_id, mission_id)
-     */
     public static void registrarTransaccionCoins(int userId, int amount, String reason, String refType, Integer refId) {
         String sql = "INSERT INTO public.coin_transactions (user_id, amount, reason, ref_type, ref_id, created_at) " +
                      "VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
@@ -136,12 +115,7 @@ public class UserDAO {
         }
     }
 
-    /**
-     * Actualiza el balance de monedas del usuario
-     * @param userId ID del usuario
-     * @param newBalance Nuevo balance de monedas
-     * @return true si se actualizó correctamente
-     */
+
     public static boolean actualizarMonedas(int userId, int newBalance) {
         String sql = "UPDATE public.users SET coins = ? WHERE id = ?";
         
@@ -161,11 +135,6 @@ public class UserDAO {
         }
     }
 
-    /**
-     * Obtiene el balance actual de monedas de un usuario
-     * @param userId ID del usuario
-     * @return Balance de monedas, -1 si hay error
-     */
     public static int obtenerBalanceMonedas(int userId) {
         String sql = "SELECT coins FROM public.users WHERE id = ?";
         
@@ -187,11 +156,6 @@ public class UserDAO {
         return -1;
     }
 
-    /**
-     * Obtiene el email de un usuario por su ID.
-     * @param userId ID del usuario
-     * @return Email del usuario o "Desconocido" si no se encuentra
-     */
     public static String getUserEmail(int userId) {
         String sql = "SELECT email FROM public.users WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -210,12 +174,6 @@ public class UserDAO {
         return "Desconocido";
     }
 
-    /**
-     * Actualiza la contraseña del usuario (hasheada con BCrypt).
-     * @param userId ID del usuario
-     * @param newPassword Nueva contraseña en texto plano (se hasheará automáticamente)
-     * @return true si se actualizó correctamente
-     */
     public static boolean updatePassword(int userId, String newPassword) {
         // Hashear antes de guardar (BCrypt con factor de trabajo 12)
         String passwordHash = BCrypt.hashpw(newPassword, BCrypt.gensalt(12));
@@ -241,13 +199,6 @@ public class UserDAO {
         }
     }
 
-    /**
-     * Elimina permanentemente un usuario y todos sus datos relacionados.
-     * ADVERTENCIA: Esta operación es irreversible. Asegúrate de tener CASCADE configurado
-     * en las foreign keys para eliminar automáticamente personajes, misiones, etc.
-     * @param userId ID del usuario a eliminar
-     * @return true si se eliminó correctamente
-     */
     public static boolean deleteUser(int userId) {
         String sql = "DELETE FROM public.users WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
