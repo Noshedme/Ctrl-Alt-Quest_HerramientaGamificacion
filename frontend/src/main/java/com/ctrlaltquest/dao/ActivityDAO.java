@@ -1,6 +1,6 @@
 package com.ctrlaltquest.dao;
 
-import java.sql.Connection; // Import corregido
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +10,6 @@ import com.ctrlaltquest.db.DatabaseConnection;
 public class ActivityDAO {
 
     public static int iniciarSesion(int userId) {
-        // Usamos RETURNING id para obtener la clave primaria generada por serial
         String sql = "INSERT INTO public.activity_sessions (user_id, session_start) VALUES (?, CURRENT_TIMESTAMP) RETURNING id";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -22,10 +21,6 @@ public class ActivityDAO {
             if (rs.next()) {
                 int sessionId = rs.getInt(1);
 
-                // Al iniciar sesión actualizamos la racha del usuario según last_sync:
-                // - Si last_sync es hoy: no cambiar
-                // - Si last_sync es ayer: incrementar racha en 1
-                // - En otro caso: reiniciar a 1
                 String updateUserSql = "UPDATE public.users u SET " +
                         "health_streak = CASE WHEN (u.last_sync::date = CURRENT_DATE) THEN u.health_streak " +
                         "WHEN (u.last_sync::date = (CURRENT_DATE - INTERVAL '1 day')) THEN COALESCE(u.health_streak,0) + 1 " +
@@ -81,14 +76,6 @@ public class ActivityDAO {
         }
     }
 
-    /**
-     * Registra un tick de actividad en app_usage_logs.
-     * Se llama cada 1 segundo desde ActivityMonitorService.
-     * 
-     * @param userId ID del usuario (no usado directamente, se obtiene de session_id)
-     * @param appName Nombre de la aplicación activa (almacenado como app_id)
-     * @param metricKey Clave de métrica (no usado en schema actual)
-     */
     public static void registrarActividad(int userId, String appName, String metricKey) {
         // Obtener session_id del usuario desde activity_sessions
         String sessionSql = "SELECT id FROM public.activity_sessions WHERE user_id = ? ORDER BY session_start DESC LIMIT 1";
