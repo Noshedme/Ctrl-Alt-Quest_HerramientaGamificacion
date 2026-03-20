@@ -5,15 +5,6 @@ import com.sun.jna.Native;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.HWND;
 
-/**
- * ActivityMonitorService — Detecta la ventana activa y reporta la actividad al motor de juego.
- *
- * Cada segundo:
- *  1. Obtiene el título de la ventana en primer plano (JNA / Win32)
- *  2. Clasifica la actividad (coding, productividad, navegación, etc.)
- *  3. Notifica a XPSyncService, GameService y MissionProgressService
- *  4. Actualiza la actividad en EventContextualService (para eventos contextuales)
- */
 public class ActivityMonitorService {
 
     private static final int MAX_TITLE_LENGTH = 1024;
@@ -22,16 +13,11 @@ public class ActivityMonitorService {
     private Thread  monitorThread;
     private int     currentUserId = -1;
 
-    // Singleton
     private static ActivityMonitorService instance;
     public static ActivityMonitorService getInstance() {
         if (instance == null) instance = new ActivityMonitorService();
         return instance;
     }
-
-    // ════════════════════════════════════════════════════════════════════════
-    // CONTROL DEL SERVICIO
-    // ════════════════════════════════════════════════════════════════════════
 
     public void startMonitoring(int userId) {
         if (isRunning) return;
@@ -74,9 +60,6 @@ public class ActivityMonitorService {
         System.out.println("🛑 ActivityMonitor: Detenido.");
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // LÓGICA PRINCIPAL
-    // ════════════════════════════════════════════════════════════════════════
 
     private void reportActivity() {
         String currentApp = getActiveWindowTitle();
@@ -98,9 +81,6 @@ public class ActivityMonitorService {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    // CLASIFICACIÓN
-    // ════════════════════════════════════════════════════════════════════════
 
     private String categorizeActivity(String windowTitle) {
         if (windowTitle == null || windowTitle.isEmpty() || windowTitle.equals("Desconocido"))
